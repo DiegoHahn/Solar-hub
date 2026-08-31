@@ -1,0 +1,35 @@
+{
+  "poll_interval_seconds": 600,
+  "data_dir": "data",
+  "history_max_records": 1000,
+  "api_port": 5000,
+  "inverters": [
+    {
+      "id": "inv_1",
+      "name": "Inversor 1 (Solis 6kW)",
+      "brand": "Solis",
+      "type": "solarman_lsw3",
+      "ip": "10.0.0.18",
+      "auth": "admin:admin",
+      "enabled": true
+    },
+    {
+      "id": "inv_2",
+      "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+      "brand": "GoodWe",
+      "type": "goodwe_udp",
+      "ip": "10.0.0.19",
+      "serial": "GOODWE-SERIAL-1",
+      "enabled": true
+    },
+    {
+      "id": "inv_3",
+      "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+      "brand": "GoodWe",
+      "type": "goodwe_udp",
+      "ip": "10.0.0.20",
+      "serial": "GOODWE-SERIAL-2",
+      "enabled": true
+    }
+  ]
+}
