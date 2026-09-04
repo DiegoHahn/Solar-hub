@@ -1,5 +1,45 @@
-import { ComingSoon } from "@/components/ComingSoon";
+import { AiEnergyAdvisor } from "@/components/AiEnergyAdvisor";
+import { EnergyFlowSection } from "@/components/EnergyFlowSection";
+import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
+import { getIcaraWeatherData } from "@/lib/weather";
 
-export default function CombinadaPage() {
-  return <ComingSoon title="Análise Combinada" />;
+export const metadata = {
+  title: "Análise Integrada | Solar Hub",
+  description: "Consultor de IA, fluxo de potência real e índice climático para Usina Solar em Içara/SC",
+};
+
+export default async function CombinadaPage() {
+  const weatherData = await getIcaraWeatherData();
+
+  return (
+    <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
+      {/* Cabeçalho da Página Clean */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
+            Análise
+          </h1>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            Consultor IA & Balanço Energético
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300">
+          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          IA Ativa
+        </span>
+      </div>
+
+      {/* 1. SEÇÃO TOPO: CONSULTOR ENERGÉTICO IA */}
+      <AiEnergyAdvisor
+        plantName="Usina Solar Diego Hahn (16 kW)"
+        nominalKwp={16.0}
+      />
+
+      {/* 2. SEÇÃO MEIO: FLUXO DE ENERGIA REAL & BALANÇO */}
+      <EnergyFlowSection />
+
+      {/* 3. SEÇÃO ABAIXO: ÍNDICE CLIMÁTICO VS EFICIÊNCIA */}
+      <WeatherEfficiencySection weatherData={weatherData} />
+    </main>
+  );
 }

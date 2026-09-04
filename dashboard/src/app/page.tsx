@@ -13,7 +13,8 @@ import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
 import { ProgressCircle } from "@/components/ProgressCircle";
 import { Badge } from "@/components/Badge";
-import { InverterCard } from "@/components/InverterCard";
+import { InvertersGroupCard } from "@/components/InvertersGroupCard";
+import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { SunCurveChart } from "@/components/SunCurveChart";
 import {
   getLatestTelemetry,
@@ -22,6 +23,7 @@ import {
   GENERATOR_UC,
   USE_MOCK,
 } from "@/lib/queries";
+import { getIcaraWeatherData } from "@/lib/weather";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
 import { cx } from "@/lib/utils";
 import type { BadgeProps } from "@/components/Badge";
@@ -40,10 +42,11 @@ function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
 }
 
 export default async function Home() {
-  const [telemetry, utilityData, sunCurve] = await Promise.all([
+  const [telemetry, utilityData, sunCurve, weatherData] = await Promise.all([
     getLatestTelemetry(),
     getLatestUtilityData(),
     getTodaySunCurve(),
+    getIcaraWeatherData(),
   ]);
 
   const saldoCreditos =
@@ -292,58 +295,13 @@ export default async function Home() {
       {/* CURVA SOLAR DE HOJE (Área Interativa com Gradiente) */}
       <SunCurveChart data={sunCurve} nominalCapKw={capacityKw} />
 
-      {/* SEÇÃO DOS INVERSORES FÍSICOS */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Geração por Inversor
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {onlineInvertersCount} de {telemetry?.inverters_count ?? 3} inversores operando
-            </p>
-          </div>
-          <Link
-            href="/placas"
-            className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
-          >
-            Ver strings PV
-            <RiArrowRightUpLine className="size-3.5" />
-          </Link>
-        </div>
+      {/* SEÇÃO DOS INVERSORES FÍSICOS (AGRUPADOS EM UM CARD COMPACTO) */}
+      <InvertersGroupCard inverters={telemetry?.inverters_data ?? []} />
 
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {telemetry?.inverters_data.map((inv) => (
-            <InverterCard key={inv.id} inverter={inv} />
-          ))}
-        </div>
-      </div>
+      {/* ÍNDICE CLIMÁTICO VS EFICIÊNCIA SOLAR (VERSÃO ENXUTA / COMPACTA) */}
+      <WeatherEfficiencySection weatherData={weatherData} compact={true} />
       </>
       )}
-
-      {/* CARD RESUMO DA COOPERATIVA (Acesso Rápido) */}
-      <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <RiBuilding2Line className="size-4 text-blue-500" />
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Gestão Cooperaliança & Créditos GD
-            </h3>
-          </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Você possui <span className="font-semibold text-gray-700 dark:text-gray-200">9.066,00 kWh</span> acumulados.
-            Próximo vencimento parcial em <span className="font-medium">01/08/2031</span>.
-          </p>
-        </div>
-
-        <Link
-          href="/cooperativa"
-          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-800 transition-colors hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-        >
-          Extrato Completo & Faturas
-          <RiArrowRightUpLine className="size-3.5" />
-        </Link>
-      </Card>
     </main>
   );
 }
