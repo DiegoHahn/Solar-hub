@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Advisor Runtime Cache & Quota
+.ai_quota.json
+.ai_advisor_cache.json
