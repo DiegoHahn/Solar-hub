@@ -1,0 +1,1252 @@
+{
+  "balanco": [
+    {
+      "mes": "09/2025",
+      "injetado_kwh": 829,
+      "compensado_kwh": 1182,
+      "liquido_kwh": -353,
+      "saldo_kwh": 3747
+    },
+    {
+      "mes": "10/2025",
+      "injetado_kwh": 1056,
+      "compensado_kwh": 2566,
+      "liquido_kwh": -1510,
+      "saldo_kwh": 2237
+    },
+    {
+      "mes": "11/2025",
+      "injetado_kwh": 1199,
+      "compensado_kwh": 2900,
+      "liquido_kwh": -1701,
+      "saldo_kwh": 536
+    },
+    {
+      "mes": "12/2025",
+      "injetado_kwh": 1456,
+      "compensado_kwh": 1992,
+      "liquido_kwh": -536,
+      "saldo_kwh": 0
+    },
+    {
+      "mes": "01/2026",
+      "injetado_kwh": 2300,
+      "compensado_kwh": 956,
+      "liquido_kwh": 1344,
+      "saldo_kwh": 1344
+    },
+    {
+      "mes": "02/2026",
+      "injetado_kwh": 2128,
+      "compensado_kwh": 729,
+      "liquido_kwh": 1399,
+      "saldo_kwh": 2743
+    },
+    {
+      "mes": "03/2026",
+      "injetado_kwh": 2093,
+      "compensado_kwh": 785,
+      "liquido_kwh": 1308,
+      "saldo_kwh": 4051
+    },
+    {
+      "mes": "04/2026",
+      "injetado_kwh": 2242,
+      "compensado_kwh": 789,
+      "liquido_kwh": 1453,
+      "saldo_kwh": 5504
+    },
+    {
+      "mes": "05/2026",
+      "injetado_kwh": 1766,
+      "compensado_kwh": 555,
+      "liquido_kwh": 1211,
+      "saldo_kwh": 6715
+    },
+    {
+      "mes": "06/2026",
+      "injetado_kwh": 1339,
+      "compensado_kwh": 530,
+      "liquido_kwh": 809,
+      "saldo_kwh": 7524
+    },
+    {
+      "mes": "07/2026",
+      "injetado_kwh": 1233,
+      "compensado_kwh": 440,
+      "liquido_kwh": 793,
+      "saldo_kwh": 8317
+    },
+    {
+      "mes": "08/2026",
+      "injetado_kwh": 1426,
+      "compensado_kwh": 677,
+      "liquido_kwh": 749,
+      "saldo_kwh": 9066
+    }
+  ],
+  "extrato": [
+    {
+      "tipo": "compensada",
+      "mes": "08/2026",
+      "kwh": -142,
+      "saldo": 9066,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2026",
+      "kwh": -535,
+      "saldo": 9208,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2026",
+      "kwh": 891,
+      "saldo": 9743,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2026",
+      "kwh": 535,
+      "saldo": 8852,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2026",
+      "kwh": -440,
+      "saldo": 8317,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2026",
+      "kwh": 771,
+      "saldo": 8757,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2026",
+      "kwh": 462,
+      "saldo": 7986,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2026",
+      "kwh": -28,
+      "saldo": 7524,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2026",
+      "kwh": -502,
+      "saldo": 7552,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2026",
+      "kwh": 837,
+      "saldo": 8054,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2026",
+      "kwh": 502,
+      "saldo": 7217,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2026",
+      "kwh": -555,
+      "saldo": 6715,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2026",
+      "kwh": 1104,
+      "saldo": 7270,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2026",
+      "kwh": 662,
+      "saldo": 6166,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "04/2026",
+      "kwh": -789,
+      "saldo": 5504,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2026",
+      "kwh": 1401,
+      "saldo": 6293,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2026",
+      "kwh": 841,
+      "saldo": 4892,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "03/2026",
+      "kwh": -785,
+      "saldo": 4051,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2026",
+      "kwh": 1308,
+      "saldo": 4836,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2026",
+      "kwh": 785,
+      "saldo": 3528,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "02/2026",
+      "kwh": -729,
+      "saldo": 2743,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2026",
+      "kwh": 1330,
+      "saldo": 3472,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2026",
+      "kwh": 798,
+      "saldo": 2142,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2026",
+      "kwh": -93,
+      "saldo": 1344,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2026",
+      "kwh": -863,
+      "saldo": 1437,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2026",
+      "kwh": 1437,
+      "saldo": 2300,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2026",
+      "kwh": 863,
+      "saldo": 863,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -3,
+      "saldo": 0,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -310,
+      "saldo": 3,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -94,
+      "saldo": 313,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -129,
+      "saldo": 407,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -910,
+      "saldo": 536,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2025",
+      "kwh": -546,
+      "saldo": 1446,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2025",
+      "kwh": 910,
+      "saldo": 1992,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2025",
+      "kwh": 546,
+      "saldo": 1082,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -553,
+      "saldo": 536,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -550,
+      "saldo": 1089,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -579,
+      "saldo": 1639,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -19,
+      "saldo": 2218,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -749,
+      "saldo": 2237,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2025",
+      "kwh": -450,
+      "saldo": 2986,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2025",
+      "kwh": 749,
+      "saldo": 3436,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2025",
+      "kwh": 450,
+      "saldo": 2687,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2025",
+      "kwh": -675,
+      "saldo": 2237,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2025",
+      "kwh": -835,
+      "saldo": 2912,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2025",
+      "kwh": -610,
+      "saldo": 3747,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2025",
+      "kwh": -446,
+      "saldo": 4357,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2025",
+      "kwh": 610,
+      "saldo": 4803,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2025",
+      "kwh": 446,
+      "saldo": 4193,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2025",
+      "kwh": -353,
+      "saldo": 3747,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2025",
+      "kwh": -478,
+      "saldo": 4100,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2025",
+      "kwh": -351,
+      "saldo": 4578,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2025",
+      "kwh": 478,
+      "saldo": 4929,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2025",
+      "kwh": 351,
+      "saldo": 4451,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2025",
+      "kwh": -560,
+      "saldo": 4100,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2025",
+      "kwh": -412,
+      "saldo": 4660,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2025",
+      "kwh": 563,
+      "saldo": 5072,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2025",
+      "kwh": 412,
+      "saldo": 4509,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2025",
+      "kwh": -247,
+      "saldo": 4097,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2025",
+      "kwh": -408,
+      "saldo": 4344,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2025",
+      "kwh": 557,
+      "saldo": 4752,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2025",
+      "kwh": 408,
+      "saldo": 4195,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2025",
+      "kwh": -352,
+      "saldo": 3787,
+      "grupo": 2
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2025",
+      "kwh": -327,
+      "saldo": 4139,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2025",
+      "kwh": 446,
+      "saldo": 4466,
+      "grupo": 2
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2025",
+      "kwh": 327,
+      "saldo": 4020,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2025",
+      "kwh": -734,
+      "saldo": 3693,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2025",
+      "kwh": 1416,
+      "saldo": 4427,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "04/2025",
+      "kwh": -706,
+      "saldo": 3011,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2025",
+      "kwh": 1256,
+      "saldo": 3717,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "03/2025",
+      "kwh": -879,
+      "saldo": 2461,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2025",
+      "kwh": 1458,
+      "saldo": 3340,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "02/2025",
+      "kwh": -783,
+      "saldo": 1882,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2025",
+      "kwh": 1477,
+      "saldo": 2665,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2025",
+      "kwh": -788,
+      "saldo": 1188,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2025",
+      "kwh": 1976,
+      "saldo": 1976,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2024",
+      "kwh": -701,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2024",
+      "kwh": 701,
+      "saldo": 701,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2024",
+      "kwh": -317,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2024",
+      "kwh": 317,
+      "saldo": 317,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2024",
+      "kwh": -253,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2024",
+      "kwh": 253,
+      "saldo": 253,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2024",
+      "kwh": -379,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2024",
+      "kwh": 379,
+      "saldo": 379,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2024",
+      "kwh": -345,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2024",
+      "kwh": 345,
+      "saldo": 345,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2024",
+      "kwh": -211,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2024",
+      "kwh": 211,
+      "saldo": 211,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2024",
+      "kwh": -339,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2024",
+      "kwh": 339,
+      "saldo": 339,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2024",
+      "kwh": -260,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2024",
+      "kwh": 260,
+      "saldo": 260,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "04/2024",
+      "kwh": -444,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2024",
+      "kwh": 444,
+      "saldo": 444,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "03/2024",
+      "kwh": -476,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2024",
+      "kwh": 476,
+      "saldo": 476,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "02/2024",
+      "kwh": -455,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2024",
+      "kwh": 455,
+      "saldo": 455,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2024",
+      "kwh": -467,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2024",
+      "kwh": 467,
+      "saldo": 467,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2023",
+      "kwh": -283,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2023",
+      "kwh": 283,
+      "saldo": 283,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2023",
+      "kwh": -87,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2023",
+      "kwh": 87,
+      "saldo": 87,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2023",
+      "kwh": -66,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2023",
+      "kwh": 66,
+      "saldo": 66,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2023",
+      "kwh": -336,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2023",
+      "kwh": 336,
+      "saldo": 336,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2023",
+      "kwh": -330,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2023",
+      "kwh": 330,
+      "saldo": 330,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2023",
+      "kwh": -339,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2023",
+      "kwh": 339,
+      "saldo": 339,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2023",
+      "kwh": -479,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2023",
+      "kwh": 479,
+      "saldo": 479,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2023",
+      "kwh": -435,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2023",
+      "kwh": 435,
+      "saldo": 435,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "04/2023",
+      "kwh": -601,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2023",
+      "kwh": 601,
+      "saldo": 601,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "03/2023",
+      "kwh": -521,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2023",
+      "kwh": 521,
+      "saldo": 521,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "02/2023",
+      "kwh": -534,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2023",
+      "kwh": 534,
+      "saldo": 534,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2023",
+      "kwh": -558,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2023",
+      "kwh": 558,
+      "saldo": 558,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2022",
+      "kwh": -294,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2022",
+      "kwh": 294,
+      "saldo": 294,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2022",
+      "kwh": -75,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2022",
+      "kwh": 75,
+      "saldo": 75,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2022",
+      "kwh": -2,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2022",
+      "kwh": -243,
+      "saldo": 2,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2022",
+      "kwh": 243,
+      "saldo": 245,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2022",
+      "kwh": -594,
+      "saldo": 2,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2022",
+      "kwh": 596,
+      "saldo": 596,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2022",
+      "kwh": -360,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2022",
+      "kwh": 360,
+      "saldo": 360,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2022",
+      "kwh": -409,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2022",
+      "kwh": 409,
+      "saldo": 409,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2022",
+      "kwh": -355,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2022",
+      "kwh": 355,
+      "saldo": 355,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2022",
+      "kwh": -448,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2022",
+      "kwh": 448,
+      "saldo": 448,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "04/2022",
+      "kwh": -427,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "04/2022",
+      "kwh": 427,
+      "saldo": 427,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "03/2022",
+      "kwh": -584,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "03/2022",
+      "kwh": 584,
+      "saldo": 584,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "02/2022",
+      "kwh": -621,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "02/2022",
+      "kwh": 621,
+      "saldo": 621,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "01/2022",
+      "kwh": -742,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "01/2022",
+      "kwh": 742,
+      "saldo": 742,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "12/2021",
+      "kwh": -146,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "12/2021",
+      "kwh": 146,
+      "saldo": 146,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "11/2021",
+      "kwh": -113,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "11/2021",
+      "kwh": 113,
+      "saldo": 113,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "10/2021",
+      "kwh": -204,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "10/2021",
+      "kwh": 204,
+      "saldo": 204,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2021",
+      "kwh": -72,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "09/2021",
+      "kwh": -326,
+      "saldo": 72,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "09/2021",
+      "kwh": 326,
+      "saldo": 398,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "08/2021",
+      "kwh": -523,
+      "saldo": 72,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "08/2021",
+      "kwh": 595,
+      "saldo": 595,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "07/2021",
+      "kwh": -491,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "07/2021",
+      "kwh": 491,
+      "saldo": 491,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "06/2021",
+      "kwh": -552,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "06/2021",
+      "kwh": 552,
+      "saldo": 552,
+      "grupo": 1
+    },
+    {
+      "tipo": "compensada",
+      "mes": "05/2021",
+      "kwh": -540,
+      "saldo": 0,
+      "grupo": 1
+    },
+    {
+      "tipo": "injetada",
+      "mes": "05/2021",
+      "kwh": 540,
+      "saldo": 540,
+      "grupo": 1
+    }
+  ]
+}

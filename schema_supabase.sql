@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.utility_data (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     distribuidora TEXT NOT NULL DEFAULT 'Cooperaliança (Içara/SC)',
     titular TEXT NOT NULL,
-    cpf TEXT NOT NULL,
+    cpf TEXT NOT NULL UNIQUE, -- Uma linha por titular; collector_utility.py faz upsert (on_conflict=cpf)
     perfil_usuario JSONB,
     tarifa_referencia JSONB,
     unidades_consumidoras JSONB NOT NULL, -- Histórico de 60 meses, extrato GD I e II, gráfico e faturas

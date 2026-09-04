@@ -47,11 +47,12 @@ def push_utility_to_supabase(result):
     headers = {
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
     }
 
     try:
-        resp = requests.post(f"{supabase_url}/rest/v1/utility_data", headers=headers, json=payload, timeout=12)
+        resp = requests.post(f"{supabase_url}/rest/v1/utility_data?on_conflict=cpf", headers=headers, json=payload, timeout=12)
         if resp.status_code in [200, 201]:
             print(f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})")
         else:
