@@ -38,15 +38,15 @@ export function WeatherEfficiencySection({
 }: WeatherEfficiencySectionProps) {
   const [range, setRange] = useState<"7d" | "30d" | "90d">("7d");
 
-  // Se for na Home (compact), mostra sempre os últimos 8 dias (7 anteriores + hoje)
-  // Na aba de Análise: 7d (slice -8), 30d (slice -31), 90d (todo o array / slice -91)
+  // Se for na Home (compact) ou 7d, mostra os últimos 7 dias (6 dias anteriores + hoje)
+  // Na aba de Análise: 7d (slice -7), 30d (slice -30), 90d (todo o array / slice -90)
   const displayedData = compact
-    ? weatherData.slice(-8)
+    ? weatherData.slice(-7)
     : range === "7d"
-    ? weatherData.slice(-8)
+    ? weatherData.slice(-7)
     : range === "30d"
-    ? weatherData.slice(-31)
-    : weatherData.slice(-91);
+    ? weatherData.slice(-30)
+    : weatherData.slice(-90);
 
   const [activePoint, setActivePoint] = useState<DailyWeather>(
     displayedData[displayedData.length - 1] || weatherData[weatherData.length - 1]
@@ -163,7 +163,18 @@ export function WeatherEfficiencySection({
           {/* Lado Direito: Métricas chave ocupando o espaço livre */}
           <div className="flex items-center gap-2.5 sm:gap-4 shrink-0 text-right">
             <div>
-              <span className="block text-[10px] text-gray-500 dark:text-gray-400">Geração</span>
+              <div className="flex items-center justify-end gap-1">
+                <span className="block text-[10px] text-gray-500 dark:text-gray-400">Geração</span>
+                {point.isReal ? (
+                  <span className="rounded bg-emerald-500/10 px-1 py-0.2 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Real
+                  </span>
+                ) : (
+                  <span className="rounded bg-amber-500/10 px-1 py-0.2 text-[9px] font-medium text-amber-600 dark:text-amber-400">
+                    Est.
+                  </span>
+                )}
+              </div>
               <strong className="text-xs sm:text-base font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">
                 {point.estimatedKwh.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">kWh</span>
               </strong>
@@ -204,11 +215,10 @@ export function WeatherEfficiencySection({
               interval={range === "90d" && !compact ? 14 : range === "30d" && !compact ? 4 : 0}
               tick={{ fill: "#9ca3af", fontSize: 11 }}
             />
-            {/* Eixo Esquerdo: Geração (kWh) */}
+            {/* Eixo Esquerdo: Geração (kWh) — dinâmico para comportar picos de 100+ kWh */}
             <YAxis
               yAxisId="kwh"
-              domain={[0, 80]}
-              ticks={[0, 20, 40, 60, 80]}
+              domain={[0, (max: number) => Math.max(80, Math.ceil(max / 20) * 20)]}
               tickLine={false}
               axisLine={false}
               tick={{ fill: "#9ca3af", fontSize: 11 }}
@@ -236,10 +246,15 @@ export function WeatherEfficiencySection({
                       <div className="flex items-center gap-1.5 font-bold text-gray-200">
                         {renderWeatherIcon(p.icon)}
                         <span>{p.dayOfWeek}, {p.formattedDate} — {p.condition}</span>
+                        {p.isReal && (
+                          <span className="ml-auto rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+                            Telemetria Real
+                          </span>
+                        )}
                       </div>
                       <div className="mt-2 space-y-1">
                         <div className="flex justify-between gap-4 text-amber-400">
-                          <span>Geração da usina:</span>
+                          <span>{p.isReal ? "Geração real da usina:" : "Geração estimada (HSP):"}</span>
                           <strong>{p.estimatedKwh} kWh</strong>
                         </div>
                         <div className="flex justify-between gap-4 text-cyan-400">

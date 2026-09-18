@@ -16,6 +16,8 @@ export interface DailyWeather {
   solarRadiationHsp: number; // Horas de Sol Pleno (kWh/m²) convertidas de MJ/m²
   precipitationMm: number;
   estimatedKwh: number; // Geração solar real/estimada para usina de 16 kWp
+  isReal?: boolean; // true se veio de telemetria física real dos inversores
+  realKwh?: number;
 }
 
 export interface CurrentWeather {
@@ -163,9 +165,11 @@ export const fallbackDailyWeather: DailyWeather[] = [
   },
 ];
 
+import { getTelemetryByDay } from "./queries";
+
 /**
  * Busca histórico recente e previsão do tempo via Open-Meteo
- * Coordenadas e geometria configuradas via variáveis de ambiente (.env / .env.local)
+ * Cruza com a telemetria real registrada no Supabase (se houver para a data)
  */
 export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
   try {
@@ -184,9 +188,14 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
       process.env.SOLAR_AZIMUTH ||
       "155";
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=${tilt}&azimuth=${azimuth}&timezone=America%2FSao_Paulo&past_days=90&forecast_days=1`;
+    const [res, realTelemetryByDay] = await Promise.all([
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=${tilt}&azimuth=${azimuth}&timezone=America%2FSao_Paulo&past_days=90&forecast_days=1`,
+        { next: { revalidate: 3600 } }
+      ),
+      getTelemetryByDay(90),
+    ]);
 
-    const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Falha na chamada Open-Meteo");
 
     const data = await res.json();
@@ -198,11 +207,19 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
     const radiation: number[] = data.daily?.shortwave_radiation_sum || [];
     const precip: number[] = data.daily?.precipitation_sum || [];
 
+    const todayIso = new Date().toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).split("/").reverse().join("-");
+
     const result: DailyWeather[] = times.map((t, idx) => {
       const parts = t.split("-");
       const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       const dayOfWeek = dayNames[dateObj.getDay()];
-      const formattedDate = `${parts[2]}/${parts[1]}`;
+      const isToday = t === todayIso;
+      const formattedDate = isToday ? "Hoje" : `${parts[2]}/${parts[1]}`;
       const code = weatherCodes[idx] ?? 0;
       const { condition, icon } = parseWmoCode(code);
 
@@ -211,13 +228,16 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
       const hsp = Number((radMj / 3.6).toFixed(2));
       const sunHours = Number(((sunshine[idx] ?? 0) / 3600).toFixed(1));
 
-      // Estimativa para a usina de 16 kWp com Performance Ratio de ~80%
-      const estimatedKwh = Number((16.0 * hsp * 0.81).toFixed(1));
+      // Se tivermos telemetria física real dos inversores registrada para este dia, usamos o valor REAL!
+      const hasRealData = realTelemetryByDay && realTelemetryByDay[t] !== undefined;
+      const actualKwh = hasRealData
+        ? Number(realTelemetryByDay[t].toFixed(1))
+        : Number((16.0 * hsp * 0.81).toFixed(1));
 
       return {
         date: t,
         dayOfWeek,
-        formattedDate: idx === times.length - 2 ? "Hoje" : formattedDate,
+        formattedDate,
         weatherCode: code,
         condition,
         icon,
@@ -226,7 +246,9 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
         sunshineHours: sunHours,
         solarRadiationHsp: hsp,
         precipitationMm: precip[idx] ?? 0,
-        estimatedKwh,
+        estimatedKwh: actualKwh,
+        isReal: hasRealData,
+        realKwh: hasRealData ? actualKwh : undefined,
       };
     });
 

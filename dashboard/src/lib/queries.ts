@@ -100,40 +100,55 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
   }
 }
 
-export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
+export async function getTelemetryByDay(daysBack: number = 90): Promise<Record<string, number>> {
   try {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysBack);
+    startDate.setHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
       .from("solar_telemetry")
       .select("recorded_at, total_today_kwh")
-      .gte("recorded_at", startOfMonth.toISOString())
+      .gte("recorded_at", startDate.toISOString())
       .order("recorded_at", { ascending: true });
 
     if (error || !data || data.length === 0) {
-      return [];
+      return {};
     }
 
     const byDay: Record<string, number> = {};
     for (const r of data) {
-      const dayLabel = new Date(r.recorded_at).toLocaleDateString("pt-BR", {
-        day: "2-digit",
+      const dayIso = new Date(r.recorded_at).toLocaleDateString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
         month: "2-digit",
-      });
+        day: "2-digit",
+      }).split("/").reverse().join("-");
+
       const val = Number(r.total_today_kwh) || 0;
-      if (!byDay[dayLabel] || val > byDay[dayLabel]) {
-        byDay[dayLabel] = val;
+      if (!byDay[dayIso] || val > byDay[dayIso]) {
+        byDay[dayIso] = val;
       }
     }
-
-    return Object.entries(byDay).map(([label, kwh]) => ({
-      label,
-      kwh: Number(kwh.toFixed(1)),
-    }));
+    return byDay;
   } catch (err) {
-    console.error("Erro ao calcular geração mensal do Supabase:", err);
+    console.error("Erro ao buscar histórico diário de telemetria:", err);
+    return {};
+  }
+}
+
+export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
+  try {
+    const byDay = await getTelemetryByDay(31);
+    return Object.entries(byDay).map(([iso, kwh]) => {
+      const parts = iso.split("-");
+      return {
+        label: `${parts[2]}/${parts[1]}`,
+        kwh: Number(kwh.toFixed(1)),
+      };
+    });
+  } catch (err) {
+    console.error("Erro ao calcular geração mensal:", err);
     return [];
   }
 }
