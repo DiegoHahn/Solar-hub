@@ -135,23 +135,52 @@ COOPERALIANCA_SENHA="sua_senha"
 ### 3. Criar as Tabelas no Supabase
 Execute o script [schema_supabase.sql](file:///c:/Users/Diego/Dev/schema_supabase.sql) no **SQL Editor** do Supabase.
 
-### 4. Executar os Coletores
-* **Inversores (Tempo Real + Nuvem):**
-  ```powershell
-  # Rodar pelo script interativo:
-  run_inverters.bat
+### 4. Executar os Coletores Locais
+* **No Windows (Manual ou 24/7):**
+  * Inversores (Tempo Real + Nuvem): dê duplo clique em [run_inverters.bat](file:///c:/Users/Diego/Dev/Solar-hub/run_inverters.bat) ou rode `.\.venv\Scripts\python.exe collector_inverters.py`
+  * Concessionária (Faturas, GD + Nuvem): dê duplo clique em [run_utility.bat](file:///c:/Users/Diego/Dev/Solar-hub/run_utility.bat) ou rode `.\.venv\Scripts\python.exe collector_utility.py --pdf`
 
-  # Ou direto via terminal:
-  python collector_inverters.py --once
-  ```
-* **Concessionária (Faturas, GD + Nuvem):**
-  ```powershell
-  # Rodar pelo script interativo:
-  run_utility.bat
+* **No Linux / Orange Pi / Raspberry Pi (24/7 via terminal ou systemd):**
+  ```bash
+  # Executar via script com reinício automático:
+  ./run_inverters.sh
 
-  # Ou direto via terminal:
-  python collector_utility.py --pdf
+  # Ou instalar como serviço do sistema no boot automático:
+  sudo cp solar-inverters.service /etc/systemd/system/
+  sudo systemctl enable --now solar-inverters.service
   ```
+
+---
+
+## 🌐 5. Executar o Dashboard Web (Next.js)
+
+O painel web moderno fica localizado na pasta `dashboard/` e consome diretamente o Supabase em tempo real.
+
+### Executar Localmente (Desenvolvimento):
+```bash
+cd dashboard
+
+# 1. Instalar as dependências (necessário Node.js 18+):
+npm install
+
+# 2. Iniciar servidor local:
+npm run dev
+```
+Acesse no seu navegador: **http://localhost:3000**
+
+### Variáveis de Ambiente do Dashboard:
+O painel consome as chaves de [dashboard/.env.local](file:///c:/Users/Diego/Dev/Solar-hub/dashboard/.env.local):
+* `NEXT_PUBLIC_SUPABASE_URL`: URL do seu projeto no Supabase
+* `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Chave publishable/anon do Supabase
+* `GEMINI_API_KEY`: Chave do Google AI Studio para o consultor energético com IA
+* `NEXT_PUBLIC_SOLAR_LATITUDE` e `NEXT_PUBLIC_SOLAR_LONGITUDE`: Coordenadas para cálculo de irradiação solar (Open-Meteo)
+
+### 🚀 Publicar na Nuvem com Custo Zero (Vercel):
+1. Acesse [vercel.com](https://vercel.com) e faça login com sua conta do GitHub.
+2. Clique em **Add New...** > **Project** e selecione o repositório `DiegoHahn/Solar-hub`.
+3. No campo **Root Directory**, clique em Edit e selecione a pasta `dashboard`.
+4. Em **Environment Variables**, adicione as variáveis do `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `GEMINI_API_KEY`, etc.).
+5. Clique em **Deploy**. Em menos de 1 minuto seu portal estará no ar com link público e certificado SSL gratuito!
 
 ---
 
@@ -159,25 +188,24 @@ Execute o script [schema_supabase.sql](file:///c:/Users/Diego/Dev/schema_supabas
 
 Para rodar os scripts 24 horas por dia em rede local (sem precisar deixar o computador pessoal ligado):
 
-1. **Mini PC Corporativo Usado (Dell OptiPlex Micro / Lenovo ThinkCentre Tiny):**
-   * *Faixa de Preço:* R$ 450 – R$ 650 no Mercado Livre.
-   * *Especificações:* Intel Core i3/i5, 8GB RAM, SSD 120/240GB.
-   * *Consumo:* 10W a 15W.
-   * *Uso:* Melhor custo-benefício disparado para servidor doméstico (Home Assistant, Docker, Pi-hole, Plex e Coletor Solar).
-2. **Orange Pi Zero 3 (4GB RAM):**
-   * *Faixa de Preço:* R$ 280 – R$ 380.
-   * *Consumo:* ~2W a 3W.
-   * *Uso:* Excelente SBC de baixo custo com Linux completo.
+1. **Orange Pi 4 Pro (Allwinner A733 - 4GB LPDDR5) ⭐ (Hardware Atual):**
+   * *Processador:* 8 núcleos ARM (2x Cortex-A76 + 6x Cortex-A55) + NPU de 3 TOPS.
+   * *Consumo:* ~3W a 7W.
+   * *Conectividade:* Gigabit Ethernet, Wi-Fi 6, slot M.2 NVMe SSD.
+   * *Uso:* Perfeito para coletar os inversores 24/7, rodar Home Assistant e projetos domésticos.
+2. **Mini PC Corporativo Usado (Dell OptiPlex Micro / Lenovo Tiny):**
+   * *Faixa de Preço:* R$ 450 – R$ 650.
+   * *Uso:* Servidor doméstico multi-serviços x86_64.
 3. **Raspberry Pi 5 (4GB RAM):**
    * *Faixa de Preço:* R$ 750 – R$ 950.
-   * *Uso:* Linha oficial com ecossistema líder de mercado.
+   * *Uso:* Linha oficial ARM.
 
 ---
 
-## 🎯 7. Roadmap do Portal Web (Dashboard)
+## 🎯 7. Funcionalidades do Portal Web (Dashboard)
 
 1. **Gauges & Telemetria em Tempo Real:** Medidor central animado de 0 a 16 kW + cards individuais dos 3 inversores (temperatura, tensões de string PV1/PV2).
 2. **Gráfico Diário & Histórico:** Curva de geração solar horária e comparativo semanal/mensal.
-3. **Banco de Créditos GD:** Card visual da "Poupança Energética" com **9.066 kWh** (~R$ 8.000,00) e alertas de vencimento.
-4. **Módulo de Faturas:** Histórico de consumo x injeção de 60 meses, demonstrativo de economia e download de faturas/PIX.
-5. **Hospedagem Custo Zero:** Deploy contínuo na Vercel ou Cloudflare Pages conectado ao Supabase.
+3. **Banco de Créditos GD:** Card visual da "Poupança Energética" com extrato completo e alertas de vencimento.
+4. **Módulo de Faturas:** Histórico de consumo x injeção de 60 meses, demonstrativo de economia e download de faturas/PIX da Cooperaliança.
+5. **Consultor Energético IA (Gemini):** Análise executiva em português sobre eficiência, consumo e economia estimada.
