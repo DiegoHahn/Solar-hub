@@ -9,7 +9,7 @@ import asyncio
 import requests
 from datetime import datetime
 from threading import Thread
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 
 # Garante suporte a UTF-8 no terminal Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -54,6 +54,103 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 LATEST_FILE = os.path.join(DATA_DIR, "latest.json")
 HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
+OFFLINE_QUEUE_FILE = os.path.join(DATA_DIR, "offline_queue.json")
+
+def atomic_write_json(filepath, data):
+    """Grava JSON de forma atômica usando arquivo temporário para evitar corrupção por leitura simultânea."""
+    dir_name = os.path.dirname(filepath)
+    os.makedirs(dir_name, exist_ok=True)
+    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time()*1000)}"
+    try:
+        with open(temp_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_file, filepath)
+    except Exception as e:
+        if os.path.exists(temp_file):
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass
+        raise e
+
+def queue_offline_telemetry(payload):
+    """Guarda snapshot no buffer offline caso o Supabase esteja temporariamente inacessível."""
+    queue = []
+    if os.path.exists(OFFLINE_QUEUE_FILE):
+        try:
+            with open(OFFLINE_QUEUE_FILE, "r", encoding="utf-8") as f:
+                queue = json.load(f)
+        except Exception:
+            queue = []
+    queue.append(payload)
+    if len(queue) > 500:
+        queue = queue[-500:]
+    try:
+        atomic_write_json(OFFLINE_QUEUE_FILE, queue)
+    except Exception as e:
+        print(f" ⚠️ [BUFFER] Erro ao salvar na fila offline: {e}")
+
+def flush_offline_queue(supabase_url, headers):
+    """Tenta enviar dados acumulados na fila offline para o Supabase quando a conexão voltar."""
+    if not os.path.exists(OFFLINE_QUEUE_FILE):
+        return
+    try:
+        with open(OFFLINE_QUEUE_FILE, "r", encoding="utf-8") as f:
+            queue = json.load(f)
+    except Exception:
+        return
+    if not queue:
+        return
+
+    print(f" 📦 [SUPABASE] Conexão ativa detectada! Enviando {len(queue)} registro(s) pendente(s) da fila offline...")
+    remaining = []
+    for idx, item in enumerate(queue):
+        try:
+            resp = requests.post(f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=item, timeout=8)
+            if resp.status_code not in [200, 201]:
+                remaining.extend(queue[idx:])
+                break
+        except Exception:
+            remaining.extend(queue[idx:])
+            break
+
+    if remaining:
+        try:
+            atomic_write_json(OFFLINE_QUEUE_FILE, remaining)
+            print(f" ⚠️ [SUPABASE] {len(remaining)} registro(s) mantido(s) na fila para o próximo ciclo.")
+        except Exception:
+            pass
+    else:
+        try:
+            os.remove(OFFLINE_QUEUE_FILE)
+            print(" ✅ [SUPABASE] Todos os registros acumulados offline foram sincronizados com sucesso!")
+        except OSError:
+            atomic_write_json(OFFLINE_QUEUE_FILE, [])
+
+def get_last_known_energies():
+    """Recupera os últimos valores de energia diária de hoje caso algum inversor fique offline à noite ou em standby."""
+    if not os.path.exists(LATEST_FILE):
+        return {}
+    try:
+        with open(LATEST_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        saved_date = data.get("timestamp", "")[:10]
+        today_date = datetime.now().strftime("%Y-%m-%d")
+        if saved_date == today_date:
+            last_known = {}
+            for inv in data.get("inverters", []):
+                inv_id = inv.get("id")
+                if inv_id:
+                    last_known[inv_id] = {
+                        "energy_today_kwh": inv.get("energy_today_kwh", 0.0),
+                        "energy_total_kwh": inv.get("energy_total_kwh", 0.0)
+                    }
+            return last_known
+    except Exception:
+        pass
+    return {}
 
 def fetch_solis_lsw3(ip, auth_str="admin:admin", timeout=4):
     """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html."""
@@ -92,12 +189,18 @@ def fetch_solis_lsw3(ip, auth_str="admin:admin", timeout=4):
         "raw_variables": raw_vars
     }
 
-async def fetch_goodwe_udp_async(ip, timeout=3, retries=2):
-    """Consulta inversor GoodWe via UDP porta 8899."""
+async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
+    """Consulta inversor GoodWe via Modbus TCP (porta 502) ou fallback UDP (porta 8899)."""
     if goodwe is None:
         raise ImportError("Biblioteca goodwe nao disponivel.")
     
-    inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
+    inv = None
+    try:
+        inv = await goodwe.connect(ip, port=port, family=family, timeout=timeout, retries=retries)
+    except Exception:
+        # Fallback para UDP porta 8899 caso Modbus TCP não esteja disponível
+        inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
+
     runtime_data = await inv.read_runtime_data()
     
     def parse_f(k, default=0.0):
@@ -109,7 +212,7 @@ async def fetch_goodwe_udp_async(ip, timeout=3, retries=2):
         except (ValueError, TypeError):
             return default
 
-    power_w = parse_f("total_inverter_power", parse_f("active_power", parse_f("p_grid", 0.0)))
+    power_w = parse_f("total_inverter_power", parse_f("active_power", parse_f("p_grid", parse_f("ppv", 0.0))))
     today_kwh = parse_f("e_day", parse_f("energy_today", 0.0))
     total_kwh = parse_f("e_total", parse_f("energy_total", 0.0))
     temp_c = parse_f("temperature", parse_f("inverter_temperature", 0.0))
@@ -158,8 +261,12 @@ def collect_inverter(inv_cfg):
             res = fetch_solis_lsw3(ip, auth_str=auth_str, timeout=4)
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
             
-        elif inv_type == "goodwe_udp":
-            res = asyncio.run(fetch_goodwe_udp_async(ip, timeout=3, retries=2))
+        elif inv_type in ["goodwe_udp", "goodwe_tcp", "goodwe"]:
+            port = inv_cfg.get("port", 502)
+            family = inv_cfg.get("family", "DT")
+            timeout = inv_cfg.get("timeout", 4)
+            retries = inv_cfg.get("retries", 2)
+            res = asyncio.run(fetch_goodwe_async(ip, port=port, family=family, timeout=timeout, retries=retries))
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
             
     except Exception as e:
@@ -177,7 +284,7 @@ def collect_inverter(inv_cfg):
         }
 
 def push_to_supabase(plant_summary):
-    """Envia o snapshot de telemetria para o Supabase (Nuvem)."""
+    """Envia o snapshot de telemetria para o Supabase com suporte a fila offline (Offline-First)."""
     supabase_url = ENV.get("SUPABASE_URL")
     service_key = ENV.get("SUPABASE_SERVICE_ROLE_KEY")
     if not supabase_url or not service_key or "SEU_PROJECT_REF" in supabase_url:
@@ -206,10 +313,13 @@ def push_to_supabase(plant_summary):
         resp = requests.post(f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=payload, timeout=8)
         if resp.status_code in [200, 201]:
             print(f" ☁️ [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})")
+            flush_offline_queue(supabase_url, headers)
         else:
-            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar: {resp.status_code} - {resp.text[:100]}")
+            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar ({resp.status_code}): {resp.text[:100]}")
+            queue_offline_telemetry(payload)
     except Exception as e:
-        print(f" ⚠️ [SUPABASE] Erro de rede ao sincronizar com a nuvem: {e}")
+        print(f" ⚠️ [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local...")
+        queue_offline_telemetry(payload)
 
 def run_collection_cycle():
     """Executa um ciclo completo de leitura dos 3 inversores e consolida os dados."""
@@ -224,10 +334,19 @@ def run_collection_cycle():
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [TELEMETRIA SOLAR] INICIANDO CICLO DE LEITURA")
     print(f"=======================================================")
 
+    last_known = get_last_known_energies()
+
     for inv_cfg in config.get("inverters", []):
         if not inv_cfg.get("enabled", True):
             continue
         res = collect_inverter(inv_cfg)
+        inv_id = res.get("id")
+
+        # Se o inversor estiver offline (ex: noite/standby), reaproveita o último acumulado válido de hoje
+        if res.get("status") != "online" and inv_id in last_known:
+            res["energy_today_kwh"] = last_known[inv_id].get("energy_today_kwh", 0.0)
+            res["energy_total_kwh"] = last_known[inv_id].get("energy_total_kwh", 0.0)
+
         inverters_results.append(res)
         
         p_w = res.get("power_w", 0.0)
@@ -259,11 +378,13 @@ def run_collection_cycle():
     print(f" GERACAO HOJE   : {total_today_kwh:7.2f} kWh | TOTAL ACUMULADO: {total_lifetime_kwh:,.1f} kWh")
     print(f"=======================================================")
 
-    # Salva latest.json
-    with open(LATEST_FILE, "w", encoding="utf-8") as f:
-        json.dump(plant_summary, f, indent=2, ensure_ascii=False)
+    # Salva latest.json com escrita atômica
+    try:
+        atomic_write_json(LATEST_FILE, plant_summary)
+    except Exception as e:
+        print(f" ⚠️ [DISCO] Erro ao gravar latest.json: {e}")
 
-    # Atualiza history.json
+    # Atualiza history.json com escrita atômica
     history_records = []
     if os.path.exists(HISTORY_FILE):
         try:
@@ -286,24 +407,31 @@ def run_collection_cycle():
     if len(history_records) > max_records:
         history_records = history_records[-max_records:]
         
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history_records, f, indent=2, ensure_ascii=False)
+    try:
+        atomic_write_json(HISTORY_FILE, history_records)
+    except Exception as e:
+        print(f" ⚠️ [DISCO] Erro ao gravar history.json: {e}")
 
     # Sincroniza automaticamente com o Supabase (Nuvem)
     push_to_supabase(plant_summary)
 
     return plant_summary
 
-# REST API Embutida
+# REST API Embutida Thread-Safe
 class SolarApiHandler(BaseHTTPRequestHandler):
     def _send_json(self, data, status=200):
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "*")
-        self.end_headers()
-        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
+        try:
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (ConnectionResetError, BrokenPipeError):
+            pass
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -315,17 +443,23 @@ class SolarApiHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/latest":
             if os.path.exists(LATEST_FILE):
-                with open(LATEST_FILE, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                self._send_json(data)
+                try:
+                    with open(LATEST_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    self._send_json(data)
+                except Exception:
+                    self._send_json({"error": "Erro de leitura do arquivo de telemetria"}, 500)
             else:
                 self._send_json({"error": "Nenhum dado coletado ainda"}, 404)
                 
         elif self.path == "/api/history":
             if os.path.exists(HISTORY_FILE):
-                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                self._send_json(data)
+                try:
+                    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    self._send_json(data)
+                except Exception:
+                    self._send_json([])
             else:
                 self._send_json([])
 
@@ -343,8 +477,28 @@ class SolarApiHandler(BaseHTTPRequestHandler):
         pass
 
 def start_http_server(port=5000):
-    server = HTTPServer(("0.0.0.0", port), SolarApiHandler)
-    server.serve_forever()
+    server = None
+    selected_port = port
+    for p in [port, port + 1, port + 2]:
+        try:
+            server = ThreadingHTTPServer(("0.0.0.0", p), SolarApiHandler)
+            selected_port = p
+            break
+        except OSError as e:
+            if getattr(e, "errno", None) == 10048 or "Address already in use" in str(e):
+                continue
+            else:
+                print(f" [!] Aviso ao iniciar servidor HTTP na porta {p}: {e}")
+                return
+
+    if server:
+        print(f" [*] API REST Local iniciada em: http://localhost:{selected_port}/api/latest")
+        try:
+            server.serve_forever()
+        except Exception:
+            pass
+    else:
+        print(f" [!] Aviso: Portas {port} a {port+2} estao ocupadas. Coletor continuara rodando normalmente.")
 
 def main():
     api_port = config.get("api_port", 5000)
@@ -356,15 +510,18 @@ def main():
 
     server_thread = Thread(target=start_http_server, args=(api_port,), daemon=True)
     server_thread.start()
-    print(f"[*] API REST Local iniciada em: http://localhost:{api_port}/api/latest")
     print(f"[*] Intervalo de coleta configurado: {poll_sec} segundos ({poll_sec/60:.1f} min)")
 
-    while True:
-        try:
-            run_collection_cycle()
-        except Exception as e:
-            print(f"Erro no ciclo de coleta: {e}")
-        time.sleep(poll_sec)
+    try:
+        while True:
+            try:
+                run_collection_cycle()
+            except Exception as e:
+                print(f" [!] Erro no ciclo de coleta: {e}")
+            time.sleep(poll_sec)
+    except KeyboardInterrupt:
+        print("\n[*] Coletor encerrado com sucesso pelo usuario (Ctrl+C).")
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()

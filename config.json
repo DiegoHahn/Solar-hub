@@ -17,8 +17,10 @@
       "id": "inv_2",
       "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
       "brand": "GoodWe",
-      "type": "goodwe_udp",
+      "type": "goodwe",
       "ip": "10.0.0.19",
+      "port": 502,
+      "family": "DT",
       "serial": "GOODWE-SERIAL-1",
       "enabled": true
     },
@@ -26,8 +28,10 @@
       "id": "inv_3",
       "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
       "brand": "GoodWe",
-      "type": "goodwe_udp",
+      "type": "goodwe",
       "ip": "10.0.0.20",
+      "port": 502,
+      "family": "DT",
       "serial": "GOODWE-SERIAL-2",
       "enabled": true
     }
