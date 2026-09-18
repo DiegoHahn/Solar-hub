@@ -1,30 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import type { SolarTelemetryRow, UtilityDataRow, SunCurvePoint, GenerationPoint } from "@/lib/types";
-import {
-  mockSolarTelemetry,
-  mockUtilityData,
-  mockTodaySunCurve,
-  mockMonthlyGeneration,
-  mockYearlyGeneration,
-} from "@/lib/mockData";
 
 export const GENERATOR_UC = "1000000001";
 
-// ============================================================================
-// 🎛️ CONTROLE DE DADOS: MOCK vs BANCO DE PRODUÇÃO (SUPABASE)
-// ============================================================================
-// Alterne para false quando os coletores locais estiverem conectados e ativos.
-// true  = Usa dados simulados realistas de dia de sol pleno (com pico > 100%).
-// false = Consulta em tempo real o banco Supabase PostgreSQL.
-// ============================================================================
-export const USE_MOCK = true;
-
 export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
-  if (USE_MOCK) {
-    return mockSolarTelemetry;
-  }
-
-  // --- Consulta Original Supabase ---
   const { data, error } = await supabase
     .from("solar_telemetry")
     .select("*")
@@ -37,16 +16,6 @@ export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
 }
 
 export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
-  if (USE_MOCK) {
-    // mockUtilityData é um snapshot de dados REAIS (não sintéticos) capturados por
-    // collector_utility.py em 31/08/2026 — ver comentário em mockData.ts.
-    // TODO: com o coletor da Cooperaliança rodando via run_utility.bat de forma
-    // recorrente, trocar USE_MOCK para false aqui e a leitura passa a ser sempre
-    // a linha mais recente de public.utility_data no Supabase.
-    return mockUtilityData;
-  }
-
-  // --- Consulta Original Supabase ---
   const { data, error } = await supabase
     .from("utility_data")
     .select("*")
@@ -90,11 +59,6 @@ export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
 }
 
 export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
-  if (USE_MOCK) {
-    return mockTodaySunCurve;
-  }
-
-  // --- Consulta no Supabase para montar a curva do dia ---
   try {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -104,7 +68,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
       .select("recorded_at, total_power_kw, inverters_data")
       .gte("recorded_at", todayStart.toISOString())
       .order("recorded_at", { ascending: true })
-      .limit(200);
+      .limit(300);
 
     if (error || !data || data.length === 0) {
       return [];
@@ -136,23 +100,64 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
 }
 
 export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
-  if (USE_MOCK) {
-    return mockMonthlyGeneration;
-  }
+  try {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
 
-  // TODO: ainda não implementado no Supabase — requer agregação de solar_telemetry
-  // por dia (SUM/último total_today_kwh de cada dia, agrupado por date_trunc('day', recorded_at))
-  // acumulada ao longo do mês corrente. Só faz sentido quando o coletor tiver
-  // rodado continuamente por semanas/meses para termos histórico suficiente.
-  return [];
+    const { data, error } = await supabase
+      .from("solar_telemetry")
+      .select("recorded_at, total_today_kwh")
+      .gte("recorded_at", startOfMonth.toISOString())
+      .order("recorded_at", { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      return [];
+    }
+
+    const byDay: Record<string, number> = {};
+    for (const r of data) {
+      const dayLabel = new Date(r.recorded_at).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      });
+      const val = Number(r.total_today_kwh) || 0;
+      if (!byDay[dayLabel] || val > byDay[dayLabel]) {
+        byDay[dayLabel] = val;
+      }
+    }
+
+    return Object.entries(byDay).map(([label, kwh]) => ({
+      label,
+      kwh: Number(kwh.toFixed(1)),
+    }));
+  } catch (err) {
+    console.error("Erro ao calcular geração mensal do Supabase:", err);
+    return [];
+  }
 }
 
 export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
-  if (USE_MOCK) {
-    return mockYearlyGeneration;
-  }
+  try {
+    const utility = await getLatestUtilityData();
+    const uc = utility?.unidades_consumidoras?.[GENERATOR_UC] as any;
+    const hist = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
 
-  // TODO: mesma observação de getMonthlyGeneration(), mas agregando por mês
-  // (date_trunc('month', recorded_at)) ao longo dos últimos 12 meses.
-  return [];
+    if (hist.length > 0) {
+      return hist.map((i: any) => {
+        const parts = (i.AnoMes || "").split(" ")[0].split("/");
+        const mes = parts[1] || "";
+        const ano = (parts[2] || "").slice(-2);
+        return {
+          label: `${mes}/${ano}`,
+          kwh: Number(i.KwhGerado) || 0,
+        };
+      });
+    }
+    return [];
+  } catch (err) {
+    console.error("Erro ao obter geração anual:", err);
+    return [];
+  }
 }
+

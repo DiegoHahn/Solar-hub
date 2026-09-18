@@ -1,6 +1,4 @@
-import { RiSparklingLine } from "@remixicon/react";
 import { Card } from "@/components/Card";
-import { Badge } from "@/components/Badge";
 import { InverterCard } from "@/components/InverterCard";
 import { GenerationPeriodSection } from "@/components/GenerationPeriodSection";
 import {
@@ -8,7 +6,6 @@ import {
   getTodaySunCurve,
   getMonthlyGeneration,
   getYearlyGeneration,
-  USE_MOCK,
 } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -36,15 +33,6 @@ export default async function PlacasPage() {
               : "Solis 6kW + 2x GoodWe 5kW"}
           </p>
         </div>
-        {USE_MOCK && (
-          <Badge
-            variant="neutral"
-            className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-xs text-amber-500 dark:text-amber-400"
-          >
-            <RiSparklingLine className="size-3.5" />
-            Modo Simulado
-          </Badge>
-        )}
       </div>
 
       {!telemetry ? (

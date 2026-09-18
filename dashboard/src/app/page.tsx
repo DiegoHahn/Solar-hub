@@ -5,7 +5,6 @@ import {
   RiSunLine,
   RiBuilding2Line,
   RiArrowRightUpLine,
-  RiSparklingLine,
   RiHistoryLine,
 } from "@remixicon/react";
 import Link from "next/link";
@@ -21,7 +20,6 @@ import {
   getLatestUtilityData,
   getTodaySunCurve,
   GENERATOR_UC,
-  USE_MOCK,
 } from "@/lib/queries";
 import { getIcaraWeatherData } from "@/lib/weather";
 import { formatRelativeTime } from "@/lib/formatRelativeTime";
@@ -80,7 +78,7 @@ export default async function Home() {
   const telemetryAgeMin = telemetry
     ? Math.round((Date.now() - new Date(telemetry.recorded_at).getTime()) / 60000)
     : null;
-  const isStale = !USE_MOCK && telemetryAgeMin !== null && telemetryAgeMin > STALE_THRESHOLD_MIN;
+  const isStale = telemetryAgeMin !== null && telemetryAgeMin > STALE_THRESHOLD_MIN;
 
   // Pico da curva solar de hoje
   const peakPoint = sunCurve.reduce(
@@ -107,12 +105,6 @@ export default async function Home() {
         </div>
 
         <div className="flex items-center gap-2">
-          {USE_MOCK && (
-            <Badge variant="neutral" className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-amber-500 dark:text-amber-400 text-xs">
-              <RiSparklingLine className="size-3.5" />
-              Modo Simulado
-            </Badge>
-          )}
           {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{bandeira}</Badge>}
         </div>
       </div>
@@ -126,7 +118,7 @@ export default async function Home() {
         </div>
       )}
 
-      {!telemetry && !USE_MOCK ? (
+      {!telemetry ? (
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Nenhuma leitura da usina ainda. Inicie o coletor (

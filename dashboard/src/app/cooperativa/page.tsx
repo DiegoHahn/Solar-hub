@@ -1,10 +1,10 @@
-import { RiSparklingLine, RiWallet3Line, RiFileTextLine, RiBuilding2Line, RiCalendarEventLine } from "@remixicon/react";
+import { RiWallet3Line, RiFileTextLine, RiBuilding2Line, RiCalendarEventLine } from "@remixicon/react";
 import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
-import { getLatestUtilityData, GENERATOR_UC, USE_MOCK } from "@/lib/queries";
+import { getLatestUtilityData, GENERATOR_UC } from "@/lib/queries";
 import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -56,15 +56,6 @@ export default async function CooperativaPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {USE_MOCK && (
-            <Badge
-              variant="neutral"
-              className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-xs text-amber-500 dark:text-amber-400"
-            >
-              <RiSparklingLine className="size-3.5" />
-              Dado real (snapshot)
-            </Badge>
-          )}
           {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{bandeira}</Badge>}
         </div>
       </div>
