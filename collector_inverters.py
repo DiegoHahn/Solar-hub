@@ -7,7 +7,7 @@ import urllib.request
 import re
 import asyncio
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from threading import Thread
 from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 
@@ -323,7 +323,7 @@ def push_to_supabase(plant_summary):
 
 def run_collection_cycle():
     """Executa um ciclo completo de leitura dos 3 inversores e consolida os dados."""
-    timestamp = datetime.now().isoformat()
+    timestamp = datetime.now().astimezone().isoformat()
     inverters_results = []
     
     total_power_w = 0.0

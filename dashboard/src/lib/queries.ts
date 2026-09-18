@@ -76,6 +76,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
 
     return data.map((row: any) => {
       const time = new Date(row.recorded_at).toLocaleTimeString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
         hour: "2-digit",
         minute: "2-digit",
       });
