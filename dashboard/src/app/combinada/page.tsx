@@ -2,6 +2,9 @@ import { AiEnergyAdvisor } from "@/components/AiEnergyAdvisor";
 import { EnergyFlowSection } from "@/components/EnergyFlowSection";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { getIcaraWeatherData } from "@/lib/weather";
+import { getLatestTelemetry, getLatestUtilityData } from "@/lib/queries";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Análise Integrada | Solar Hub",
@@ -9,7 +12,11 @@ export const metadata = {
 };
 
 export default async function CombinadaPage() {
-  const weatherData = await getIcaraWeatherData();
+  const [telemetry, utilityData, weatherData] = await Promise.all([
+    getLatestTelemetry(),
+    getLatestUtilityData(),
+    getIcaraWeatherData(),
+  ]);
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -31,12 +38,12 @@ export default async function CombinadaPage() {
 
       {/* 1. SEÇÃO TOPO: CONSULTOR ENERGÉTICO IA */}
       <AiEnergyAdvisor
-        plantName="Usina Solar Diego Hahn (16 kW)"
-        nominalKwp={16.0}
+        plantName={telemetry?.plant_name || "Usina Solar Diego Hahn (16 kW)"}
+        nominalKwp={telemetry?.total_nominal_capacity_kw || 16.0}
       />
 
       {/* 2. SEÇÃO MEIO: FLUXO DE ENERGIA REAL & BALANÇO */}
-      <EnergyFlowSection />
+      <EnergyFlowSection telemetry={telemetry} utilityData={utilityData} />
 
       {/* 3. SEÇÃO ABAIXO: ÍNDICE CLIMÁTICO VS EFICIÊNCIA */}
       <WeatherEfficiencySection weatherData={weatherData} />

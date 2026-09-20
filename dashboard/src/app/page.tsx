@@ -49,7 +49,7 @@ export default async function Home() {
 
   const saldoCreditos =
     utilityData?.unidades_consumidoras?.[GENERATOR_UC]?.geracao_distribuida
-      ?.ValorProximoSaldoVencer ?? 9066;
+      ?.ValorProximoSaldoVencer ?? 0;
 
   const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente ?? "Bandeira verde";
@@ -72,7 +72,7 @@ export default async function Home() {
   const onlineInvertersCount =
     telemetry?.inverters_data?.filter((i) => i.status === "online").length ?? 0;
 
-  const totalLifetimeKwh = telemetry?.total_lifetime_kwh ?? 52840;
+  const totalLifetimeKwh = telemetry?.total_lifetime_kwh ?? 0;
   const rendimentoHsp = capacityKw > 0 ? (geradoHojeKwh / capacityKw).toFixed(2) : "0.00";
 
   const telemetryAgeMin = telemetry
@@ -83,7 +83,7 @@ export default async function Home() {
   // Pico da curva solar de hoje
   const peakPoint = sunCurve.reduce(
     (max, p) => (p.power_kw > max.power_kw ? p : max),
-    sunCurve[0] || { power_kw: currentPowerKw, time: "12:30" }
+    sunCurve[0] || { power_kw: currentPowerKw, time: "—" }
   );
 
   return (

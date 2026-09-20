@@ -40,48 +40,48 @@ export interface AdvisorResult {
 export const fallbackAdvisorAnalysis: AdvisorResult = {
   daily: {
     summary:
-      "A usina solar de 16 kW operou com excelente rendimento hoje, gerando 58,4 kWh ao longo do dia. A produção supriu com facilidade o consumo da casa e enviou 42,2 kWh para a rede da Cooperaliança, resultando em um saldo positivo de 20,7 kWh em créditos e uma economia estimada de R$ 45,35 no dia.",
+      "A usina solar de 16 kW operou com alto rendimento técnico hoje. A geração medida diretamente nos inversores supriu a demanda elétrica da residência durante as horas de sol, com o excedente sendo injetado na rede da concessionária para gerar créditos futuros.",
     recommendations: [
       {
-        title: "Aproveitamento do Sol",
+        title: "Aproveitamento Solar",
         description:
-          "O período entre 10h e 15h é o mais indicado para ligar aparelhos como ar-condicionado e máquinas de lavar com energia solar direta.",
+          "Concentre o uso de equipamentos de maior potência nas horas de maior radiação solar diurna para maximizar a autossuficiência.",
         icon: "flashlight",
       },
       {
-        title: "Créditos na Cooperativa",
+        title: "Injeção e Compensação",
         description:
-          "A sobra de energia gerada hoje virou crédito na Cooperaliança para abater o consumo da noite e de dias chuvosos.",
+          "O excedente gerado é injetado na Cooperaliança e fica registrado para compensar o consumo noturno.",
         icon: "dollar",
       },
       {
-        title: "Condição da Usina",
+        title: "Status Operacional",
         description:
-          "Os equipamentos operaram com estabilidade e segurança durante todo o pico de produção ao meio-dia.",
+          "Os três inversores operaram com estabilidade técnica e sem anomalias de rede.",
         icon: "tools",
       },
     ],
   },
   monthly: {
     summary:
-      "No acumulado do mês, a usina produziu 1.620 kWh de energia limpa, superando o consumo da residência (1.257 kWh) e adicionando mais de 500 kWh de sobra nova à reserva. A economia acumulada alcançou R$ 1.258,00, elevando o saldo guardado na Cooperaliança para 4.051 kWh (cerca de R$ 3.145,00).",
+      "O balanço energético mensal mantém solidez patrimonial, sustentado por um estoque de créditos expressivo junto à Cooperaliança (superior a 9.000 kWh). Essa reserva estratégica garante segurança energética e estabilidade financeira completa para períodos de menor incidência solar.",
     recommendations: [
       {
-        title: "Reserva para o Inverno",
+        title: "Reserva Estratégica GD",
         description:
-          "Os créditos guardados na Cooperaliança garantem mais de quatro meses de cobertura para as épocas de menor insolação.",
+          "O saldo de créditos na Cooperaliança assegura ampla cobertura para o consumo nos meses de menor insolação.",
         icon: "shield",
       },
       {
         title: "Retorno Financeiro",
         description:
-          "A economia líquida de mais de R$ 1.250,00 no mês representa alívio direto na despesa de energia da família.",
+          "A autossuficiência da usina proporciona abatimento contínuo e expressivo na despesa mensal de energia.",
         icon: "dollar",
       },
       {
-        title: "Cuidados Preventivos",
+        title: "Manutenção Preventiva",
         description:
-          "Uma inspeção visual periódica nas placas garante que poeira e folhas secas não prejudiquem a captação solar.",
+          "A inspeção visual periódica dos módulos preserva a máxima capacidade de captação e geração.",
         icon: "tools",
       },
     ],

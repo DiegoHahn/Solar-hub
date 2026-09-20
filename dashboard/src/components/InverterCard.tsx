@@ -127,7 +127,7 @@ export function InverterCard({ inverter, detailed = false }: InverterCardProps) 
             Rede CA
           </span>
           <p className="mt-0.5 font-semibold tabular-nums text-gray-700 dark:text-gray-200">
-            {inverter.vgrid ? `${Math.round(inverter.vgrid)}V` : "220V"}
+            {inverter.vgrid ? `${Math.round(inverter.vgrid)}V` : "—"}
           </p>
         </div>
       </div>

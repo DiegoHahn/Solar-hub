@@ -47,22 +47,42 @@ export function GenerationPeriodSection({
         ))}
       </div>
 
-      {period === "dia" && dayCurve.length > 0 && <InverterCurveChart data={dayCurve} />}
+      {period === "dia" && (
+        dayCurve.length > 0 ? (
+          <InverterCurveChart data={dayCurve} />
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+            Nenhuma curva de geração registrada para o dia de hoje ainda.
+          </div>
+        )
+      )}
       {period === "mes" && (
-        <GenerationBarChart
-          data={monthData}
-          title="Geração Mensal"
-          subtitle="Total gerado por dia — mês atual"
-          unitLabel="kWh"
-        />
+        monthData.length > 0 ? (
+          <GenerationBarChart
+            data={monthData}
+            title="Geração Mensal"
+            subtitle="Total gerado por dia — mês atual"
+            unitLabel="kWh"
+          />
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+            Nenhum histórico diário acumulado neste mês ainda.
+          </div>
+        )
       )}
       {period === "ano" && (
-        <GenerationBarChart
-          data={yearData}
-          title="Geração Anual"
-          subtitle="Total gerado por mês — últimos 12 meses"
-          unitLabel="kWh"
-        />
+        yearData.length > 0 ? (
+          <GenerationBarChart
+            data={yearData}
+            title="Geração Anual"
+            subtitle="Total gerado por mês — últimos 12 meses"
+            unitLabel="kWh"
+          />
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+            Nenhum histórico anual disponível na concessionária ainda.
+          </div>
+        )
       )}
     </div>
   );

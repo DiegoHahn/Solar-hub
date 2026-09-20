@@ -6,6 +6,12 @@ import {
   saveAdvisorCache,
   AdvisorResult,
 } from "@/lib/aiQuota";
+import {
+  getLatestTelemetry,
+  getLatestUtilityData,
+  getTodaySunCurve,
+  GENERATOR_UC,
+} from "@/lib/queries";
 
 export async function GET() {
   const cached = getAdvisorCache();
@@ -86,7 +92,39 @@ async function handleGenerate(force: boolean) {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
 
-    // Prompt estritamente calibrado: tom sóbrio, profissional e inteligente, sem jargões jurídicos (Lei 14.300, GD I, Fio B) e sem termos em inglês
+    // Carrega dados 100% reais do Supabase para injetar no prompt
+    const [telemetry, utilityData, sunCurve] = await Promise.all([
+      getLatestTelemetry().catch(() => null),
+      getLatestUtilityData().catch(() => null),
+      getTodaySunCurve().catch(() => []),
+    ]);
+
+    const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
+    const gd = uc?.geracao_distribuida;
+    const fatura = uc?.resumo_ultima_fatura;
+    const hist12 = (uc as any)?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
+    const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
+
+    const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+    const geracaoHojeKwh = telemetry?.total_today_kwh ?? 0;
+    const economiaHojeReais = geracaoHojeKwh * tarifaKwh;
+
+    const peakPoint = sunCurve.reduce(
+      (max, p) => (p.power_kw > max.power_kw ? p : max),
+      sunCurve[0] || { power_kw: telemetry?.total_power_kw ?? 0, time: "—" }
+    );
+    const peakKw = peakPoint.power_kw || (telemetry?.total_power_kw ?? 0);
+    const peakTime = peakPoint.time || "—";
+
+    const saldoCreditosKwh = gd?.ValorProximoSaldoVencer ?? 0;
+    const reservaTotalReais = Math.round(saldoCreditosKwh * tarifaKwh);
+
+    const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
+    const mesCompensadoKwh = lastMonthItem?.kwhCreditado ?? 0;
+    const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
+    const valorFaturaReais = fatura?.ValorFatura ?? 0;
+
+    // Prompt estritamente calibrado: tom sóbrio, profissional e inteligente, sem jargões jurídicos e sem números fictícios
     const systemPrompt = `Você é um Consultor Especialista em Energia Solar.
 Seu objetivo é redigir um resumo executivo claro, sóbrio, elegante e direto para os proprietários da residência em Içara/SC.
 Escreva SEMPRE em Português do Brasil (PT-BR).
@@ -94,45 +132,43 @@ Escreva SEMPRE em Português do Brasil (PT-BR).
 DIRETRIZES DE ESTILO E LINGUAGEM:
 1. Idioma obrigatório: Português do Brasil (PT-BR) correto, claro e fluido.
 2. Tom profissional, sóbrio e inteligente:
-   - Evite linguagem infantil, excesso de exclamações ou informalidade exagerada (NÃO use expressões como "lar de vocês", "colocou no bolso", "dia lindo", etc.).
+   - Evite linguagem infantil, excesso de exclamações ou informalidade exagerada.
    - Trate o leitor como um adulto inteligente, lúcido e consciente de seu patrimônio.
 3. Clareza sem jargões burocráticos ou jurídicos:
    - NÃO use siglas de leis ou regulação como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26".
-   - Explique de maneira direta: mencione que a energia gerada tem "isenção integral de taxas na compensação", gerando economia líquida na conta de luz.
+   - Explique de maneira direta: mencione que a energia gerada tem isenção integral de taxas na compensação, gerando economia líquida na conta de luz.
 4. Evite termos técnicos em inglês:
    - NÃO use termos como "edge-of-cloud", "performance ratio", "payback", "strings", etc.
-   - Se o pico momentâneo ultrapassar a potência nominal, explique com naturalidade: "houve um pico de 16,9 kW impulsionado pela irradiação e pelo reflexo da luz nas nuvens".
-5. Foco nos dados práticos e financeiros:
-   - Volume gerado no período versus o consumo da residência.
-   - Quanto foi consumido diretamente sem passar pela rede pública.
-   - Volume excedente injetado e acumulado como créditos na Cooperaliança.
-   - Economia financeira líquida em Reais (R$).
-   - Saldo acumulado na cooperativa (em kWh e em R$) como reserva segura para períodos de menor sol.
-   - Dicas práticas e inteligentes de uso e manutenção.
+   - Se o pico momentâneo ultrapassar a potência nominal de 16 kW, explique com naturalidade (ex: reflexo da luz nas nuvens ou irradiação solar ideal).
+5. TRANSPARÊNCIA E DISTINÇÃO OBRIGATÓRIA ENTRE OS DADOS:
+   - GERAÇÃO FÍSICA DOS INVERSORES: Medida diretamente pelos inversores da usina (Solis 6 kW e GoodWe).
+   - AUTOCONSUMO RESIDENCIAL INSTANTÂNEO: A residência NÃO possui Smart Meter / medidor de corrente no quadro elétrico geral. Portanto, o consumo instantâneo no momento da geração NÃO é medido em tempo real. NÃO invente números de consumo da casa para hoje.
+   - INJEÇÃO E COMPENSAÇÃO NA REDE: Registrados mensalmente pelo medidor bidirecional da concessionária Cooperaliança.
+   - SALDO DE CRÉDITOS: Reserva acumulada oficial na concessionária para abater contas futuras.
 
-DADOS DA USINA DA FAMÍLIA:
-- Usina solar de 16 kW instalada no telhado (3 inversores) em Içara/SC.
-- Concessionária local: Cooperaliança.
+DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS REAIS):
+- Usina Solar: 16 kWp (${telemetry?.inverters_count ?? 3} inversores instalados) em Içara/SC.
+- Concessionária: Cooperaliança (UC ${GENERATOR_UC}).
+- Tarifa de referência: R$ ${tarifaKwh.toFixed(3)}/kWh.
 
-HOJE (DIÁRIO):
-- Geração no dia: 58,4 kWh (com pico de 16,9 kW ao meio-dia impulsionado pelo reflexo solar)
-- Consumo total da casa: 37,7 kWh
-- Consumo direto das placas: 16,2 kWh (43% da demanda diurna suprida instantaneamente sem custos)
-- Excedente injetado na rede: 42,2 kWh (gerando saldo líquido de +20,7 kWh em créditos na Cooperaliança)
-- Economia estimada no dia: R$ 45,35
-- Clima: Ensolarado, 23°C, 4.25 horas de sol pleno
+HOJE (MEDIDO NOS INVERSORES):
+- Geração física real nos inversores hoje: ${geracaoHojeKwh.toFixed(1)} kWh
+- Pico de potência atingido: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `(às ${peakTime})` : ""}
+- Economia gerada hoje: R$ ${economiaHojeReais.toFixed(2)}
+- Autoconsumo instantâneo residencial: Não monitorado em tempo real (instalação sem Smart Meter local; toda a geração alimenta os aparelhos ligados e o excedente é injetado na rede).
 
-MÊS (ACUMULADO):
-- Geração total no mês: 1.620 kWh (produção sólida acima da expectativa)
-- Consumo total da residência: 1.257 kWh
-- Excedente líquido acumulado: +523 kWh novos enviados para a cooperativa
-- Saldo total acumulado na Cooperaliança: 4.051 kWh (reserva estimada em R$ 3.145,00)
-- Economia acumulada no mês: R$ 1.258,00 livre de encargos de distribuição
+HISTÓRICO E RESERVA NA COOPERALIANÇA:
+- Saldo total de créditos acumulados na cooperativa: ${saldoCreditosKwh.toLocaleString("pt-BR")} kWh (reserva estimada em R$ ${reservaTotalReais.toLocaleString("pt-BR")}).
+- Último mês faturado pela Cooperaliança:
+  - Excedente injetado na rede: ${mesInjetadoKwh.toLocaleString("pt-BR")} kWh
+  - Energia compensada na fatura: ${mesCompensadoKwh.toLocaleString("pt-BR")} kWh
+  - Consumo faturado da residência: ${consumoFaturadoKwh.toLocaleString("pt-BR")} kWh
+  - Valor residual da fatura: R$ ${valorFaturaReais.toFixed(2)}
 
 Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdown \`\`\`json):
 {
   "daily": {
-    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre a geração de hoje, o consumo atendido, a sobra injetada e a economia em R$.",
+    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre a geração real de hoje (${geracaoHojeKwh.toFixed(1)} kWh), o pico de potência atingido (${peakKw.toFixed(1)} kW), a economia estimada (R$ ${economiaHojeReais.toFixed(2)}) e a dinâmica de suprir a residência e injetar o excedente na rede.",
     "recommendations": [
       {
         "title": "Título conciso da recomendação",
@@ -152,11 +188,11 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
     ]
   },
   "monthly": {
-    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre o acumulado do mês, o superávit, o estoque na Cooperaliança e a economia líquida em R$.",
+    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre o faturamento da Cooperaliança, a injeção faturada (${mesInjetadoKwh.toLocaleString("pt-BR")} kWh), o saldo acumulado de créditos (${saldoCreditosKwh.toLocaleString("pt-BR")} kWh) e a segurança energética gerada para períodos de menor insolação.",
     "recommendations": [
       {
         "title": "Título conciso da recomendação",
-        "description": "Orientação estratégica para o mês em 1 frase.",
+        "description": "Orientação estratégica para a gestão dos créditos em 1 frase.",
         "icon": "shield"
       },
       {

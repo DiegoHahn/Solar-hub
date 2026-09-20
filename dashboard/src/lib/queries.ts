@@ -105,7 +105,41 @@ export async function getTelemetryByDay(daysBack: number = 90): Promise<Record<s
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
     startDate.setHours(0, 0, 0, 0);
+    const startIso = startDate.toISOString().split("T")[0];
 
+    // 1. Tenta buscar da tabela oficial de histórico diário consolidado (inverter_daily_history)
+    const { data: histData, error: histError } = await supabase
+      .from("inverter_daily_history")
+      .select("date, kwh, inverter_id")
+      .gte("date", startIso)
+      .in("inverter_id", ["plant_total", "goodwe_combined", "inv_1"])
+      .order("date", { ascending: true });
+
+    if (!histError && histData && histData.length > 0) {
+      const byDay: Record<string, number> = {};
+      const grouped: Record<string, Record<string, number>> = {};
+      
+      for (const r of histData) {
+        if (!grouped[r.date]) grouped[r.date] = {};
+        grouped[r.date][r.inverter_id] = Number(r.kwh) || 0;
+      }
+
+      for (const [date, invs] of Object.entries(grouped)) {
+        if (invs["plant_total"] !== undefined) {
+          byDay[date] = invs["plant_total"];
+        } else if (invs["goodwe_combined"] !== undefined && invs["inv_1"] !== undefined) {
+          byDay[date] = Number((invs["goodwe_combined"] + invs["inv_1"]).toFixed(2));
+        } else if (invs["plant_total"] === undefined && invs["goodwe_combined"] !== undefined) {
+          byDay[date] = invs["goodwe_combined"];
+        } else if (invs["inv_1"] !== undefined) {
+          byDay[date] = invs["inv_1"];
+        }
+      }
+
+      return byDay;
+    }
+
+    // 2. Fallback caso inverter_daily_history não retorne dados
     const { data, error } = await supabase
       .from("solar_telemetry")
       .select("recorded_at, total_today_kwh")
