@@ -206,24 +206,25 @@ def sync_cooperalianca(cpf=None, senha=None):
         gd_tag = f" | Usina: {pot:.0f} kW | Saldo GD: {saldo:,.0f} kWh" if pot > 0 else ""
         print(f" -> UC {uc}: {faturas_count} faturas no historico{gd_tag}")
 
-    # Salva no disco com escrita atômica
-    out_dir = os.path.join(os.path.dirname(__file__), "data")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "cooperalianca_latest.json")
-    try:
-        atomic_write_json(out_path, result)
-        print(f"-------------------------------------------------------")
-        print(f" Dados salvos localmente em: {out_path}")
-        print(f"=======================================================")
-    except Exception as e:
-        print(f" ⚠️ [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
+    # Salva no disco apenas se explicitamente solicitado via --save-local
+    if "--save-local" in sys.argv:
+        out_dir = os.path.join(os.path.dirname(__file__), "data")
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, "cooperalianca_latest.json")
+        try:
+            atomic_write_json(out_path, result)
+            print(f"-------------------------------------------------------")
+            print(f" Dados salvos localmente em: {out_path}")
+            print(f"=======================================================")
+        except Exception as e:
+            print(f" ⚠️ [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
 
     # Envia automaticamente para a nuvem no Supabase
     push_utility_to_supabase(result)
 
     return result
 
-def download_informativo_pdf(competencia=None, uc=1000000001, cpf=None, senha=None, output_file="data/informativo_microgeracao.pdf"):
+def download_informativo_pdf(competencia=None, uc=1000000001, cpf=None, senha=None, output_file="data/informativo_microgeracao.pdf", data_payload=None):
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
 
@@ -231,23 +232,24 @@ def download_informativo_pdf(competencia=None, uc=1000000001, cpf=None, senha=No
         print(" ❌ [PDF] CPF ou Senha ausentes para download do informativo.")
         return None
 
-    # Se a competência não for informada, busca a competência mais recente disponível no arquivo local
+    # Se a competência não for informada, busca a competência mais recente disponível no payload ou arquivo local
     if not competencia:
-        latest_file = os.path.join(os.path.dirname(__file__), "data", "cooperalianca_latest.json")
-        if os.path.exists(latest_file):
-            try:
-                with open(latest_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                uc_info = data.get("unidades_consumidoras", {}).get(str(uc), {})
-                faturas = uc_info.get("historico_faturas_60_meses", [])
-                if faturas and isinstance(faturas, list):
-                    primeira_fat = faturas[0]
-                    # Formata competência se disponível
-                    mes_ano = primeira_fat.get("MesAnoCompetencia") or primeira_fat.get("Competencia")
-                    if mes_ano:
-                        competencia = f"01/{mes_ano} 00:00:00"
-            except Exception:
-                pass
+        uc_info = (data_payload or {}).get("unidades_consumidoras", {}).get(str(uc), {})
+        if not uc_info:
+            latest_file = os.path.join(os.path.dirname(__file__), "data", "cooperalianca_latest.json")
+            if os.path.exists(latest_file):
+                try:
+                    with open(latest_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    uc_info = data.get("unidades_consumidoras", {}).get(str(uc), {})
+                except Exception:
+                    pass
+        faturas = uc_info.get("historico_faturas_60_meses", [])
+        if faturas and isinstance(faturas, list):
+            primeira_fat = faturas[0]
+            mes_ano = primeira_fat.get("MesAnoCompetencia") or primeira_fat.get("Competencia")
+            if mes_ano:
+                competencia = f"01/{mes_ano} 00:00:00"
         if not competencia:
             now = datetime.now()
             competencia = f"01/{now.month:02d}/{now.year} 00:00:00"
@@ -289,11 +291,11 @@ def download_informativo_pdf(competencia=None, uc=1000000001, cpf=None, senha=No
         return None
 
 def main():
-    sync_cooperalianca()
+    sync_result = sync_cooperalianca()
     
     if "--pdf" in sys.argv:
         try:
-            download_informativo_pdf()
+            download_informativo_pdf(data_payload=sync_result)
         except Exception as e:
             print(f" [!] Aviso ao processar PDF: {e}")
 

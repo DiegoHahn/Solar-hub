@@ -378,20 +378,9 @@ def run_collection_cycle():
     print(f" GERACAO HOJE   : {total_today_kwh:7.2f} kWh | TOTAL ACUMULADO: {total_lifetime_kwh:,.1f} kWh")
     print(f"=======================================================")
 
-    # Salva latest.json com escrita atômica
-    try:
-        atomic_write_json(LATEST_FILE, plant_summary)
-    except Exception as e:
-        print(f" ⚠️ [DISCO] Erro ao gravar latest.json: {e}")
-
-    # Atualiza history.json com escrita atômica
-    history_records = []
-    if os.path.exists(HISTORY_FILE):
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                history_records = json.load(f)
-        except Exception:
-            history_records = []
+    # Mantém estado em memória para a API REST
+    global _LATEST_IN_MEMORY, _HISTORY_IN_MEMORY
+    _LATEST_IN_MEMORY = plant_summary
 
     history_entry = {
         "timestamp": timestamp,
@@ -401,21 +390,31 @@ def run_collection_cycle():
         "inv_2_w": inverters_results[1].get("power_w", 0) if len(inverters_results) > 1 else 0,
         "inv_3_w": inverters_results[2].get("power_w", 0) if len(inverters_results) > 2 else 0
     }
-    history_records.append(history_entry)
-    
+    _HISTORY_IN_MEMORY.append(history_entry)
     max_records = config.get("history_max_records", 1000)
-    if len(history_records) > max_records:
-        history_records = history_records[-max_records:]
-        
-    try:
-        atomic_write_json(HISTORY_FILE, history_records)
-    except Exception as e:
-        print(f" ⚠️ [DISCO] Erro ao gravar history.json: {e}")
+    if len(_HISTORY_IN_MEMORY) > max_records:
+        _HISTORY_IN_MEMORY = _HISTORY_IN_MEMORY[-max_records:]
+
+    # Salva no disco apenas se explicitamente solicitado via --save-local
+    if "--save-local" in sys.argv:
+        try:
+            atomic_write_json(LATEST_FILE, plant_summary)
+        except Exception as e:
+            print(f" ⚠️ [DISCO] Erro ao gravar latest.json: {e}")
+
+        try:
+            atomic_write_json(HISTORY_FILE, _HISTORY_IN_MEMORY)
+        except Exception as e:
+            print(f" ⚠️ [DISCO] Erro ao gravar history.json: {e}")
 
     # Sincroniza automaticamente com o Supabase (Nuvem)
     push_to_supabase(plant_summary)
 
     return plant_summary
+
+# Cache em memória para evitar desgaste de cartão SD no Pi
+_LATEST_IN_MEMORY = None
+_HISTORY_IN_MEMORY = []
 
 # REST API Embutida Thread-Safe
 class SolarApiHandler(BaseHTTPRequestHandler):
@@ -442,7 +441,9 @@ class SolarApiHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/api/latest":
-            if os.path.exists(LATEST_FILE):
+            if _LATEST_IN_MEMORY:
+                self._send_json(_LATEST_IN_MEMORY)
+            elif os.path.exists(LATEST_FILE):
                 try:
                     with open(LATEST_FILE, "r", encoding="utf-8") as f:
                         data = json.load(f)
@@ -453,7 +454,9 @@ class SolarApiHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "Nenhum dado coletado ainda"}, 404)
                 
         elif self.path == "/api/history":
-            if os.path.exists(HISTORY_FILE):
+            if _HISTORY_IN_MEMORY:
+                self._send_json(_HISTORY_IN_MEMORY)
+            elif os.path.exists(HISTORY_FILE):
                 try:
                     with open(HISTORY_FILE, "r", encoding="utf-8") as f:
                         data = json.load(f)
