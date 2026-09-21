@@ -1,5 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import type { SolarTelemetryRow, UtilityDataRow, SunCurvePoint, GenerationPoint } from "@/lib/types";
+import type {
+  SolarTelemetryRow,
+  UtilityDataRow,
+  SunCurvePoint,
+  GenerationPoint,
+  MultiYearHistory,
+} from "@/lib/types";
 
 export const GENERATOR_UC = "1000000001";
 
@@ -187,14 +193,25 @@ export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
   }
 }
 
-export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
+const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+export async function getMultiYearHistory(): Promise<MultiYearHistory> {
+  const emptyResult: MultiYearHistory = {
+    last12Months: [],
+    yearsTotals: [],
+    byYear: {},
+    availableYears: [],
+  };
+
   try {
     const utility = await getLatestUtilityData();
     const uc = utility?.unidades_consumidoras?.[GENERATOR_UC] as any;
-    const hist = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
 
-    if (hist.length > 0) {
-      return hist.map((i: any) => {
+    // 1. Obter os 12 meses mais recentes da concessionária (gráfico padrão)
+    const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
+    let last12: GenerationPoint[] = [];
+    if (hist12.length > 0) {
+      last12 = hist12.map((i: any) => {
         const parts = (i.AnoMes || "").split(" ")[0].split("/");
         const mes = parts[1] || "";
         const ano = (parts[2] || "").slice(-2);
@@ -204,10 +221,78 @@ export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
         };
       });
     }
-    return [];
+
+    // 2. Extrair histórico completo plurianual a partir do extrato_historico_gd
+    const rawGd = uc?.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal || [];
+    
+    // Mapeamento: year -> monthNumber (1..12) -> kwh
+    const yearMonthMap: Record<string, Record<number, number>> = {};
+    const yearTotalsMap: Record<string, number> = {};
+
+    for (const item of rawGd) {
+      const operacao = item.Operacao || "";
+      if (!operacao.includes("(C) Energia injetada")) continue;
+
+      const rawDate = item.MesGeracao || "";
+      if (!rawDate || rawDate.startsWith("01/01/0001")) continue;
+
+      const datePart = rawDate.split(" ")[0]; // "DD/MM/YYYY"
+      const parts = datePart.split("/");
+      if (parts.length < 3) continue;
+
+      const month = parseInt(parts[1], 10);
+      const year = parts[2];
+      const kwh = Number(item.KwhGerado) || 0;
+
+      if (!yearMonthMap[year]) {
+        yearMonthMap[year] = {};
+        yearTotalsMap[year] = 0;
+      }
+      yearMonthMap[year][month] = (yearMonthMap[year][month] || 0) + kwh;
+      yearTotalsMap[year] = (yearTotalsMap[year] || 0) + kwh;
+    }
+
+    const availableYears = Object.keys(yearMonthMap).sort((a, b) => b.localeCompare(a)); // 2026, 2025, 2024...
+
+    // Formatar byYear com os meses de cada ano
+    const byYear: Record<string, GenerationPoint[]> = {};
+    for (const yr of availableYears) {
+      const months = yearMonthMap[yr];
+      // Para o ano corrente (2026), vai até o mês de corte; para anos anteriores, até 12 meses
+      const maxMonth = yr === "2026" ? 9 : 12;
+      const pts: GenerationPoint[] = [];
+      for (let m = 1; m <= maxMonth; m++) {
+        const val = months[m] || 0;
+        pts.push({
+          label: MONTH_NAMES[m - 1],
+          kwh: Math.round(val),
+        });
+      }
+      byYear[yr] = pts;
+    }
+
+    // Formatar yearsTotals em ordem cronológica (2021, 2022, 2023...)
+    const yearsTotals: GenerationPoint[] = Object.keys(yearTotalsMap)
+      .sort((a, b) => a.localeCompare(b))
+      .map((yr) => ({
+        label: yr,
+        kwh: Math.round(yearTotalsMap[yr]),
+      }));
+
+    return {
+      last12Months: last12.length > 0 ? last12 : (byYear["2026"] || []),
+      yearsTotals,
+      byYear,
+      availableYears,
+    };
   } catch (err) {
-    console.error("Erro ao obter geração anual:", err);
-    return [];
+    console.error("Erro ao obter histórico plurianual:", err);
+    return emptyResult;
   }
+}
+
+export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
+  const multi = await getMultiYearHistory();
+  return multi.last12Months;
 }
 

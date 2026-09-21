@@ -10,6 +10,7 @@
       "brand": "Solis",
       "type": "solarman_lsw3",
       "ip": "10.0.0.18",
+      "logger_sn": 1234567890,
       "auth": "admin:admin",
       "enabled": true
     },

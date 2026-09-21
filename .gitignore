@@ -33,3 +33,6 @@ imagens/
 # AI Advisor Runtime Cache & Quota
 .ai_quota.json
 .ai_advisor_cache.json
+
+# Local runtime data / dumps
+data/

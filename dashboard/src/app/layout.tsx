@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Nav } from "@/components/Nav";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,10 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={GeistSans.variable} suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased bg-[#030712]">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <Nav />
-          <div className="pb-16 md:pb-0 md:pl-56">{children}</div>
+          <AppShell>{children}</AppShell>
         </ThemeProvider>
       </body>
     </html>

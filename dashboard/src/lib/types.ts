@@ -15,6 +15,17 @@ export interface InverterReading {
   pv1?: { v: number; i: number; w: number };
   pv2?: { v: number; i: number; w: number };
   wifi_rssi?: string;
+  wifi_ssid?: string;
+  logger_sn?: string;
+  logger_ver?: string;
+  inverter_sn?: string;
+  inverter_type?: string;
+  model?: string;
+  serial?: string;
+  firmware?: string;
+  work_mode?: string;
+  raw_sensors?: Record<string, any>;
+  raw_variables?: Record<string, any>;
   error?: string;
 }
 
@@ -28,8 +39,15 @@ export interface SunCurvePoint {
 }
 
 export interface GenerationPoint {
-  label: string; // dia do mês ("01".."31") ou mês abreviado ("Jan".."Dez")
+  label: string; // dia do mês ("01".."31"), mês ("Jan".."Dez") ou ano ("2025")
   kwh: number;
+}
+
+export interface MultiYearHistory {
+  last12Months: GenerationPoint[];
+  yearsTotals: GenerationPoint[];
+  byYear: Record<string, GenerationPoint[]>;
+  availableYears: string[];
 }
 
 export interface SolarTelemetryRow {

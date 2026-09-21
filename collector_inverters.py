@@ -20,6 +20,11 @@ try:
 except ImportError:
     goodwe = None
 
+try:
+    from pysolarmanv5 import PySolarmanV5
+except ImportError:
+    PySolarmanV5 = None
+
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
 
@@ -131,11 +136,16 @@ def flush_offline_queue(supabase_url, headers):
 
 def get_last_known_energies():
     """Recupera os últimos valores de energia diária de hoje caso algum inversor fique offline à noite ou em standby."""
-    if not os.path.exists(LATEST_FILE):
+    global _LATEST_IN_MEMORY
+    data = _LATEST_IN_MEMORY
+    if not data and os.path.exists(LATEST_FILE):
+        try:
+            with open(LATEST_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = None
+    if not data:
         return {}
-    try:
-        with open(LATEST_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
         saved_date = data.get("timestamp", "")[:10]
         today_date = datetime.now().strftime("%Y-%m-%d")
         if saved_date == today_date:
@@ -152,37 +162,104 @@ def get_last_known_energies():
         pass
     return {}
 
-def fetch_solis_lsw3(ip, auth_str="admin:admin", timeout=4):
-    """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html."""
+def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
+    """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html e Modbus Solarman V5."""
     url = f"http://{ip}/status.html"
-    auth = base64.b64encode(auth_str.encode("ascii")).decode("ascii")
-    req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
-    
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        html = response.read().decode("utf-8", errors="ignore")
-    
-    var_pattern = re.compile(r'var\s+([a-zA-Z0-9_]+)\s*=\s*["\']([^"\']*)["\'];')
-    raw_vars = dict(var_pattern.findall(html))
+    raw_vars = {}
+    try:
+        auth = base64.b64encode(auth_str.encode("ascii")).decode("ascii")
+        req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            html = response.read().decode("utf-8", errors="ignore")
+        var_pattern = re.compile(r'var\s+([a-zA-Z0-9_]+)\s*=\s*["\']([^"\']*)["\'];')
+        raw_vars = dict(var_pattern.findall(html))
+    except Exception:
+        pass
     
     def parse_float(val, default=0.0):
         try:
-            return float(val.strip())
+            return float(str(val).strip())
         except (ValueError, AttributeError):
             return default
             
     now_p = parse_float(raw_vars.get("webdata_now_p", "0"))
     today_e = parse_float(raw_vars.get("webdata_today_e", "0"))
     total_e = parse_float(raw_vars.get("webdata_total_e", "0"))
-    
+
+    # Serial Number do Logger (definido no config ou obtido de cover_mid)
+    sn_cand = logger_sn or raw_vars.get("cover_mid", "").strip()
+    sn_int = None
+    if sn_cand:
+        try:
+            sn_int = int(str(sn_cand).strip())
+        except ValueError:
+            sn_int = None
+
+    temp_c = None
+    vgrid = None
+    igrid = None
+    fgrid = None
+    pv1_data = None
+    pv2_data = None
+
+    # Consulta Modbus Solarman V5 na porta 8899 para métricas aprofundadas (holding registers 0..39)
+    if PySolarmanV5 and sn_int:
+        try:
+            m = PySolarmanV5(ip, sn_int, port=8899, mb_slave_id=1, socket_timeout=timeout, verbose=False)
+            regs = m.read_holding_registers(0, 40)
+            m.disconnect()
+
+            if len(regs) >= 37:
+                # PV1
+                pv1_v = round(regs[6] * 0.1, 1)
+                pv1_i = round(regs[7] * 0.01, 2)
+                pv1_w = round(pv1_v * pv1_i, 1)
+                pv1_data = {"v": pv1_v, "i": pv1_i, "w": pv1_w}
+
+                # PV2
+                pv2_v = round(regs[8] * 0.1, 1)
+                pv2_i = round(regs[9] * 0.01, 2)
+                pv2_w = round(pv2_v * pv2_i, 1)
+                pv2_data = {"v": pv2_v, "i": pv2_i, "w": pv2_w}
+
+                # Rede CA
+                fgrid = round(regs[14] * 0.01, 2)
+                vgrid = round(regs[15] * 0.1, 1)
+                igrid = round(regs[16] * 0.01, 2)
+
+                # Potência Ativa Instantânea
+                if regs[12] > 0:
+                    now_p = round(regs[12] * 10.0, 1)
+                elif vgrid and igrid:
+                    now_p = round(vgrid * igrid, 1)
+
+                # Energia
+                if regs[25] > 0:
+                    today_e = round(regs[25] * 0.01, 2)
+                if regs[22] > 0:
+                    total_e = float(regs[22])
+
+                # Temperatura interna (°C)
+                temp_c = round(regs[36] * 0.1, 1)
+        except Exception:
+            # Fallback gracioso mantendo os dados coletados via HTTP status.html
+            pass
+
     return {
         "status": "online",
         "power_w": now_p,
         "energy_today_kwh": today_e,
         "energy_total_kwh": total_e,
+        "temperature_c": temp_c,
+        "vgrid": vgrid,
+        "igrid": igrid,
+        "fgrid": fgrid,
+        "pv1": pv1_data,
+        "pv2": pv2_data,
         "alarm": raw_vars.get("webdata_alarm", ""),
         "inverter_sn": raw_vars.get("webdata_sn", "").strip(),
         "inverter_type": raw_vars.get("webdata_pv_type", "Solis SH1ES160"),
-        "logger_sn": raw_vars.get("cover_mid", "").strip(),
+        "logger_sn": str(sn_int or raw_vars.get("cover_mid", "")).strip(),
         "logger_ver": raw_vars.get("cover_ver", "").strip(),
         "wifi_rssi": raw_vars.get("cover_sta_rssi", "N/A"),
         "wifi_ssid": raw_vars.get("cover_sta_ssid", "N/A"),
@@ -258,7 +335,8 @@ def collect_inverter(inv_cfg):
     try:
         if inv_type == "solarman_lsw3":
             auth_str = inv_cfg.get("auth", "admin:admin")
-            res = fetch_solis_lsw3(ip, auth_str=auth_str, timeout=4)
+            logger_sn = inv_cfg.get("logger_sn")
+            res = fetch_solis_lsw3(ip, logger_sn=logger_sn, auth_str=auth_str, timeout=4)
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
             
         elif inv_type in ["goodwe_udp", "goodwe_tcp", "goodwe"]:
@@ -358,7 +436,9 @@ def run_collection_cycle():
         total_lifetime_kwh += e_tot
         
         status_tag = "[ONLINE]" if res.get("status") == "online" else "[OFFLINE]"
-        print(f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Hoje: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh")
+        temp_info = f" | {res['temperature_c']}°C" if res.get("temperature_c") else ""
+        vgrid_info = f" | {int(res['vgrid'])}V" if res.get("vgrid") else ""
+        print(f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Hoje: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh{temp_info}{vgrid_info}")
 
     plant_summary = {
         "timestamp": timestamp,
