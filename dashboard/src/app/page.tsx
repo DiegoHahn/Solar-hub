@@ -63,6 +63,17 @@ export default async function Home() {
   const isPeakOverload = capacityPct > 100;
   const isGenerating = currentPowerKw > 0.05;
 
+  // Verifica se é período diurno (entre 06:00 e 18:30 em Brasília)
+  const brasiliaHour = parseInt(
+    new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date()),
+    10
+  );
+  const isDaytime = brasiliaHour >= 6 && brasiliaHour < 19;
+
   const geradoHojeKwh = telemetry?.total_today_kwh ?? 0.0;
   const economiaHojeReais = (geradoHojeKwh * tarifaKwh).toLocaleString("pt-BR", {
     style: "currency",
@@ -163,6 +174,11 @@ export default async function Home() {
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                 </span>
                 Usina em Operação
+              </span>
+            ) : isDaytime ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-500 dark:text-blue-400">
+                <span className="size-2 rounded-full bg-blue-400" />
+                Sem Geração (Chuva / Tempo Fechado)
               </span>
             ) : (
               <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">

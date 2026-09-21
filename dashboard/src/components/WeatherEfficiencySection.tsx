@@ -246,11 +246,6 @@ export function WeatherEfficiencySection({
                       <div className="flex items-center gap-1.5 font-bold text-gray-200">
                         {renderWeatherIcon(p.icon)}
                         <span>{p.dayOfWeek}, {p.formattedDate} — {p.condition}</span>
-                        {p.isReal && (
-                          <span className="ml-auto rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
-                            Telemetria Real
-                          </span>
-                        )}
                       </div>
                       <div className="mt-2 space-y-1">
                         <div className="flex justify-between gap-4 text-amber-400">

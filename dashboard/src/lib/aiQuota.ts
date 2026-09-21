@@ -40,7 +40,7 @@ export interface AdvisorResult {
 export const fallbackAdvisorAnalysis: AdvisorResult = {
   daily: {
     summary:
-      "A usina solar de 16 kW operou com alto rendimento técnico hoje. A geração medida diretamente nos inversores supriu a demanda elétrica da residência durante as horas de sol, com o excedente sendo injetado na rede da concessionária para gerar créditos futuros.",
+      "A produção da usina refletiu diretamente as condições atmosféricas do dia em Içara/SC. A irradiação solar captada pelos módulos supriu as cargas essenciais da residência e direcionou o superávit para a rede da Cooperaliança, mantendo a operação equilibrada frente ao potencial nominal de 16 kWp.",
     recommendations: [
       {
         title: "Aproveitamento Solar",

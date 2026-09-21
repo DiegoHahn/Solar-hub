@@ -1,8 +1,6 @@
 <div align="center">
 
-# ☀️ Solar Hub & Energy Intelligence Platform
-
-**An enterprise-grade, edge-to-cloud IoT telemetry and energy management platform for multi-vendor photovoltaic solar plants.**
+# Solar Hub
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
@@ -12,29 +10,29 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#-1-visão-geral) • [Arquitetura](#-2-arquitetura-do-sistema) • [Protocolos dos Inversores](#-3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#-4-stack-tecnológica) • [Instalação](#-5-instalação-e-execução) • [Segurança](#-6-segurança-e-autenticação)
+[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação)
 
 </div>
 
 ---
 
-## 📌 1. Visão Geral
+## 1. Visão Geral
 
-O **Solar Hub** é uma plataforma completa de telemetria fotovoltaica e inteligência energética projetada para unificar usinas solares multimarcas (**Solis** + **GoodWe**) e concessionárias de energia em um dashboard analítico unificado em tempo real.
+O **Solar Hub** é uma plataforma de telemetria fotovoltaica e inteligência energética projetada para unificar usinas solares multimarcas (**Solis** + **GoodWe**) e concessionárias de energia em um dashboard analítico unificado em tempo real.
 
 O projeto resolve o problema de fragmentação de dados em usinas com múltiplos inversores de fabricantes distintos, substituindo portais proprietários dispersos por uma **arquitetura Edge-to-Cloud** resiliente, com telemetria direta via rede local, zero dependência de clouds externas para coleta, e análise preditiva com Inteligência Artificial.
 
-### ⚡ Destaques de Engenharia
-* **Coleta Edge 100% Local (Offline-First):** Comunicação direta com os inversores na rede local via Modbus TCP, UDP e Solarman V5 frame parsing na porta `8899`.
-* **Zero Armazenamento Desnecessário em Disco (Flash Wear-out Protection):** Telemetria em memória com push direto via HTTPS/REST para nuvem, ideal para placas embarcadas (Orange Pi / Raspberry Pi) sem desgaste de armazenamento eMMC/SD.
+### Destaques de Engenharia
+* **Coleta Edge 100% Local:** Comunicação direta com os inversores na rede local via Modbus TCP, UDP e Solarman V5 frame parsing.
+* **Zero Armazenamento Desnecessário em Disco:** Telemetria em memória com push direto via HTTPS/REST para nuvem, ideal para placas embarcadas (Orange Pi / Raspberry Pi) sem desgaste de armazenamento eMMC/SD.
 * **Fila de Tolerância a Falhas:** Buffer offline local caso a internet caia, sincronizando snapshots retroativos assim que a conexão restabelece.
-* **Automação Contábil GD (Lei 14.300):** Scraper/integrador automatizado com a concessionária de energia (**Cooperaliança**), extraindo histórico de faturas de 60 meses, extrato detalhado de créditos GD I e GD II e demonstrativo financeiro.
+* **Automação Contábil GD:** Scraper/integrador automatizado com a concessionária de energia (**Cooperaliança**), extraindo histórico de faturas de 60 meses, extrato detalhado de créditos GD I e GD II e demonstrativo financeiro.
 * **Interface de Alta Fidelidade:** Dashboard em Next.js 16 (App Router + Turbopack), SSR com `@supabase/ssr`, Tailwind CSS, visual Glassmorphism e gráficos interativos com Recharts.
-* **Consultor Energético IA:** Módulo de análise inteligente integrado com o **Google Gemini 2.5 Flash**, avaliando perdas de eficiência, projeção de economia e saúde dos inversores.
+* **Consultor Energético IA:** Módulo de análise inteligente integrado com o **Google Gemini**, avaliando perdas de eficiência, projeção de economia e saúde dos inversores.
 
 ---
 
-## 🏗️ 2. Arquitetura do Sistema
+## 2. Arquitetura do Sistema
 
 ```mermaid
 flowchart TB
@@ -89,15 +87,14 @@ flowchart TB
 
 ---
 
-## 🔌 3. Protocolos e Engenharia Reversa IoT
+## 3. Protocolos e Engenharia Reversa IoT
 
 O sistema interroga 3 inversores simultaneamente na rede local em menos de 2 segundos, mantendo isolamento completo entre as telemetrias:
 
 | Inversor | Potência | Interface Física | Protocolo de Telemetria | Parâmetros Extraídos |
 | :--- | :--- | :--- | :--- | :--- |
 | **Solis / Ginlong** | ~6.0 kW | Datalogger Solarman LSW-3 (IP Local) | **Solarman V5 Frame Parser** (Porta `8899`) + Fallback HTTP Status | Potência ativa (W), Tensão da Rede CA (V), Corrente CA (A), Freq (Hz), Strings PV1/PV2 (V, A, W), Temp. Interna (°C), Acumulado Hoje e Total (kWh), Wi-Fi RSSI. |
-| **GoodWe #1** | 5.0 kW | Módulo Wi-Fi GoodWe DNS (IP Local) | **Modbus TCP** (Porta `502`) com Fallback UDP (Porta `8899`) | 52 registradores elétricos: Potência Ativa, Aparente e Reativa, Fator de Potência (FP), Temp. Interna e Dissipador Térmico (°C), Horas de Operação, Vbus, Strings PV1/PV2. |
-| **GoodWe #2** | 5.0 kW | Módulo Wi-Fi GoodWe DNS (IP Local) | **Modbus TCP** (Porta `502`) com Fallback UDP (Porta `8899`) | Idem GoodWe #1. |
+| **GoodWe** | 5.0 kW | Módulo Wi-Fi GoodWe DNS (IP Local) | **Modbus TCP** (Porta `502`) com Fallback UDP (Porta `8899`) | 52 registradores elétricos: Potência Ativa, Aparente e Reativa, Fator de Potência (FP), Temp. Interna e Dissipador Térmico (°C), Horas de Operação, Vbus, Strings PV1/PV2. |
 
 ### Decodificação Modbus Solarman V5 (Solis):
 O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários Solarman V5 (`0xA5`), lendo os registradores de retenção (*holding registers* `0..39`):
@@ -113,14 +110,14 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 
 ---
 
-## 🛠️ 4. Stack Tecnológica
+## 4. Stack Tecnológica
 
 ### Core & Frontend
 * **Framework:** [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React 19, TypeScript).
 * **Estilização:** [Tailwind CSS](https://tailwindcss.com/) com paleta HSL balanceada, modo escuro nativo e estética Glassmorphism.
 * **Visualização de Dados:** [Recharts](https://recharts.org/) com interpolação monotônica, curvas empilhadas, tooltips responsivos e comparativos históricos.
 * **Componentes & Primitivas:** Radix UI, Tremor primitives e Remix Icons.
-* **IA Generativa:** Google Generative AI SDK (`@google/genai` com Gemini 2.5 Flash).
+* **IA Generativa:** Modelos Gemini.
 
 ### Backend, IoT & Edge
 * **Linguagem Edge:** Python 3.10+.
@@ -134,7 +131,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 
 ---
 
-## 📂 5. Estrutura do Repositório
+## 5. Estrutura do Repositório
 
 ```text
 ├── collector_inverters.py          # Coletor de telemetria dos 3 inversores (Modbus/V5/TCP/UDP)
@@ -157,7 +154,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 
 ---
 
-## 🚀 6. Instalação e Execução
+## 6. Instalação e Execução
 
 ### Pré-requisitos
 * Python 3.10+ (para os coletores)
@@ -210,7 +207,7 @@ Acesse no navegador: **`http://localhost:3000`**
 
 ---
 
-## 🔒 7. Segurança e Autenticação
+## 7. Segurança e Autenticação
 
 * **Zero Exposição de Chaves Sensíveis:** Arquivos `.env` e `.env.local` são estritamente excluídos do controle de versão pelo `.gitignore`.
 * **Controle de Acesso Baseado em Sessão (RBAC):** Proteção de rotas em tempo de execução via `@supabase/ssr` e Next.js 16 Proxy. Usuários não autenticados são redirecionados automaticamente para a tela de login (`/login`).
@@ -219,6 +216,6 @@ Acesse no navegador: **`http://localhost:3000`**
 
 ---
 
-## 📄 Licença
+## Licença
 
 Distribuído sob a licença **MIT**. Veja `LICENSE` para mais informações.

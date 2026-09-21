@@ -50,9 +50,11 @@ export function AiEnergyAdvisor({
   const [data, setData] = useState<UnifiedAdvisorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Carrega a análise ao montar (aproveita o cache de hoje se existir, gastando 0 requisições)
   useEffect(() => {
+    setMounted(true);
     let isMounted = true;
     async function loadInitial() {
       setIsLoading(true);
@@ -220,7 +222,8 @@ export function AiEnergyAdvisor({
           <button
             type="button"
             onClick={handleRefresh}
-            disabled={isLoading}
+            disabled={!mounted ? false : isLoading}
+            suppressHydrationWarning
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 active:scale-95 disabled:opacity-60 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             <RiRefreshLine

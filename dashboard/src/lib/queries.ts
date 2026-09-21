@@ -7,7 +7,8 @@ import type {
   MultiYearHistory,
 } from "@/lib/types";
 
-export const GENERATOR_UC = "1000000001";
+import { GENERATOR_UC } from "@/lib/constants";
+export { GENERATOR_UC };
 
 export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
   const { data, error } = await supabase
@@ -80,19 +81,13 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
       return [];
     }
 
-    return data.map((row: any) => {
-      const time = new Date(row.recorded_at).toLocaleTimeString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+    const rawPoints = (data || []).map((row: any) => {
       const invs = row.inverters_data || [];
       const solis = invs.find((i: any) => i.id === "inv_1")?.power_w || 0;
       const gw1 = invs.find((i: any) => i.id === "inv_2")?.power_w || 0;
       const gw2 = invs.find((i: any) => i.id === "inv_3")?.power_w || 0;
-
       return {
-        time,
+        timestamp: new Date(row.recorded_at).getTime(),
         power_kw: Number((row.total_power_kw || 0).toFixed(2)),
         nominal_cap_kw: 16.0,
         solis_kw: Number((solis / 1000).toFixed(2)),
@@ -100,6 +95,48 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
         goodwe2_kw: Number((gw2 / 1000).toFixed(2)),
       };
     });
+
+    // Monta a grade contínua de 30 em 30 minutos desde 00:00 até o momento atual do dia
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const now = new Date();
+
+    const grid: SunCurvePoint[] = [];
+    const currentSlot = new Date(startOfDay);
+
+    while (currentSlot <= now) {
+      const slotTimeMs = currentSlot.getTime();
+      const timeStr = currentSlot.toLocaleTimeString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      // Busca a telemetria física real coletada mais próxima desse slot (dentro de uma janela de 20 min)
+      const closest = rawPoints.reduce(
+        (best: { point: any; diff: number } | null, p) => {
+          const diff = Math.abs(p.timestamp - slotTimeMs);
+          if (!best || diff < best.diff) return { point: p, diff };
+          return best;
+        },
+        null
+      );
+
+      const matchedPoint = closest && closest.diff <= 20 * 60 * 1000 ? closest.point : null;
+
+      grid.push({
+        time: timeStr,
+        power_kw: matchedPoint ? matchedPoint.power_kw : 0,
+        nominal_cap_kw: 16.0,
+        solis_kw: matchedPoint ? matchedPoint.solis_kw : 0,
+        goodwe1_kw: matchedPoint ? matchedPoint.goodwe1_kw : 0,
+        goodwe2_kw: matchedPoint ? matchedPoint.goodwe2_kw : 0,
+      });
+
+      currentSlot.setMinutes(currentSlot.getMinutes() + 30);
+    }
+
+    return grid.length > 0 ? grid : rawPoints;
   } catch (err) {
     console.error("Erro ao buscar curva diária do Supabase:", err);
     return [];

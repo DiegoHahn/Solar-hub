@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -74,7 +75,8 @@ export function Nav() {
       <nav className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col justify-between border-r border-gray-200 bg-white px-4 py-6 md:flex dark:border-gray-900 dark:bg-[#030712]">
         <div>
           <span className="mb-8 flex items-center gap-2 px-2 text-lg font-semibold text-gray-900 dark:text-gray-50">
-            ☀️ Solar Hub
+            <Image src="/logo.png" alt="" width={28} height={28} className="shrink-0" priority />
+            Solar Hub
           </span>
           <ul className="flex flex-col gap-1">
             {navItems.map(({ href, label, Icon, IconActive }) => {

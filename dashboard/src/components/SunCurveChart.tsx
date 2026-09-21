@@ -118,7 +118,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
             </h2>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Geração horária em tempo real (06:00 às 18:30)
+            Geração ao longo do dia em tempo real (intervalos de 30 min)
           </p>
         </div>
 
@@ -200,7 +200,13 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 dataKey="time"
                 tickLine={false}
                 axisLine={false}
-                interval={3}
+                ticks={[
+                  "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+                  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+                  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+                  "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+                ]}
+                tickFormatter={(val: string) => val ? val.slice(0, 5) : ""}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
 

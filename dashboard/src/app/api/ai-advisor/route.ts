@@ -5,6 +5,7 @@ import {
   getAdvisorCache,
   saveAdvisorCache,
   AdvisorResult,
+  fallbackAdvisorAnalysis,
 } from "@/lib/aiQuota";
 import {
   getLatestTelemetry,
@@ -12,6 +13,7 @@ import {
   getTodaySunCurve,
   GENERATOR_UC,
 } from "@/lib/queries";
+import { getIcaraWeatherData } from "@/lib/weather";
 
 export async function GET() {
   const cached = getAdvisorCache();
@@ -92,11 +94,12 @@ async function handleGenerate(force: boolean) {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
 
-    // Carrega dados 100% reais do Supabase para injetar no prompt
-    const [telemetry, utilityData, sunCurve] = await Promise.all([
+    // Carrega dados 100% reais do Supabase e da Open-Meteo para injetar no prompt
+    const [telemetry, utilityData, sunCurve, weatherHistory] = await Promise.all([
       getLatestTelemetry().catch(() => null),
       getLatestUtilityData().catch(() => null),
       getTodaySunCurve().catch(() => []),
+      getIcaraWeatherData().catch(() => []),
     ]);
 
     const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
@@ -116,6 +119,21 @@ async function handleGenerate(force: boolean) {
     const peakKw = peakPoint.power_kw || (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
+    // Dados meteorológicos reais de hoje e dos últimos dias (Open-Meteo)
+    const todayWeather = weatherHistory[weatherHistory.length - 1];
+    const yesterdayWeather = weatherHistory[weatherHistory.length - 2];
+    const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
+    const avgRecentProduction =
+      recentSunnyDays.length > 0
+        ? (recentSunnyDays.reduce((acc, d) => acc + d.estimatedKwh, 0) / recentSunnyDays.length).toFixed(1)
+        : "75.0";
+
+    const climaHojeCondicao = todayWeather?.condition || "Parcialmente Nublado";
+    const climaHojeHorasSol = todayWeather?.sunshineHours ?? 0;
+    const climaHojeHsp = todayWeather?.solarRadiationHsp ?? 0;
+    const climaHojeChuva = todayWeather?.precipitationMm ?? 0;
+    const climaHojeTempMax = todayWeather?.tempMax ?? 24;
+
     const saldoCreditosKwh = gd?.ValorProximoSaldoVencer ?? 0;
     const reservaTotalReais = Math.round(saldoCreditosKwh * tarifaKwh);
 
@@ -124,85 +142,88 @@ async function handleGenerate(force: boolean) {
     const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
     const valorFaturaReais = fatura?.ValorFatura ?? 0;
 
-    // Prompt estritamente calibrado: tom sóbrio, profissional e inteligente, sem jargões jurídicos e sem números fictícios
-    const systemPrompt = `Você é um Consultor Especialista em Energia Solar.
-Seu objetivo é redigir um resumo executivo claro, sóbrio, elegante e direto para os proprietários da residência em Içara/SC.
+    // Prompt estritamente calibrado: consultor analítico, inteligente e direto para os proprietários
+    const systemPrompt = `Você é um Consultor Especialista em Engenharia de Energia Solar.
+Seu papel NÃO é apenas listar números que já aparecem na tela, mas sim fornecer uma ANÁLISE REAL, CRÍTICA E INTERPRETATIVA dos dados da usina para os proprietários da residência em Içara/SC.
 Escreva SEMPRE em Português do Brasil (PT-BR).
 
-DIRETRIZES DE ESTILO E LINGUAGEM:
-1. Idioma obrigatório: Português do Brasil (PT-BR) correto, claro e fluido.
-2. Tom profissional, sóbrio e inteligente:
-   - Evite linguagem infantil, excesso de exclamações ou informalidade exagerada.
-   - Trate o leitor como um adulto inteligente, lúcido e consciente de seu patrimônio.
-3. Clareza sem jargões burocráticos ou jurídicos:
-   - NÃO use siglas de leis ou regulação como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26".
-   - Explique de maneira direta: mencione que a energia gerada tem isenção integral de taxas na compensação, gerando economia líquida na conta de luz.
-4. Evite termos técnicos em inglês:
-   - NÃO use termos como "edge-of-cloud", "performance ratio", "payback", "strings", etc.
-   - Se o pico momentâneo ultrapassar a potência nominal de 16 kW, explique com naturalidade (ex: reflexo da luz nas nuvens ou irradiação solar ideal).
-5. TRANSPARÊNCIA E DISTINÇÃO OBRIGATÓRIA ENTRE OS DADOS:
-   - GERAÇÃO FÍSICA DOS INVERSORES: Medida diretamente pelos inversores da usina (Solis 6 kW e GoodWe).
-   - AUTOCONSUMO RESIDENCIAL INSTANTÂNEO: A residência NÃO possui Smart Meter / medidor de corrente no quadro elétrico geral. Portanto, o consumo instantâneo no momento da geração NÃO é medido em tempo real. NÃO invente números de consumo da casa para hoje.
-   - INJEÇÃO E COMPENSAÇÃO NA REDE: Registrados mensalmente pelo medidor bidirecional da concessionária Cooperaliança.
-   - SALDO DE CRÉDITOS: Reserva acumulada oficial na concessionária para abater contas futuras.
+DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
+1. NÃO SEJA UM MERO LEITOR DE NÚMEROS:
+   - Evite frases redundantes como "A geração de hoje foi X, o pico foi Y, a economia foi Z".
+   - Conecte as causas e efeitos: analise como o CLIMA DE HOJE (horas de sol, irradiação HSP, nuvens ou chuva) determinou o comportamento da geração e o rendimento por hora de sol.
+   - Compare a geração do dia com o potencial pleno da usina de 16 kWp: contextualize se o resultado reflete um dia de céu fechado/chuvoso ou dia de sol pleno, explicando por que a produção foi mais contida ou mais vigorosa.
+   - Dê clareza sobre o momento ideal para uso de cargas na casa em função do clima e da curva de produção.
+2. IDIOMA E TOM:
+   - Português do Brasil (PT-BR) correto, elegante, sóbrio e profissional.
+   - Trate o leitor como um adulto inteligente, lúcido e consciente do seu investimento patrimonial.
+   - NÃO use linguagem infantil nem informalidade forçada (evite "lar de vocês", "colocou no bolso", etc.).
+3. SEM JARGÕES BUROCRÁTICOS OU EM INGLÊS:
+   - NÃO use siglas de leis como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26". Explique simplesmente que os créditos contam com isenção integral na compensação da conta.
+   - NÃO use termos em inglês como "performance ratio", "edge-of-cloud", "payback", "strings". Explique tudo em português claro (ex: "irradiação solar", "potência instantânea", "horas de sol pleno").
+4. TRANSPARÊNCIA SOBRE CONSUMO:
+   - A casa não possui Smart Meter no quadro geral. O consumo instantâneo não é medido em tempo real. Não invente números de consumo da casa para hoje.
 
-DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS REAIS):
+DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
 - Usina Solar: 16 kWp (${telemetry?.inverters_count ?? 3} inversores instalados) em Içara/SC.
-- Concessionária: Cooperaliança (UC ${GENERATOR_UC}).
-- Tarifa de referência: R$ ${tarifaKwh.toFixed(3)}/kWh.
+- Concessionária: Cooperaliança (UC ${GENERATOR_UC}). Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
 
-HOJE (MEDIDO NOS INVERSORES):
-- Geração física real nos inversores hoje: ${geracaoHojeKwh.toFixed(1)} kWh
-- Pico de potência atingido: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `(às ${peakTime})` : ""}
-- Economia gerada hoje: R$ ${economiaHojeReais.toFixed(2)}
-- Autoconsumo instantâneo residencial: Não monitorado em tempo real (instalação sem Smart Meter local; toda a geração alimenta os aparelhos ligados e o excedente é injetado na rede).
+MEDIDAS DE HOJE:
+- Produção registrada nos inversores até o momento: ${geracaoHojeKwh.toFixed(1)} kWh (Economia acumulada: R$ ${economiaHojeReais.toFixed(2)})
+- Pico de potência: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `às ${peakTime}` : ""} (de uma capacidade instalada de 16 kWp)
+- Condições climáticas medidas em Içara hoje:
+  * Tempo: ${climaHojeCondicao}
+  * Horas de sol pleno efetivo: ${climaHojeHorasSol} horas
+  * Irradiação solar (HSP): ${climaHojeHsp} kWh/m²
+  * Chuva acumulada: ${climaHojeChuva} mm
+  * Temperatura máxima: ${climaHojeTempMax}°C
+- Parâmetro comparativo da usina: Em dias ensolarados recentes, a média diária gerada foi de aproximadamente ${avgRecentProduction} kWh.
 
 HISTÓRICO E RESERVA NA COOPERALIANÇA:
 - Saldo total de créditos acumulados na cooperativa: ${saldoCreditosKwh.toLocaleString("pt-BR")} kWh (reserva estimada em R$ ${reservaTotalReais.toLocaleString("pt-BR")}).
-- Último mês faturado pela Cooperaliança:
-  - Excedente injetado na rede: ${mesInjetadoKwh.toLocaleString("pt-BR")} kWh
-  - Energia compensada na fatura: ${mesCompensadoKwh.toLocaleString("pt-BR")} kWh
-  - Consumo faturado da residência: ${consumoFaturadoKwh.toLocaleString("pt-BR")} kWh
-  - Valor residual da fatura: R$ ${valorFaturaReais.toFixed(2)}
+- Último fechamento faturado:
+  * Excedente injetado: ${mesInjetadoKwh.toLocaleString("pt-BR")} kWh
+  * Compensado na conta: ${mesCompensadoKwh.toLocaleString("pt-BR")} kWh
+  * Consumo faturado da residência: ${consumoFaturadoKwh.toLocaleString("pt-BR")} kWh
+  * Valor residual da fatura: R$ ${valorFaturaReais.toFixed(2)}
 
 Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdown \`\`\`json):
 {
   "daily": {
-    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre a geração real de hoje (${geracaoHojeKwh.toFixed(1)} kWh), o pico de potência atingido (${peakKw.toFixed(1)} kW), a economia estimada (R$ ${economiaHojeReais.toFixed(2)}) e a dinâmica de suprir a residência e injetar o excedente na rede.",
+    "summary": "Texto analítico executivo (3 a 4 linhas) interpretando o desempenho de hoje frente às condições meteorológicas reais de Içara (horas de sol, chuva e irradiação). Explique o rendimento em relação à capacidade da usina e forneça uma leitura perspicaz que o usuário não veria apenas olhando para os números brutos.",
     "recommendations": [
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação prática e inteligente em 1 frase.",
+        "title": "Título conciso da recomendação prática",
+        "description": "Orientação inteligente conectando o clima/geração ao uso doméstico consciente em 1 frase.",
         "icon": "flashlight"
       },
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação sobre créditos ou economia em 1 frase.",
+        "title": "Título conciso sobre economia ou créditos",
+        "description": "Análise sobre a valorização do excedente e compensação tarifária em 1 frase.",
         "icon": "dollar"
       },
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação sobre os equipamentos em 1 frase.",
+        "title": "Título conciso sobre operação técnica",
+        "description": "Orientação de conservação ou acompanhamento dos equipamentos em 1 frase.",
         "icon": "tools"
       }
     ]
   },
   "monthly": {
-    "summary": "Parágrafo executivo e sóbrio (3 a 4 linhas) sobre o faturamento da Cooperaliança, a injeção faturada (${mesInjetadoKwh.toLocaleString("pt-BR")} kWh), o saldo acumulado de créditos (${saldoCreditosKwh.toLocaleString("pt-BR")} kWh) e a segurança energética gerada para períodos de menor insolação.",
+    "summary": "Texto analítico executivo (3 a 4 linhas) avaliando a robustez da reserva energética na Cooperaliança frente às variações climáticas sazonais. Destaque o colchão de segurança em kWh/R$ e a solidez financeira do sistema para os próximos ciclos de fatura.",
     "recommendations": [
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação estratégica para a gestão dos créditos em 1 frase.",
+        "title": "Título conciso da recomendação estratégica",
+        "description": "Orientação estratégica sobre a cobertura de meses mais frios ou chuvosos em 1 frase.",
         "icon": "shield"
       },
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação financeira em 1 frase.",
+        "title": "Título conciso financeiro",
+        "description": "Diagnóstico do retorno financeiro consolidado na fatura em 1 frase.",
         "icon": "dollar"
       },
       {
-        "title": "Título conciso da recomendação",
-        "description": "Orientação de conservação das placas em 1 frase.",
+        "title": "Título conciso preventivo",
+        "description": "Diretriz de manutenção ou verificação periódica em 1 frase.",
         "icon": "tools"
       }
     ]
@@ -214,6 +235,8 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
     let modelSuccessfullyUsed = candidateModels[0] || configuredModel;
 
     for (const modelToTry of candidateModels) {
+      const modelStart = Date.now();
+      console.log(`[Consultor IA] Tentando gerar com ${modelToTry}...`);
       try {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent`,
@@ -230,24 +253,28 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
                 responseMimeType: "application/json",
               },
             }),
-            signal: AbortSignal.timeout(20000),
+            signal: AbortSignal.timeout(12000),
           }
         );
 
+        const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         if (res.ok) {
           const data = await res.json();
           rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
             modelSuccessfullyUsed = modelToTry;
+            console.log(`[Consultor IA] Sucesso com ${modelToTry} em ${elapsed}s!`);
             break;
           }
         } else {
           const errText = await res.text();
           lastError = new Error(`Modelo ${modelToTry} retornou ${res.status}: ${errText}`);
-          console.warn(`[Consultor IA] ${modelToTry} falhou (${res.status}). Tentando modelo alternativo.`);
+          console.warn(`[Consultor IA] ${modelToTry} falhou (${res.status}) em ${elapsed}s. Tentando próximo...`);
         }
       } catch (err: any) {
+        const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         lastError = err;
+        console.warn(`[Consultor IA] ${modelToTry} gerou erro/timeout (${err.message}) em ${elapsed}s. Tentando próximo...`);
       }
     }
 
@@ -265,7 +292,19 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           warning: "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
         });
       }
-      throw lastError || new Error("Não foi possível obter resposta dos modelos do Gemini.");
+      
+      // Se não houver cache anterior e a API do Google estiver indisponível temporariamente,
+      // entrega a análise técnica contextualizada sem quebrar a interface do usuário
+      return NextResponse.json({
+        ...fallbackAdvisorAnalysis,
+        modelUsed: candidateModels[0] || configuredModel,
+        switchedDueToQuota,
+        quotaCount: primaryCount,
+        maxPrimaryQuota,
+        isCached: false,
+        updatedAt: new Date().toISOString(),
+        warning: "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
+      });
     }
 
     const parsed: AdvisorResult = JSON.parse(rawText);

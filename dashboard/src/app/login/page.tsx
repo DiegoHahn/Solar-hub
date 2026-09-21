@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
-  RiSunFill,
   RiLockPasswordLine,
   RiMailLine,
   RiArrowRightLine,
@@ -88,7 +88,7 @@ export default function LoginPage() {
           {/* Topo: Logo & Título */}
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-amber-500/30 bg-gradient-to-tr from-amber-500/20 to-amber-400/5 shadow-inner">
-              <RiSunFill className="size-7 text-amber-400 animate-pulse" />
+              <Image src="/logo.png" alt="Solar Hub" width={36} height={36} priority />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-50">
               Solar Hub

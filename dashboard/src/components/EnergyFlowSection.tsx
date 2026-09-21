@@ -15,7 +15,7 @@ import {
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import type { SolarTelemetryRow, UtilityDataRow } from "@/lib/types";
-import { GENERATOR_UC } from "@/lib/queries";
+import { GENERATOR_UC } from "@/lib/constants";
 
 interface EnergyFlowSectionProps {
   telemetry: SolarTelemetryRow | null;
