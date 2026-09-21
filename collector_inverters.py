@@ -137,15 +137,13 @@ def flush_offline_queue(supabase_url, headers):
 def get_last_known_energies():
     """Recupera os últimos valores de energia diária de hoje caso algum inversor fique offline à noite ou em standby."""
     global _LATEST_IN_MEMORY
-    data = _LATEST_IN_MEMORY
-    if not data and os.path.exists(LATEST_FILE):
-        try:
+    try:
+        data = _LATEST_IN_MEMORY
+        if not data and os.path.exists(LATEST_FILE):
             with open(LATEST_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-        except Exception:
-            data = None
-    if not data:
-        return {}
+        if not data:
+            return {}
         saved_date = data.get("timestamp", "")[:10]
         today_date = datetime.now().strftime("%Y-%m-%d")
         if saved_date == today_date:
