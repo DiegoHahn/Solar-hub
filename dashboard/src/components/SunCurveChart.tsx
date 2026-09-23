@@ -156,8 +156,15 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
             {isInspecting && (
               <button
                 type="button"
-                onClick={() => setInspectedPoint(null)}
-                className="shrink-0 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInspectedPoint(null);
+                }}
+                onTouchEnd={(e) => {
+                  e.stopPropagation();
+                  setInspectedPoint(null);
+                }}
+                className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
               >
                 ✕ Voltar
               </button>

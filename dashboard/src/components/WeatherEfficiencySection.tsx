@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -25,6 +25,54 @@ import {
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import { DailyWeather, fallbackDailyWeather } from "@/lib/weather";
+
+interface CustomWeatherTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: DailyWeather }>;
+  onActivePoint?: (point: DailyWeather) => void;
+  renderIcon: (icon: DailyWeather["icon"], className?: string) => React.ReactNode;
+}
+
+function CustomWeatherTooltip({ active, payload, onActivePoint, renderIcon }: CustomWeatherTooltipProps) {
+  useEffect(() => {
+    if (active && payload && payload.length > 0 && onActivePoint) {
+      const p = payload[0]?.payload;
+      if (p) {
+        onActivePoint(p);
+      }
+    }
+  }, [active, payload, onActivePoint]);
+
+  if (!active || !payload || !payload.length) return null;
+  const p = payload[0].payload;
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
+      <div className="flex items-center gap-1.5 font-bold text-gray-200">
+        {renderIcon(p.icon)}
+        <span>{p.dayOfWeek}, {p.formattedDate} — {p.condition}</span>
+      </div>
+      <div className="mt-2 space-y-1">
+        <div className="flex justify-between gap-4 text-amber-400">
+          <span>{p.isReal ? "Geração real da usina:" : "Geração estimada (HSP):"}</span>
+          <strong>{p.estimatedKwh} kWh</strong>
+        </div>
+        <div className="flex justify-between gap-4 text-cyan-400">
+          <span>Irradiação solar (HSP):</span>
+          <strong>{p.solarRadiationHsp} h (kWh/m²)</strong>
+        </div>
+        <div className="flex justify-between gap-4 text-gray-400">
+          <span>Horas de sol pleno:</span>
+          <strong>{p.sunshineHours} h</strong>
+        </div>
+        <div className="flex justify-between gap-4 text-blue-400">
+          <span>Chuva registrada:</span>
+          <strong>{p.precipitationMm} mm</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface WeatherEfficiencySectionProps {
   weatherData?: DailyWeather[];
@@ -206,6 +254,11 @@ export function WeatherEfficiencySection({
                 setActivePoint(state.activePayload[0].payload as DailyWeather);
               }
             }}
+            onClick={(state: any) => {
+              if (state?.activePayload?.[0]?.payload) {
+                setActivePoint(state.activePayload[0].payload as DailyWeather);
+              }
+            }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.2} />
             <XAxis
@@ -238,38 +291,12 @@ export function WeatherEfficiencySection({
               width={24}
             />
             <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length > 0) {
-                  const p = payload[0].payload as DailyWeather;
-                  return (
-                    <div className="hidden md:block rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
-                      <div className="flex items-center gap-1.5 font-bold text-gray-200">
-                        {renderWeatherIcon(p.icon)}
-                        <span>{p.dayOfWeek}, {p.formattedDate} — {p.condition}</span>
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between gap-4 text-amber-400">
-                          <span>{p.isReal ? "Geração real da usina:" : "Geração estimada (HSP):"}</span>
-                          <strong>{p.estimatedKwh} kWh</strong>
-                        </div>
-                        <div className="flex justify-between gap-4 text-cyan-400">
-                          <span>Irradiação solar (HSP):</span>
-                          <strong>{p.solarRadiationHsp} h (kWh/m²)</strong>
-                        </div>
-                        <div className="flex justify-between gap-4 text-gray-400">
-                          <span>Horas de sol pleno:</span>
-                          <strong>{p.sunshineHours} h</strong>
-                        </div>
-                        <div className="flex justify-between gap-4 text-blue-400">
-                          <span>Chuva registrada:</span>
-                          <strong>{p.precipitationMm} mm</strong>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
+              content={
+                <CustomWeatherTooltip
+                  onActivePoint={setActivePoint}
+                  renderIcon={renderWeatherIcon}
+                />
+              }
             />
 
             <defs>

@@ -100,8 +100,8 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
       {/* Header Superior: Nome + Badges de Status e Bandeira */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left gap-3">
+        <div className="flex flex-col items-center sm:items-start">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
               Usina Solar
@@ -190,6 +190,7 @@ export default async function Home() {
 
           <span className="text-xs text-gray-400 dark:text-gray-500">
             {new Date(telemetry?.recorded_at || Date.now()).toLocaleTimeString("pt-BR", {
+              timeZone: "America/Sao_Paulo",
               hour: "2-digit",
               minute: "2-digit",
             })}
