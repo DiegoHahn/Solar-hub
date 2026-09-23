@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -47,7 +47,7 @@ function CustomWeatherTooltip({ active, payload, onActivePoint, renderIcon }: Cu
   const p = payload[0].payload;
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
+    <div className="hidden md:block rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
       <div className="flex items-center gap-1.5 font-bold text-gray-200">
         {renderIcon(p.icon)}
         <span>{p.dayOfWeek}, {p.formattedDate} — {p.condition}</span>
@@ -99,6 +99,7 @@ export function WeatherEfficiencySection({
   const [activePoint, setActivePoint] = useState<DailyWeather>(
     displayedData[displayedData.length - 1] || weatherData[weatherData.length - 1]
   );
+  const resetCooldownRef = useRef(false);
 
   // Ponto ativo corrente ajustado para o range atual
   const point = displayedData.find((d) => d.date === activePoint?.date) || displayedData[displayedData.length - 1];
@@ -200,6 +201,32 @@ export function WeatherEfficiencySection({
                 <span className="rounded bg-gray-200/80 px-1.5 py-0.2 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300 truncate max-w-[110px] sm:max-w-none">
                   {point.condition}
                 </span>
+                {point.date !== (displayedData[displayedData.length - 1]?.date) && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      resetCooldownRef.current = true;
+                      setActivePoint(displayedData[displayedData.length - 1]);
+                      setTimeout(() => {
+                        resetCooldownRef.current = false;
+                      }, 400);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      resetCooldownRef.current = true;
+                      setActivePoint(displayedData[displayedData.length - 1]);
+                      setTimeout(() => {
+                        resetCooldownRef.current = false;
+                      }, 400);
+                    }}
+                    className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
+                  >
+                    ✕ Hoje
+                  </button>
+                )}
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                 {point.tempMin}°C ~ {point.tempMax}°C
@@ -250,11 +277,13 @@ export function WeatherEfficiencySection({
             data={displayedData}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             onMouseMove={(state: any) => {
+              if (resetCooldownRef.current) return;
               if (state?.activePayload?.[0]?.payload) {
                 setActivePoint(state.activePayload[0].payload as DailyWeather);
               }
             }}
             onClick={(state: any) => {
+              if (resetCooldownRef.current) return;
               if (state?.activePayload?.[0]?.payload) {
                 setActivePoint(state.activePayload[0].payload as DailyWeather);
               }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -26,17 +26,18 @@ interface CustomTooltipProps {
   label?: string;
   nominalCapKw: number;
   onActivePoint?: (point: SunCurvePoint) => void;
+  canUpdate?: boolean;
 }
 
-function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint, canUpdate = true }: CustomTooltipProps) {
   useEffect(() => {
-    if (active && payload && payload.length > 0 && onActivePoint) {
+    if (active && payload && payload.length > 0 && onActivePoint && canUpdate) {
       const point = payload[0]?.payload as SunCurvePoint | undefined;
       if (point) {
         onActivePoint(point);
       }
     }
-  }, [active, payload, onActivePoint]);
+  }, [active, payload, onActivePoint, canUpdate]);
 
   if (!active || !payload || !payload.length) return null;
   const point = payload[0].payload as SunCurvePoint;
@@ -86,10 +87,24 @@ function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint }: 
 export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
+  const [canUpdate, setCanUpdate] = useState(true);
+  const resetCooldownRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleReset = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resetCooldownRef.current = true;
+    setCanUpdate(false);
+    setInspectedPoint(null);
+    setTimeout(() => {
+      resetCooldownRef.current = false;
+      setCanUpdate(true);
+    }, 400);
+  };
 
   if (!data || data.length === 0) {
     return null;
@@ -156,14 +171,8 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
             {isInspecting && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setInspectedPoint(null);
-                }}
-                onTouchEnd={(e) => {
-                  e.stopPropagation();
-                  setInspectedPoint(null);
-                }}
+                onClick={handleReset}
+                onTouchEnd={handleReset}
                 className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
               >
                 ✕ Voltar
@@ -189,9 +198,11 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
               data={data}
               margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
               onMouseMove={(e: any) => {
+                if (resetCooldownRef.current) return;
                 if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
               }}
               onClick={(e: any) => {
+                if (resetCooldownRef.current) return;
                 if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
               }}
             >
@@ -226,7 +237,13 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
               />
 
               <Tooltip
-                content={<CustomTooltip nominalCapKw={nominalCapKw} onActivePoint={setInspectedPoint} />}
+                content={
+                  <CustomTooltip
+                    nominalCapKw={nominalCapKw}
+                    onActivePoint={setInspectedPoint}
+                    canUpdate={canUpdate}
+                  />
+                }
                 cursor={{ stroke: "#f59e0b", strokeWidth: 1, strokeDasharray: "3 3" }}
               />
 
