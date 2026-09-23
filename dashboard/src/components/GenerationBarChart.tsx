@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { Card } from "@/components/Card";
 import { RiSunLine } from "@remixicon/react";
@@ -52,8 +52,21 @@ export function GenerationBarChart({
 }: GenerationBarChartProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [inspectedPoint, setInspectedPoint] = useState<GenerationPoint | null>(null);
+  const [chartKey, setChartKey] = useState(0);
+  const isResettingRef = useRef(false);
 
   useEffect(() => setIsMounted(true), []);
+
+  const handleReset = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    isResettingRef.current = true;
+    setInspectedPoint(null);
+    setChartKey((k) => k + 1);
+    setTimeout(() => {
+      isResettingRef.current = false;
+    }, 300);
+  };
 
   if (!data || data.length === 0) return null;
 
@@ -95,14 +108,8 @@ export function GenerationBarChart({
             </div>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setInspectedPoint(null);
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                setInspectedPoint(null);
-              }}
+              onClick={handleReset}
+              onTouchEnd={handleReset}
               className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
             >
               ✕ Voltar
@@ -125,12 +132,11 @@ export function GenerationBarChart({
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
+              key={chartKey}
               data={data}
               margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
-              onMouseMove={(e: any) => {
-                if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
-              }}
               onClick={(e: any) => {
+                if (isResettingRef.current) return;
                 if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
               }}
             >

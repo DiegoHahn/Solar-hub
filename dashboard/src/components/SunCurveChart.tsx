@@ -87,8 +87,8 @@ function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint, ca
 export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
-  const [canUpdate, setCanUpdate] = useState(true);
-  const resetCooldownRef = useRef(false);
+  const [chartKey, setChartKey] = useState(0);
+  const isResettingRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -97,13 +97,13 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
   const handleReset = (e: React.SyntheticEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    resetCooldownRef.current = true;
-    setCanUpdate(false);
+    isResettingRef.current = true;
     setInspectedPoint(null);
+    // Força o Recharts a desmontar e limpar o activeIndex/activePayload interno gravado no iOS
+    setChartKey((k) => k + 1);
     setTimeout(() => {
-      resetCooldownRef.current = false;
-      setCanUpdate(true);
-    }, 400);
+      isResettingRef.current = false;
+    }, 300);
   };
 
   if (!data || data.length === 0) {
@@ -195,14 +195,11 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
+              key={chartKey}
               data={data}
               margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
-              onMouseMove={(e: any) => {
-                if (resetCooldownRef.current) return;
-                if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
-              }}
               onClick={(e: any) => {
-                if (resetCooldownRef.current) return;
+                if (isResettingRef.current) return;
                 if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
               }}
             >
@@ -240,8 +237,11 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 content={
                   <CustomTooltip
                     nominalCapKw={nominalCapKw}
-                    onActivePoint={setInspectedPoint}
-                    canUpdate={canUpdate}
+                    onActivePoint={(p) => {
+                      if (!isResettingRef.current) {
+                        setInspectedPoint(p);
+                      }
+                    }}
                   />
                 }
                 cursor={{ stroke: "#f59e0b", strokeWidth: 1, strokeDasharray: "3 3" }}
