@@ -93,7 +93,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
         </h2>
       </div>
       <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-        Curva de hoje empilhada — quanto cada inversor gerou a cada horário
+        Potência individual em tempo real de cada inversor ao longo do dia
       </p>
 
       {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (Sticky Header - Sempre com dados reais) */}
@@ -106,7 +106,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
               </span>
               <span className="text-xl font-extrabold text-blue-500 tabular-nums">
                 {displayPoint.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
-                <span className="ml-1 text-xs font-semibold text-blue-500/80">kW</span>
+                <span className="ml-1 text-xs font-semibold text-blue-500/80">kW total</span>
               </span>
               {!isInspecting && (
                 <span className="rounded-md bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400">
@@ -127,7 +127,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
 
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-blue-500/15 text-xs">
             <div>
-              <span className="text-[#3b82f6] font-medium">Solis:</span>{" "}
+              <span className="text-[#3b82f6] font-medium">Solis 6kW:</span>{" "}
               <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">{displayPoint.solis_kw?.toFixed(1) ?? "0"} kW</strong>
             </div>
             <div>
@@ -160,8 +160,8 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
               <defs>
                 {SERIES.map((s) => (
                   <linearGradient key={s.key} id={`grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={s.color} stopOpacity={0.5} />
-                    <stop offset="100%" stopColor={s.color} stopOpacity={0.05} />
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.25} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0.0} />
                   </linearGradient>
                 ))}
               </defs>
@@ -170,13 +170,20 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 dataKey="time"
                 tickLine={false}
                 axisLine={false}
-                interval={3}
+                ticks={[
+                  "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+                  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+                  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+                  "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+                ]}
+                tickFormatter={(val: string) => val ? val.slice(0, 5) : ""}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(val) => `${val}k`}
+                domain={[0, (dataMax: number) => Math.max(6.5, Math.ceil(dataMax + 0.5))]}
+                tickFormatter={(val) => `${val} kW`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
               <Tooltip content={<CustomTooltip onActivePoint={setInspectedPoint} />} />
@@ -190,9 +197,8 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                   key={s.key}
                   type="monotone"
                   dataKey={s.key}
-                  stackId="inversores"
                   stroke={s.color}
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   fill={`url(#grad-${s.key})`}
                   animationDuration={900}
                 />

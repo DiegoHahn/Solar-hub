@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   RiLockPasswordLine,
@@ -13,8 +13,9 @@ import {
   RiEyeOffLine,
 } from "@remixicon/react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -23,6 +24,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "unauthorized_email") {
+      setMessage({
+        type: "error",
+        text: "Acesso não autorizado: Esta conta Google não possui permissão para acessar o Solar Hub.",
+      });
+    } else if (errorParam === "auth_callback_failed") {
+      setMessage({
+        type: "error",
+        text: "Falha na autenticação com o Google. Tente novamente.",
+      });
+    }
+  }, [searchParams]);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,5 +250,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#030712]" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

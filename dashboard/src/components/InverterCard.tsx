@@ -378,14 +378,6 @@ export function InverterCard({ inverter, detailed = false }: InverterCardProps) 
           </div>
         )}
       </div>
-
-      {/* Footer simples de Wi-Fi quando diagnóstico está fechado */}
-      {detailed && !showAdvanced && wifiRssi && (
-        <p className="mt-3 flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500">
-          <RiWifiLine className="size-3.5" />
-          Sinal Wi-Fi: {wifiRssi} {wifiSsid ? `· ${wifiSsid}` : ""}
-        </p>
-      )}
     </Card>
   );
 }

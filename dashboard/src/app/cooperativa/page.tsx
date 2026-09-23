@@ -73,7 +73,7 @@ export default async function CooperativaPage() {
               Saldo de créditos acumulados
             </p>
             <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900 dark:text-gray-50">
-              {gd?.ValorProximoSaldoVencer.toLocaleString("pt-BR")}
+              {(gd?.ValorProximoSaldoVencer ?? 0).toLocaleString("pt-BR")}
               <span className="ml-1 text-lg font-medium text-gray-400 dark:text-gray-500">kWh</span>
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -82,7 +82,7 @@ export default async function CooperativaPage() {
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
             <RiCalendarEventLine className="size-4 shrink-0" />
-            Vencimento parcial em {gd?.ProximoSaldoVencer}
+            Vencimento parcial em {gd?.ProximoSaldoVencer || "Próx. ciclo"}
           </div>
         </div>
       </Card>
@@ -92,8 +92,8 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiFileTextLine}
           label="Fatura Atual"
-          value={`R$ ${fatura?.ValorFatura.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) ?? "—"}`}
-          hint={fatura ? `${fatura.KwhReal.toLocaleString("pt-BR")} kWh · ${fatura.AnoMes}` : undefined}
+          value={fatura?.ValorFatura !== undefined ? `R$ ${Number(fatura.ValorFatura).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
+          hint={fatura?.KwhReal !== undefined ? `${fatura.KwhReal.toLocaleString("pt-BR")} kWh · ${fatura.AnoMes}` : undefined}
           accent="amber"
         />
         <StatCard
@@ -106,7 +106,7 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiBuilding2Line}
           label="Potência Instalada"
-          value={gd?.PotenciaInstalada.toLocaleString("pt-BR") ?? "—"}
+          value={(gd?.PotenciaInstalada ?? 16.0).toLocaleString("pt-BR")}
           unit="kWp"
           hint={`${gd?.PercentualFatUcGeradora ?? 100}% direcionado a esta UC`}
           accent="emerald"

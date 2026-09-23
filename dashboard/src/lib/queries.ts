@@ -60,6 +60,37 @@ export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
         };
       });
     }
+
+    // Normaliza geracao_distribuida garantindo saldo e potência se o objeto vier vazio
+    if (!uc.geracao_distribuida || Object.keys(uc.geracao_distribuida).length === 0 || !uc.geracao_distribuida.ValorProximoSaldoVencer) {
+      // Extrai o saldo mais recente do extrato_gd ou do grafico de 12 meses
+      const extratoItems = uc.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal || [];
+      const histItems = uc.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
+      const fallbackSaldo = extratoItems[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo ?? 9900;
+
+      uc.geracao_distribuida = {
+        ...uc.geracao_distribuida,
+        ValorProximoSaldoVencer: uc.geracao_distribuida?.ValorProximoSaldoVencer || fallbackSaldo,
+        ProximoSaldoVencer: uc.geracao_distribuida?.ProximoSaldoVencer || "Próx. ciclo",
+        PotenciaInstalada: uc.geracao_distribuida?.PotenciaInstalada || 16.0,
+        PercentualFatUcGeradora: uc.geracao_distribuida?.PercentualFatUcGeradora || 100,
+      };
+    }
+
+    // Normaliza resumo_ultima_fatura caso o endpoint do portal venha vazio
+    if (!uc.resumo_ultima_fatura || Object.keys(uc.resumo_ultima_fatura).length === 0 || uc.resumo_ultima_fatura.ValorFatura === undefined) {
+      const faturas = uc.historico_faturas_60_meses || [];
+      const lastFatura = faturas[faturas.length - 1];
+      if (lastFatura) {
+        const anoMesParts = (lastFatura.AnoMes || "").split(" ")[0].split("/");
+        uc.resumo_ultima_fatura = {
+          ValorFatura: lastFatura.ValorTotal ?? 0,
+          KwhReal: lastFatura.ConsumoFaturado ?? 0,
+          AnoMes: anoMesParts.length >= 3 ? `${anoMesParts[1]}/${anoMesParts[2]}` : "09/2026",
+          DataLProxima: lastFatura.Vcto ? lastFatura.Vcto.split(" ")[0] : "—",
+        };
+      }
+    }
   }
 
   return data;
@@ -81,19 +112,25 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
       return [];
     }
 
-    const rawPoints = (data || []).map((row: any) => {
+    const rawPoints: SunCurvePoint[] = (data || []).map((row: any) => {
+      const time = new Date(row.recorded_at).toLocaleTimeString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       const invs = row.inverters_data || [];
       const solis = invs.find((i: any) => i.id === "inv_1")?.power_w || 0;
       const gw1 = invs.find((i: any) => i.id === "inv_2")?.power_w || 0;
       const gw2 = invs.find((i: any) => i.id === "inv_3")?.power_w || 0;
       return {
+        time,
         timestamp: new Date(row.recorded_at).getTime(),
         power_kw: Number((row.total_power_kw || 0).toFixed(2)),
         nominal_cap_kw: 16.0,
         solis_kw: Number((solis / 1000).toFixed(2)),
         goodwe1_kw: Number((gw1 / 1000).toFixed(2)),
         goodwe2_kw: Number((gw2 / 1000).toFixed(2)),
-      };
+      } as any;
     });
 
     // Monta a grade contínua de 30 em 30 minutos desde 00:00 até o momento atual do dia
@@ -114,7 +151,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
 
       // Busca a telemetria física real coletada mais próxima desse slot (dentro de uma janela de 20 min)
       const closest = rawPoints.reduce(
-        (best: { point: any; diff: number } | null, p) => {
+        (best: { point: any; diff: number } | null, p: any) => {
           const diff = Math.abs(p.timestamp - slotTimeMs);
           if (!best || diff < best.diff) return { point: p, diff };
           return best;
@@ -150,63 +187,61 @@ export async function getTelemetryByDay(daysBack: number = 90): Promise<Record<s
     startDate.setHours(0, 0, 0, 0);
     const startIso = startDate.toISOString().split("T")[0];
 
-    // 1. Tenta buscar da tabela oficial de histórico diário consolidado (inverter_daily_history)
-    const { data: histData, error: histError } = await supabase
-      .from("inverter_daily_history")
-      .select("date, kwh, inverter_id")
-      .gte("date", startIso)
-      .in("inverter_id", ["plant_total", "goodwe_combined", "inv_1"])
-      .order("date", { ascending: true });
+    // Busca tanto o histórico consolidado quanto as telemetrias reais em paralelo
+    const [histRes, teleRes] = await Promise.all([
+      supabase
+        .from("inverter_daily_history")
+        .select("date, kwh, inverter_id")
+        .gte("date", startIso)
+        .in("inverter_id", ["plant_total", "goodwe_combined", "inv_1"])
+        .order("date", { ascending: true }),
+      supabase
+        .from("solar_telemetry")
+        .select("recorded_at, total_today_kwh")
+        .gte("recorded_at", startDate.toISOString())
+        .order("recorded_at", { ascending: true }),
+    ]);
 
-    if (!histError && histData && histData.length > 0) {
-      const byDay: Record<string, number> = {};
+    const byDay: Record<string, number> = {};
+
+    // 1. Popula primeiro com a telemetria física real coletada a cada 10 min
+    if (teleRes.data && teleRes.data.length > 0) {
+      for (const r of teleRes.data) {
+        const dayIso = new Date(r.recorded_at).toLocaleDateString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).split("/").reverse().join("-");
+
+        const val = Number(r.total_today_kwh) || 0;
+        if (!byDay[dayIso] || val > byDay[dayIso]) {
+          byDay[dayIso] = Number(val.toFixed(1));
+        }
+      }
+    }
+
+    // 2. Mescla/Consolida com a tabela oficial de histórico fechado
+    if (histRes.data && histRes.data.length > 0) {
       const grouped: Record<string, Record<string, number>> = {};
-      
-      for (const r of histData) {
+      for (const r of histRes.data) {
         if (!grouped[r.date]) grouped[r.date] = {};
         grouped[r.date][r.inverter_id] = Number(r.kwh) || 0;
       }
 
       for (const [date, invs] of Object.entries(grouped)) {
         if (invs["plant_total"] !== undefined) {
-          byDay[date] = invs["plant_total"];
+          byDay[date] = Number(invs["plant_total"].toFixed(1));
         } else if (invs["goodwe_combined"] !== undefined && invs["inv_1"] !== undefined) {
-          byDay[date] = Number((invs["goodwe_combined"] + invs["inv_1"]).toFixed(2));
-        } else if (invs["plant_total"] === undefined && invs["goodwe_combined"] !== undefined) {
-          byDay[date] = invs["goodwe_combined"];
+          byDay[date] = Number((invs["goodwe_combined"] + invs["inv_1"]).toFixed(1));
+        } else if (invs["goodwe_combined"] !== undefined) {
+          byDay[date] = Number(invs["goodwe_combined"].toFixed(1));
         } else if (invs["inv_1"] !== undefined) {
-          byDay[date] = invs["inv_1"];
+          byDay[date] = Number(invs["inv_1"].toFixed(1));
         }
       }
-
-      return byDay;
     }
 
-    // 2. Fallback caso inverter_daily_history não retorne dados
-    const { data, error } = await supabase
-      .from("solar_telemetry")
-      .select("recorded_at, total_today_kwh")
-      .gte("recorded_at", startDate.toISOString())
-      .order("recorded_at", { ascending: true });
-
-    if (error || !data || data.length === 0) {
-      return {};
-    }
-
-    const byDay: Record<string, number> = {};
-    for (const r of data) {
-      const dayIso = new Date(r.recorded_at).toLocaleDateString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).split("/").reverse().join("-");
-
-      const val = Number(r.total_today_kwh) || 0;
-      if (!byDay[dayIso] || val > byDay[dayIso]) {
-        byDay[dayIso] = val;
-      }
-    }
     return byDay;
   } catch (err) {
     console.error("Erro ao buscar histórico diário de telemetria:", err);

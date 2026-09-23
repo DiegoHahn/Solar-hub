@@ -129,14 +129,14 @@ export function EnergyFlowSection({
 
             <div className="mt-4 space-y-2 border-t border-amber-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>⚡ Potência instantânea:</span>
-                <strong className="text-amber-600 dark:text-amber-400">
+                <span>⚡ Potência atual:</span>
+                <strong className="text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {telemetry ? `${telemetry.total_power_kw.toFixed(1)} kW` : "—"}
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>💰 Valor gerado (Ref. R$ {tarifaKwh.toFixed(3)}):</span>
-                <strong className="text-emerald-600 dark:text-emerald-400">
+                <span>💰 Valor gerado:</span>
+                <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   R$ {(isHoje ? economiaHojeReais : economiaMesReais).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
@@ -151,7 +151,7 @@ export function EnergyFlowSection({
                   <RiBuilding2Line className="size-5" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Rede de Distribuição</span>
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Distribuição</span>
                   <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
                     Cooperaliança (Içara/SC)
                   </h3>
@@ -173,22 +173,22 @@ export function EnergyFlowSection({
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {isHoje
-                  ? "Injeção instantânea requer Smart Meter local no padrão"
+                  ? "Consolidado na fatura da cooperativa"
                   : "Excedente medido no relógio da concessionária"}
               </p>
             </div>
 
             <div className="mt-4 space-y-2 border-t border-blue-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>🔄 Compensado na conta (últ. fatura):</span>
-                <strong className="text-blue-600 dark:text-blue-400">
+                <span>🔄 Compensado:</span>
+                <strong className="text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {mesCompensadoKwh.toLocaleString("pt-BR")} kWh
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>📈 Superávit líquido mensal:</span>
-                <strong className="text-emerald-600 dark:text-emerald-400">
-                  +{mesSaldoLiquidoKwh.toLocaleString("pt-BR")} kWh créditos
+                <span>📈 Superávit líquido:</span>
+                <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                  +{mesSaldoLiquidoKwh.toLocaleString("pt-BR")} kWh
                 </strong>
               </div>
             </div>
@@ -225,15 +225,15 @@ export function EnergyFlowSection({
 
             <div className="mt-4 space-y-2 border-t border-emerald-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>💵 Valor estimado da reserva:</span>
-                <strong className="text-emerald-600 dark:text-emerald-400">
+                <span>💵 Valor da reserva:</span>
+                <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   R$ {reservaTotalReais.toLocaleString("pt-BR")}
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>📅 Vencimento parcial mais próximo:</span>
-                <strong className="text-gray-900 dark:text-gray-100">
-                  {gd?.ProximoSaldoVencer ?? "—"}
+                <span>📅 Vencimento próx:</span>
+                <strong className="text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {gd?.ProximoSaldoVencer ?? "Próx. ciclo"}
                 </strong>
               </div>
             </div>
