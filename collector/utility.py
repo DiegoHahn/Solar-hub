@@ -26,6 +26,10 @@ ENV = load_env()
 
 API_BASE = "https://portal.cooperalianca.com.br/agenciavirtual3bff/api/"
 TOKEN_EXTERNO = ENV.get("COOPERALIANCA_TOKEN_EXTERNO", "")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+# Unidades consumidoras do titular; a primeira é a UC geradora (onde a usina está instalada)
+UCS = [uc.strip() for uc in ENV.get("COOPERALIANCA_UCS", "").split(",") if uc.strip()]
 
 def push_utility_to_supabase(result):
     """Envia o snapshot da Cooperaliança para o Supabase (Nuvem)."""
@@ -37,8 +41,8 @@ def push_utility_to_supabase(result):
     payload = {
         "updated_at": result.get("timestamp"),
         "distribuidora": result.get("distribuidora", "Cooperaliança (Içara/SC)"),
-        "titular": result.get("titular", "TITULAR"),
-        "cpf": result.get("cpf", "00000000000"),
+        "titular": result["titular"],
+        "cpf": result["cpf"],
         "perfil_usuario": result.get("perfil_usuario", {}),
         "tarifa_referencia": result.get("tarifa_referencia", {}),
         "unidades_consumidoras": result.get("unidades_consumidoras", {})
@@ -100,6 +104,9 @@ def sync_cooperalianca(cpf=None, senha=None):
     if not cpf or not senha:
         print(" ❌ [COOPERALIANCA] CPF ou Senha não configurados no arquivo .env.")
         return None
+    if not UCS:
+        print(" ❌ [COOPERALIANCA] COOPERALIANCA_UCS não configurado no arquivo .env.")
+        return None
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -141,13 +148,12 @@ def sync_cooperalianca(cpf=None, senha=None):
         return None
 
     headers["Authorization"] = f"Bearer {token}"
-    titular_nome = auth_data.get("Content", {}).get("Nome", "Titular")
+    titular_nome = auth_data.get("Content", {}).get("Nome", "")
     print(f" -> Autenticacao efetuada com sucesso! Titular: {titular_nome}")
 
     # 2. Perfil do Usuario
-    perfil_usuario = safe_api_get(API_BASE + "PerfilUsuario/BuscarPerfilUsuario?codigoUc=1000000001", headers=headers, default={})
+    perfil_usuario = safe_api_get(API_BASE + f"PerfilUsuario/BuscarPerfilUsuario?codigoUc={UCS[0]}", headers=headers, default={})
 
-    ucs = ["1000000001", "1000000002", "1000000003"]
     result = {
         "timestamp": datetime.now().isoformat(),
         "distribuidora": "Cooperaliança (Içara/SC)",
@@ -167,7 +173,7 @@ def sync_cooperalianca(cpf=None, senha=None):
         "unidades_consumidoras": {}
     }
 
-    for uc in ucs:
+    for uc in UCS:
         uc_data = {"codigo_uc": uc}
         
         # A. Historico de 60 meses de faturas e consumo
@@ -208,9 +214,7 @@ def sync_cooperalianca(cpf=None, senha=None):
 
     # Salva no disco apenas se explicitamente solicitado via --save-local
     if "--save-local" in sys.argv:
-        out_dir = os.path.join(os.path.dirname(__file__), "data")
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "cooperalianca_latest.json")
+        out_path = os.path.join(DATA_DIR, "cooperalianca_latest.json")
         try:
             atomic_write_json(out_path, result)
             print(f"-------------------------------------------------------")
@@ -224,19 +228,21 @@ def sync_cooperalianca(cpf=None, senha=None):
 
     return result
 
-def download_informativo_pdf(competencia=None, uc=1000000001, cpf=None, senha=None, output_file="data/informativo_microgeracao.pdf", data_payload=None):
+def download_informativo_pdf(competencia=None, uc=None, cpf=None, senha=None, output_file=None, data_payload=None):
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
+    uc = uc or (UCS[0] if UCS else None)
+    output_file = output_file or os.path.join(DATA_DIR, "informativo_microgeracao.pdf")
 
-    if not cpf or not senha:
-        print(" ❌ [PDF] CPF ou Senha ausentes para download do informativo.")
+    if not cpf or not senha or not uc:
+        print(" ❌ [PDF] CPF, Senha ou UC ausentes para download do informativo.")
         return None
 
     # Se a competência não for informada, busca a competência mais recente disponível no payload ou arquivo local
     if not competencia:
         uc_info = (data_payload or {}).get("unidades_consumidoras", {}).get(str(uc), {})
         if not uc_info:
-            latest_file = os.path.join(os.path.dirname(__file__), "data", "cooperalianca_latest.json")
+            latest_file = os.path.join(DATA_DIR, "cooperalianca_latest.json")
             if os.path.exists(latest_file):
                 try:
                     with open(latest_file, "r", encoding="utf-8") as f:

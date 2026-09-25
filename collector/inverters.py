@@ -368,8 +368,8 @@ def push_to_supabase(plant_summary):
 
     payload = {
         "recorded_at": plant_summary.get("timestamp"),
-        "plant_name": plant_summary.get("plant_name", "Usina Solar Diego Hahn (16 kW)"),
-        "total_nominal_capacity_kw": plant_summary.get("total_nominal_capacity_kw", 16.0),
+        "plant_name": plant_summary.get("plant_name"),
+        "total_nominal_capacity_kw": plant_summary.get("total_nominal_capacity_kw"),
         "total_power_w": plant_summary.get("total_power_w", 0.0),
         "total_power_kw": plant_summary.get("total_power_kw", 0.0),
         "total_today_kwh": plant_summary.get("total_today_kwh", 0.0),
@@ -438,15 +438,16 @@ def run_collection_cycle():
         vgrid_info = f" | {int(res['vgrid'])}V" if res.get("vgrid") else ""
         print(f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Hoje: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh{temp_info}{vgrid_info}")
 
+    nominal_kw = config.get("nominal_capacity_kw", 16.0)
     plant_summary = {
         "timestamp": timestamp,
-        "plant_name": "Usina Solar Diego Hahn (16 kW)",
-        "total_nominal_capacity_kw": 16.0,
+        "plant_name": config.get("plant_name", "Usina Solar"),
+        "total_nominal_capacity_kw": nominal_kw,
         "total_power_w": round(total_power_w, 1),
         "total_power_kw": round(total_power_w / 1000.0, 2),
         "total_today_kwh": round(total_today_kwh, 2),
         "total_lifetime_kwh": round(total_lifetime_kwh, 1),
-        "capacity_factor_pct": round((total_power_w / 16000.0) * 100.0, 1),
+        "capacity_factor_pct": round((total_power_w / (nominal_kw * 1000.0)) * 100.0, 1),
         "inverters_count": len(inverters_results),
         "inverters": inverters_results
     }
