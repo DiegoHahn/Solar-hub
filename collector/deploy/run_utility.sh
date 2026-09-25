@@ -1,5 +1,5 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 echo "======================================================="
 echo "  Solar Hub - Coletor Cooperalianca (Concessionaria)"
@@ -13,4 +13,4 @@ else
     PYTHON_BIN="python3"
 fi
 
-$PYTHON_BIN collector_utility.py --pdf
+$PYTHON_BIN utility.py --pdf

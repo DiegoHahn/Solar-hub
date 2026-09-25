@@ -1,5 +1,5 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 echo "======================================================="
 echo "  Solar Hub - Coletor dos 3 Inversores (Tempo Real 24/7)"
@@ -15,7 +15,7 @@ else
 fi
 
 while true; do
-    $PYTHON_BIN collector_inverters.py
+    $PYTHON_BIN inverters.py
     echo ""
     echo "[!] Processo do coletor encerrou em $(date). Reiniciando em 5 segundos..."
     sleep 5

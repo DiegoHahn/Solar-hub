@@ -33,7 +33,7 @@ export default async function CooperativaPage() {
         <Card className="mt-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Nenhum dado da Cooperaliança ainda. Rode o coletor (
-            <code className="text-gray-700 dark:text-gray-300">python collector_utility.py --pdf</code>
+            <code className="text-gray-700 dark:text-gray-300">python collector/utility.py --pdf</code>
             ) para sincronizar faturas e créditos.
           </p>
         </Card>

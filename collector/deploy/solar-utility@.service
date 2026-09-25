@@ -1,0 +1,13 @@
+# Sincronização da concessionária, disparada pelo solar-utility@.timer
+[Unit]
+Description=Solar Hub - Sincronização da Cooperaliança
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=%i
+WorkingDirectory=/home/%i/Solar-hub/collector
+ExecStart=/home/%i/Solar-hub/collector/.venv/bin/python /home/%i/Solar-hub/collector/utility.py --pdf
+StandardOutput=journal
+StandardError=journal

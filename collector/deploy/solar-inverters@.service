@@ -1,0 +1,19 @@
+# Unit de template: o nome após o @ é o usuário dono do clone em /home/<usuário>/Solar-hub
+#   sudo systemctl enable --now solar-inverters@<usuário>.service
+[Unit]
+Description=Solar Hub - Coletor de Telemetria Solar (24/7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/%i/Solar-hub/collector
+ExecStart=/home/%i/Solar-hub/collector/.venv/bin/python /home/%i/Solar-hub/collector/inverters.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
