@@ -109,7 +109,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
         Potência individual em tempo real de cada inversor ao longo do dia
       </p>
 
-      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (Sticky Header - Sempre com dados reais) */}
+      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (mostra o pico do dia até o usuário tocar em um ponto) */}
       <div className="block sm:hidden mt-3 rounded-xl border border-blue-500/20 bg-blue-500/[0.06] p-3 text-xs transition-all">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">

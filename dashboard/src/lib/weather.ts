@@ -16,7 +16,7 @@ export interface DailyWeather {
   solarRadiationHsp: number; // Horas de Sol Pleno (kWh/m²) convertidas de MJ/m²
   precipitationMm: number;
   estimatedKwh: number; // Geração solar real/estimada para usina de 16 kWp
-  isReal?: boolean; // true se veio de telemetria física real dos inversores
+  isReal?: boolean; // true se veio da telemetria dos inversores (e não da estimativa por irradiação)
   realKwh?: number;
 }
 
@@ -49,7 +49,7 @@ export function parseWmoCode(code: number): {
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-/** Dados de fallback reais de Içara/SC caso a chamada externa falhe */
+/** Série fixa observada em Içara/SC (28/08 a 04/09/2026), usada quando a chamada à Open-Meteo falha */
 export const fallbackDailyWeather: DailyWeather[] = [
   {
     date: "2026-08-28",
@@ -228,7 +228,7 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
       const hsp = Number((radMj / 3.6).toFixed(2));
       const sunHours = Number(((sunshine[idx] ?? 0) / 3600).toFixed(1));
 
-      // Se tivermos telemetria física real dos inversores registrada para este dia, usamos o valor REAL!
+      // Havendo telemetria dos inversores para o dia, usa a geração medida; senão, estima por 16 kWp × HSP × 0.81
       const hasRealData = realTelemetryByDay && realTelemetryByDay[t] !== undefined;
       const actualKwh = hasRealData
         ? Number(realTelemetryByDay[t].toFixed(1))

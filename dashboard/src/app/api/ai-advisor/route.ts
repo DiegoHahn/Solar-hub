@@ -94,7 +94,7 @@ async function handleGenerate() {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
 
-    // Carrega dados 100% reais do Supabase e da Open-Meteo para injetar no prompt
+    // Carrega telemetria/concessionária (Supabase) e clima (Open-Meteo) para injetar no prompt
     const [telemetry, utilityData, sunCurve, weatherHistory] = await Promise.all([
       getLatestTelemetry().catch(() => null),
       getLatestUtilityData().catch(() => null),
@@ -119,7 +119,7 @@ async function handleGenerate() {
     const peakKw = peakPoint.power_kw || (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
-    // Dados meteorológicos reais de hoje e dos últimos dias (Open-Meteo)
+    // Dados meteorológicos de hoje e dos últimos dias (Open-Meteo)
     const todayWeather = weatherHistory[weatherHistory.length - 1];
     const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
     const avgRecentProduction =
@@ -141,7 +141,7 @@ async function handleGenerate() {
     const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
     const valorFaturaReais = fatura?.ValorFatura ?? 0;
 
-    // Prompt estritamente calibrado: consultor analítico, inteligente e direto para os proprietários
+    // Prompt do consultor: análise interpretativa (não apenas leitura dos números) voltada aos proprietários
     const systemPrompt = `Você é um Consultor Especialista em Engenharia de Energia Solar.
 Seu papel NÃO é apenas listar números que já aparecem na tela, mas sim fornecer uma ANÁLISE REAL, CRÍTICA E INTERPRETATIVA dos dados da usina para os proprietários da residência em Içara/SC.
 Escreva SEMPRE em Português do Brasil (PT-BR).

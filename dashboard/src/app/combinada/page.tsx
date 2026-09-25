@@ -20,7 +20,7 @@ export default async function CombinadaPage() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
-      {/* Cabeçalho da Página Clean */}
+      {/* Cabeçalho da Página */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
@@ -42,7 +42,7 @@ export default async function CombinadaPage() {
         nominalKwp={telemetry?.total_nominal_capacity_kw || 16.0}
       />
 
-      {/* 2. SEÇÃO MEIO: FLUXO DE ENERGIA REAL & BALANÇO */}
+      {/* 2. SEÇÃO MEIO: FLUXO DE ENERGIA & BALANÇO */}
       <EnergyFlowSection telemetry={telemetry} utilityData={utilityData} />
 
       {/* 3. SEÇÃO ABAIXO: ÍNDICE CLIMÁTICO VS EFICIÊNCIA */}

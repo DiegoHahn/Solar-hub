@@ -82,7 +82,7 @@ export function StatCard({
           )}
         </div>
 
-        {/* Subtítulo / Hint explicativo sem quebras feias */}
+        {/* Subtítulo / Hint explicativo */}
         {hint && (
           <p className="mt-1 text-[11px] leading-tight text-gray-400 dark:text-gray-500">
             {hint}

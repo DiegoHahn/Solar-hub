@@ -34,11 +34,11 @@ export function EnergyFlowSection({
   const saldoTotalAcumuladoKwh = gd?.ValorProximoSaldoVencer ?? 0;
   const reservaTotalReais = Math.round(saldoTotalAcumuladoKwh * tarifaKwh);
 
-  // Dados reais de Hoje
+  // Dados de hoje (telemetria dos inversores)
   const geracaoHojeKwh = telemetry?.total_today_kwh ?? 0;
   const economiaHojeReais = geracaoHojeKwh * tarifaKwh;
 
-  // Dados reais do Mês (Última Fatura / Histórico Cooperaliança)
+  // Dados do mês (última fatura / histórico Cooperaliança)
   const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
   const mesCompensadoKwh = lastMonthItem?.kwhCreditado ?? 0;
   const mesSaldoLiquidoKwh = mesInjetadoKwh - mesCompensadoKwh; // Superávit que virou crédito no mês
@@ -91,7 +91,7 @@ export function EnergyFlowSection({
 
       {/* Grid de 3 Cards com o Fluxo de Potência */}
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* NÓ 1: USINA SOLAR (GERAÇÃO BRUTA REAL) */}
+          {/* NÓ 1: USINA SOLAR (GERAÇÃO BRUTA) */}
           <div className="relative flex flex-col rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 dark:border-amber-500/30 dark:bg-amber-950/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export function EnergyFlowSection({
             </div>
           </div>
 
-          {/* NÓ 3: SALDO ACUMULADO GD (ESTOQUE REAL) */}
+          {/* NÓ 3: SALDO ACUMULADO GD (ESTOQUE DE CRÉDITOS) */}
           <div className="relative flex flex-col rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 dark:border-emerald-500/30 dark:bg-emerald-950/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

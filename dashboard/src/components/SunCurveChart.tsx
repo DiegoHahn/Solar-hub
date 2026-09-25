@@ -97,7 +97,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
     e.preventDefault();
     isResettingRef.current = true;
     setInspectedPoint(null);
-    // Força o Recharts a desmontar e limpar o activeIndex/activePayload interno gravado no iOS
+    // Remonta o gráfico (nova key) para descartar o ponto ativo que o Safari do iOS mantém após o toque
     setChartKey((k) => k + 1);
     setTimeout(() => {
       isResettingRef.current = false;
@@ -147,7 +147,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
         </div>
       </div>
 
-      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (Sticky Header - Sempre com dados reais) */}
+      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (mostra o pico do dia até o usuário tocar em um ponto) */}
       <div className="block sm:hidden mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs transition-all">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">

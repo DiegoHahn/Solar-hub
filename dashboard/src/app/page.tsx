@@ -61,7 +61,7 @@ export default async function Home() {
   const isPeakOverload = capacityPct > 100;
   const isGenerating = currentPowerKw > 0.05;
 
-  // Verifica se é período diurno (entre 06:00 e 18:30 em Brasília)
+  // Verifica se é período diurno (entre 06:00 e 19:00 em Brasília)
   const brasiliaHour = parseInt(
     new Intl.DateTimeFormat("pt-BR", {
       timeZone: "America/Sao_Paulo",
@@ -116,7 +116,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Alerta de Desatualização (apenas quando em produção real e offline) */}
+      {/* Alerta de Desatualização (última telemetria mais antiga que STALE_THRESHOLD_MIN) */}
       {isStale && (
         <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-500/10 dark:text-amber-400">
           <RiAlertLine className="size-5 shrink-0" aria-hidden="true" />
