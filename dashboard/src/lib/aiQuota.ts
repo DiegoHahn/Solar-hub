@@ -1,20 +1,14 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 
 export interface QuotaState {
-  date: string; // YYYY-MM-DD
-  primary_count: number; // contador de chamadas do modelo primário configurado no .env
-  total_calls_today: number;
-  last_call_at: string;
-  gemini_3_8_count?: number; // espelho de primary_count; lido como fallback quando primary_count está ausente
+  date: string; // YYYY-MM-DD (fuso de Brasília)
+  primary_count: number; // chamadas ao modelo primário configurado em GEMINI_MODEL
+  total_calls: number;
 }
 
 export interface CachedAdvisorData {
   updatedAt: string;
-  date: string;
   modelUsed: string;
-  quotaCount: number;
-  maxPrimaryQuota: number;
   data: AdvisorResult;
 }
 
@@ -88,12 +82,10 @@ export const fallbackAdvisorAnalysis: AdvisorResult = {
   },
 };
 
-const QUOTA_FILE = path.join(process.cwd(), ".ai_quota.json");
-const CACHE_FILE = path.join(process.cwd(), ".ai_advisor_cache.json");
+const TABLE = "ai_advisor_daily";
 
 /** Retorna a data atual no fuso horário de Brasília (YYYY-MM-DD) */
-export function getBrasiliaDate(): string {
-  const now = new Date();
+export function getBrasiliaDate(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",
@@ -102,102 +94,79 @@ export function getBrasiliaDate(): string {
   }).format(now);
 }
 
-/** Lê o estado atual da cota diária */
-export function getQuotaState(): QuotaState {
-  const today = getBrasiliaDate();
-  try {
-    if (fs.existsSync(QUOTA_FILE)) {
-      const content = fs.readFileSync(QUOTA_FILE, "utf-8");
-      const state: QuotaState = JSON.parse(content);
-      if (state.date === today) {
-        if (state.primary_count === undefined) {
-          state.primary_count = state.gemini_3_8_count ?? 0;
-        }
-        return state;
-      }
-    }
-  } catch (err) {
-    console.error("Erro ao ler ai_quota.json:", err);
-  }
-
-  // Novo dia (ou arquivo ausente/ilegível): zera os contadores
-  const newState: QuotaState = {
-    date: today,
-    primary_count: 0,
-    gemini_3_8_count: 0,
-    total_calls_today: 0,
-    last_call_at: new Date().toISOString(),
-  };
-  saveQuotaState(newState);
-  return newState;
-}
-
-/** Salva o estado da cota */
-export function saveQuotaState(state: QuotaState) {
-  try {
-    fs.writeFileSync(QUOTA_FILE, JSON.stringify(state, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Erro ao salvar ai_quota.json:", err);
-  }
-}
-
-/** Incrementa o uso do modelo */
-export function incrementQuota(modelUsed: string): QuotaState {
-  const state = getQuotaState();
-  state.total_calls_today += 1;
-  state.last_call_at = new Date().toISOString();
-
-  const primaryModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim().toLowerCase();
+/** Verifica se o modelo usado corresponde ao modelo primário (aceita variações de sufixo/versão). */
+export function isPrimaryModel(modelUsed: string, primaryModel: string): boolean {
   const used = modelUsed.trim().toLowerCase();
-
-  // Verifica se o modelo usado foi o modelo primário configurado no .env
-  if (used === primaryModel || used.includes(primaryModel) || primaryModel.includes(used)) {
-    state.primary_count = (state.primary_count ?? 0) + 1;
-    state.gemini_3_8_count = state.primary_count;
-  }
-
-  saveQuotaState(state);
-  return state;
+  const primary = primaryModel.trim().toLowerCase();
+  return used === primary || used.includes(primary) || primary.includes(used);
 }
 
-/** Lê o cache da análise gerada */
-export function getAdvisorCache(): CachedAdvisorData | null {
-  const today = getBrasiliaDate();
-  try {
-    if (fs.existsSync(CACHE_FILE)) {
-      const content = fs.readFileSync(CACHE_FILE, "utf-8");
-      const cached: CachedAdvisorData = JSON.parse(content);
-      // Se for de hoje, o cache é válido
-      if (cached.date === today) {
-        return cached;
-      }
-    }
-  } catch (err) {
-    console.error("Erro ao ler ai_advisor_cache.json:", err);
-  }
-  return null;
+/** Lê a cota do dia; sem registro (ou em caso de erro) considera a cota zerada. */
+export async function getQuotaState(): Promise<QuotaState> {
+  const date = getBrasiliaDate();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("primary_count, total_calls")
+    .eq("date", date)
+    .maybeSingle();
+
+  if (error) console.error("Erro ao ler cota do Consultor IA:", error);
+  return { date, primary_count: data?.primary_count ?? 0, total_calls: data?.total_calls ?? 0 };
 }
 
-/** Salva a análise gerada no cache persistente */
-export function saveAdvisorCache(
-  data: AdvisorResult,
-  modelUsed: string,
-  quotaCount: number,
-  maxPrimaryQuota: number
-) {
-  const today = getBrasiliaDate();
-  const cached: CachedAdvisorData = {
-    updatedAt: new Date().toISOString(),
-    date: today,
-    modelUsed,
-    quotaCount,
-    maxPrimaryQuota,
-    data,
+/** Registra uma chamada bem-sucedida ao Gemini e retorna a cota atualizada. */
+export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
+  const current = await getQuotaState();
+  const primaryModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const next: QuotaState = {
+    date: current.date,
+    total_calls: current.total_calls + 1,
+    primary_count: current.primary_count + (isPrimaryModel(modelUsed, primaryModel) ? 1 : 0),
   };
 
-  try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(cached, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Erro ao salvar ai_advisor_cache.json:", err);
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from(TABLE)
+    .upsert({ ...next, last_call_at: new Date().toISOString() }, { onConflict: "date" });
+  if (error) console.error("Erro ao salvar cota do Consultor IA:", error);
+
+  return next;
+}
+
+/** Lê a análise gerada hoje, se houver. */
+export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("analysis, model_used, analysis_updated_at")
+    .eq("date", getBrasiliaDate())
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao ler cache do Consultor IA:", error);
+    return null;
   }
+  if (!data?.analysis) return null;
+
+  return {
+    data: data.analysis as AdvisorResult,
+    modelUsed: data.model_used ?? "",
+    updatedAt: data.analysis_updated_at ?? "",
+  };
+}
+
+/** Salva a análise gerada como cache do dia. */
+export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from(TABLE).upsert(
+    {
+      date: getBrasiliaDate(),
+      analysis: data,
+      model_used: modelUsed,
+      analysis_updated_at: new Date().toISOString(),
+    },
+    { onConflict: "date" },
+  );
+  if (error) console.error("Erro ao salvar cache do Consultor IA:", error);
 }

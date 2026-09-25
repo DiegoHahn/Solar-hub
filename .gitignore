@@ -31,10 +31,6 @@ Desktop.ini
 
 imagens/
 
-# AI Advisor Runtime Cache & Quota
-.ai_quota.json
-.ai_advisor_cache.json
-
 # Configuração local do coletor (IPs e seriais dos inversores)
 collector/config.json
 

@@ -15,46 +15,34 @@ import {
 import { getIcaraWeatherData } from "@/lib/weatherData";
 import { getGeneratorUc } from "@/lib/utility";
 
+const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
+
+/** Responde com a análise do dia já gerada, se existir. */
+async function respondFromCache(): Promise<NextResponse | null> {
+  const [cached, quota] = await Promise.all([getAdvisorCache(), getQuotaState()]);
+  if (!cached) return null;
+
+  return NextResponse.json({
+    ...cached.data,
+    modelUsed: cached.modelUsed,
+    quotaCount: quota.primary_count,
+    maxPrimaryQuota: getMaxPrimaryQuota(),
+    isCached: true,
+    updatedAt: cached.updatedAt,
+  });
+}
+
 export async function GET() {
-  const cached = getAdvisorCache();
-  const quota = getQuotaState();
-  const maxPrimaryQuota = parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
-  const primaryCount = quota.primary_count ?? quota.gemini_3_8_count ?? 0;
-
-  if (cached) {
-    return NextResponse.json({
-      ...cached.data,
-      modelUsed: cached.modelUsed,
-      quotaCount: primaryCount,
-      maxPrimaryQuota,
-      isCached: true,
-      updatedAt: cached.updatedAt,
-    });
-  }
-
-  // Se não houver cache, gera a análise inicial
-  return handleGenerate();
+  return (await respondFromCache()) ?? handleGenerate();
 }
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const force = body.force === true;
-  const maxPrimaryQuota = parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
   if (!force) {
-    const cached = getAdvisorCache();
-    const quota = getQuotaState();
-    const primaryCount = quota.primary_count ?? quota.gemini_3_8_count ?? 0;
-    if (cached) {
-      return NextResponse.json({
-        ...cached.data,
-        modelUsed: cached.modelUsed,
-        quotaCount: primaryCount,
-        maxPrimaryQuota,
-        isCached: true,
-        updatedAt: cached.updatedAt,
-      });
-    }
+    const cachedResponse = await respondFromCache();
+    if (cachedResponse) return cachedResponse;
   }
 
   return handleGenerate();
@@ -70,14 +58,14 @@ async function handleGenerate() {
       );
     }
 
-    const quota = getQuotaState();
+    const quota = await getQuotaState();
     const configuredModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
     const configuredFallbacks = (process.env.GEMINI_MODEL_FALLBACKS || "gemini-3.7-flash,gemini-3.6-flash")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    const maxPrimaryQuota = parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
-    const primaryCount = quota.primary_count ?? quota.gemini_3_8_count ?? 0;
+    const maxPrimaryQuota = getMaxPrimaryQuota();
+    const primaryCount = quota.primary_count;
 
     let candidateModels: string[] = [];
     let switchedDueToQuota = false;
@@ -280,7 +268,7 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
 
     if (!rawText) {
       console.error("[Consultor IA] Todos os modelos falharam. Último erro:", lastError);
-      const cached = getAdvisorCache();
+      const cached = await getAdvisorCache();
       if (cached) {
         return NextResponse.json({
           ...cached.data,
@@ -311,11 +299,11 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
     const parsed: AdvisorResult = JSON.parse(rawText);
 
     // Incrementa a cota registrada
-    const updatedQuota = incrementQuota(modelSuccessfullyUsed);
-    const currentPrimaryCount = updatedQuota.primary_count ?? updatedQuota.gemini_3_8_count ?? 0;
+    const updatedQuota = await incrementQuota(modelSuccessfullyUsed);
+    const currentPrimaryCount = updatedQuota.primary_count;
 
     // Salva no cache persistente para evitar chamadas redundantes
-    saveAdvisorCache(parsed, modelSuccessfullyUsed, currentPrimaryCount, maxPrimaryQuota);
+    await saveAdvisorCache(parsed, modelSuccessfullyUsed);
 
     return NextResponse.json({
       ...parsed,
