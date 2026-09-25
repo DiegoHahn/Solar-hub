@@ -17,10 +17,10 @@ import {
   getLatestTelemetry,
   getLatestUtilityData,
   getTodaySunCurve,
-  GENERATOR_UC,
 } from "@/lib/queries";
-import { getIcaraWeatherData } from "@/lib/weather";
+import { getIcaraWeatherData } from "@/lib/weatherData";
 import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
+import { getGeneratorUc } from "@/lib/utility";
 import { cx } from "@/lib/utils";
 import type { BadgeProps } from "@/components/Badge";
 
@@ -45,9 +45,7 @@ export default async function Home() {
     getIcaraWeatherData(),
   ]);
 
-  const saldoCreditos =
-    utilityData?.unidades_consumidoras?.[GENERATOR_UC]?.geracao_distribuida
-      ?.ValorProximoSaldoVencer ?? 0;
+  const saldoCreditos = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;
 
   const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente ?? "Bandeira verde";
@@ -107,7 +105,7 @@ export default async function Home() {
             </span>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Cooperaliança · UC {GENERATOR_UC}
+            {utilityData?.distribuidora ?? "Cooperaliança"} · UC {utilityData?.generator_uc ?? "—"}
           </p>
         </div>
 

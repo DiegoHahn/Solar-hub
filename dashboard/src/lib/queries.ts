@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import type {
   SolarTelemetryRow,
   UtilityDataRow,
@@ -7,9 +7,7 @@ import type {
   GenerationPoint,
   MultiYearHistory,
 } from "@/lib/types";
-
-import { GENERATOR_UC } from "@/lib/constants";
-export { GENERATOR_UC };
+import { findGeneratorUcCode, getGeneratorUc } from "@/lib/utility";
 
 const NOMINAL_CAPACITY_KW = 16.0;
 const TZ = "America/Sao_Paulo";
@@ -101,6 +99,7 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
 }
 
 export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("solar_telemetry")
     .select("*")
@@ -113,6 +112,7 @@ export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
 }
 
 export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("utility_data")
     .select("*")
@@ -122,12 +122,14 @@ export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
 
   if (error) throw error;
 
-  const generatorUc = data?.unidades_consumidoras?.[GENERATOR_UC];
-  if (data && generatorUc) {
-    data.unidades_consumidoras[GENERATOR_UC] = normalizeUnidadeConsumidora(generatorUc);
+  if (!data) return null;
+
+  const generatorUc = findGeneratorUcCode(data.unidades_consumidoras);
+  if (generatorUc) {
+    data.unidades_consumidoras[generatorUc] = normalizeUnidadeConsumidora(data.unidades_consumidoras[generatorUc]);
   }
 
-  return data;
+  return { ...data, generator_uc: generatorUc };
 }
 
 export type SunCurveRow = Pick<SolarTelemetryRow, "recorded_at" | "total_power_kw" | "inverters_data">;
@@ -194,6 +196,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from("solar_telemetry")
       .select("recorded_at, total_power_kw, inverters_data")
@@ -272,7 +275,8 @@ export async function getTelemetryByDay(daysBack: number = 90): Promise<Record<s
     startDate.setHours(0, 0, 0, 0);
     const startIso = startDate.toISOString().split("T")[0];
 
-    // Busca tanto o histórico consolidado quanto as telemetrias reais em paralelo
+    // Busca tanto o histórico consolidado quanto as telemetrias em paralelo
+    const supabase = await createClient();
     const [histRes, teleRes] = await Promise.all([
       supabase
         .from("inverter_daily_history")
@@ -390,7 +394,7 @@ export function buildMultiYearHistory(uc: UnidadeConsumidora | undefined, now: D
 export async function getMultiYearHistory(): Promise<MultiYearHistory> {
   try {
     const utility = await getLatestUtilityData();
-    return buildMultiYearHistory(utility?.unidades_consumidoras?.[GENERATOR_UC], new Date());
+    return buildMultiYearHistory(getGeneratorUc(utility), new Date());
   } catch (err) {
     console.error("Erro ao obter histórico plurianual:", err);
     return { last12Months: [], yearsTotals: [], byYear: {}, availableYears: [] };

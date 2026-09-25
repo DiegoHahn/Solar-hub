@@ -11,9 +11,9 @@ import {
   getLatestTelemetry,
   getLatestUtilityData,
   getTodaySunCurve,
-  GENERATOR_UC,
 } from "@/lib/queries";
-import { getIcaraWeatherData } from "@/lib/weather";
+import { getIcaraWeatherData } from "@/lib/weatherData";
+import { getGeneratorUc } from "@/lib/utility";
 
 export async function GET() {
   const cached = getAdvisorCache();
@@ -102,7 +102,7 @@ async function handleGenerate() {
       getIcaraWeatherData().catch(() => []),
     ]);
 
-    const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
+    const uc = getGeneratorUc(utilityData);
     const gd = uc?.geracao_distribuida;
     const fatura = uc?.resumo_ultima_fatura;
     const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
@@ -164,7 +164,7 @@ DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
 
 DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
 - Usina Solar: 16 kWp (${telemetry?.inverters_count ?? 3} inversores instalados) em Içara/SC.
-- Concessionária: Cooperaliança (UC ${GENERATOR_UC}). Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
+- Concessionária: Cooperaliança (UC ${utilityData?.generator_uc ?? "—"}). Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
 
 MEDIDAS DE HOJE:
 - Produção registrada nos inversores até o momento: ${geracaoHojeKwh.toFixed(1)} kWh (Economia acumulada: R$ ${economiaHojeReais.toFixed(2)})

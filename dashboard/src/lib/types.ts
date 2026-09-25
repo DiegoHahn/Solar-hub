@@ -170,4 +170,6 @@ export interface UtilityDataRow {
   tarifa_referencia: TarifaReferencia | null;
   unidades_consumidoras: Record<string, UnidadeConsumidora>;
   created_at: string;
+  /** Código da UC geradora, resolvido em getLatestUtilityData (não existe na tabela) */
+  generator_uc?: string | null;
 }

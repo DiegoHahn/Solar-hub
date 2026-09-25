@@ -10,7 +10,7 @@ import {
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import type { SolarTelemetryRow, UtilityDataRow } from "@/lib/types";
-import { GENERATOR_UC } from "@/lib/constants";
+import { getGeneratorUc } from "@/lib/utility";
 
 interface EnergyFlowSectionProps {
   telemetry: SolarTelemetryRow | null;
@@ -25,7 +25,7 @@ export function EnergyFlowSection({
 }: EnergyFlowSectionProps) {
   const [timeframe, setTimeframe] = useState<"hoje" | "mes">("hoje");
 
-  const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
+  const uc = getGeneratorUc(utilityData);
   const gd = uc?.geracao_distribuida;
   const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
   const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
@@ -202,7 +202,7 @@ export function EnergyFlowSection({
                 </div>
               </div>
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                UC {GENERATOR_UC}
+                UC {utilityData?.generator_uc}
               </span>
             </div>
 

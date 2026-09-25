@@ -4,7 +4,8 @@ import { Badge } from "@/components/Badge";
 import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
-import { getLatestUtilityData, GENERATOR_UC } from "@/lib/queries";
+import { getLatestUtilityData } from "@/lib/queries";
+import { getGeneratorUc } from "@/lib/utility";
 import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
 
 export default async function CooperativaPage() {
   const utilityData = await getLatestUtilityData();
-  const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
+  const uc = getGeneratorUc(utilityData);
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente;
 
   if (!utilityData || !uc) {
@@ -52,7 +53,7 @@ export default async function CooperativaPage() {
             Cooperativa
           </h1>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {utilityData.distribuidora} · UC {GENERATOR_UC} · {utilityData.titular}
+            {utilityData.distribuidora} · UC {utilityData.generator_uc} · {utilityData.titular}
           </p>
         </div>
         <div className="flex items-center gap-2">

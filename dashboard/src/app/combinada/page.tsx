@@ -1,7 +1,7 @@
 import { AiEnergyAdvisor } from "@/components/AiEnergyAdvisor";
 import { EnergyFlowSection } from "@/components/EnergyFlowSection";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
-import { getIcaraWeatherData } from "@/lib/weather";
+import { getIcaraWeatherData } from "@/lib/weatherData";
 import { getLatestTelemetry, getLatestUtilityData } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
