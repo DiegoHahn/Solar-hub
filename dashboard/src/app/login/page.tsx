@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +13,12 @@ import {
   RiEyeOffLine,
 } from "@remixicon/react";
 
+const CALLBACK_ERRORS: Record<string, string> = {
+  unauthorized_email:
+    "Acesso não autorizado: Esta conta Google não possui permissão para acessar o Solar Hub.",
+  auth_callback_failed: "Falha na autenticação com o Google. Tente novamente.",
+};
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,22 +29,10 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
-
-  useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam === "unauthorized_email") {
-      setMessage({
-        type: "error",
-        text: "Acesso não autorizado: Esta conta Google não possui permissão para acessar o Solar Hub.",
-      });
-    } else if (errorParam === "auth_callback_failed") {
-      setMessage({
-        type: "error",
-        text: "Falha na autenticação com o Google. Tente novamente.",
-      });
-    }
-  }, [searchParams]);
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(() => {
+    const callbackError = CALLBACK_ERRORS[searchParams.get("error") ?? ""];
+    return callbackError ? { type: "error", text: callbackError } : null;
+  });
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,15 +49,16 @@ function LoginForm() {
 
       router.push("/");
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erro no login:", err);
+      const rawMsg = err instanceof Error ? err.message : "";
       let errMsg = "Credenciais inválidas. Verifique seu e-mail e senha.";
-      if (err.message?.includes("Invalid login credentials")) {
+      if (rawMsg.includes("Invalid login credentials")) {
         errMsg = "E-mail ou senha incorretos.";
-      } else if (err.message?.includes("Email not confirmed")) {
+      } else if (rawMsg.includes("Email not confirmed")) {
         errMsg = "E-mail ainda não confirmado.";
-      } else if (err.message) {
-        errMsg = err.message;
+      } else if (rawMsg) {
+        errMsg = rawMsg;
       }
       setMessage({ type: "error", text: errMsg });
     } finally {
@@ -84,12 +79,12 @@ function LoginForm() {
       });
 
       if (error) throw error;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erro no login Google:", err);
       setMessage({
         type: "error",
         text:
-          err.message ||
+          (err instanceof Error && err.message) ||
           "Não foi possível conectar com o Google. Verifique se o provedor está ativo no Supabase.",
       });
       setGoogleLoading(false);

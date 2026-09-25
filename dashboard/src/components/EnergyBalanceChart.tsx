@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useIsClient } from "@/lib/useIsClient";
+import { getActiveDatum } from "@/lib/chartUtils";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -23,7 +25,13 @@ interface EnergyBalanceChartProps {
   data: BalancoEnergeticoMes[];
 }
 
-function CustomTooltip({ active, payload, label, onActivePoint }: any) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: BalancoEnergeticoMes }>;
+  onActivePoint?: (point: BalancoEnergeticoMes) => void;
+}
+
+function CustomTooltip({ active, payload, onActivePoint }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload as BalancoEnergeticoMes | undefined;
@@ -86,11 +94,9 @@ function CustomTooltip({ active, payload, label, onActivePoint }: any) {
 }
 
 export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
   const [viewMode, setViewMode] = useState<"comparison" | "net">("comparison");
   const [inspectedMonth, setInspectedMonth] = useState<BalancoEnergeticoMes | null>(null);
-
-  useEffect(() => setIsMounted(true), []);
 
   if (!data || data.length === 0) return null;
 
@@ -242,11 +248,13 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
             <ComposedChart
               data={data}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              onMouseMove={(e: any) => {
-                if (e?.activePayload?.[0]?.payload) setInspectedMonth(e.activePayload[0].payload);
+              onMouseMove={(state) => {
+                const month = getActiveDatum(state, data);
+                if (month) setInspectedMonth(month);
               }}
-              onClick={(e: any) => {
-                if (e?.activePayload?.[0]?.payload) setInspectedMonth(e.activePayload[0].payload);
+              onClick={(state) => {
+                const month = getActiveDatum(state, data);
+                if (month) setInspectedMonth(month);
               }}
             >
               <XAxis
@@ -308,11 +316,13 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
             <BarChart
               data={data}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              onMouseMove={(e: any) => {
-                if (e?.activePayload?.[0]?.payload) setInspectedMonth(e.activePayload[0].payload);
+              onMouseMove={(state) => {
+                const month = getActiveDatum(state, data);
+                if (month) setInspectedMonth(month);
               }}
-              onClick={(e: any) => {
-                if (e?.activePayload?.[0]?.payload) setInspectedMonth(e.activePayload[0].payload);
+              onClick={(state) => {
+                const month = getActiveDatum(state, data);
+                if (month) setInspectedMonth(month);
               }}
             >
               <XAxis

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useIsClient } from "@/lib/useIsClient";
+import { getActiveDatum } from "@/lib/chartUtils";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { Card } from "@/components/Card";
 import { RiSunLine } from "@remixicon/react";
@@ -50,12 +52,10 @@ export function GenerationBarChart({
   unitLabel,
   color = "#f59e0b",
 }: GenerationBarChartProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
   const [inspectedPoint, setInspectedPoint] = useState<GenerationPoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
   const isResettingRef = useRef(false);
-
-  useEffect(() => setIsMounted(true), []);
 
   const handleReset = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -135,9 +135,10 @@ export function GenerationBarChart({
               key={chartKey}
               data={data}
               margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
-              onClick={(e: any) => {
+              onClick={(state) => {
                 if (isResettingRef.current) return;
-                if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
+                const point = getActiveDatum(state, data);
+                if (point) setInspectedPoint(point);
               }}
             >
               <XAxis

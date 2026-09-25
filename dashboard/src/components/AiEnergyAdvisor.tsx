@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useIsClient } from "@/lib/useIsClient";
 import {
   RiSparklingFill,
   RiRefreshLine,
@@ -50,15 +51,12 @@ export function AiEnergyAdvisor({
   const [data, setData] = useState<UnifiedAdvisorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
 
   // Carrega a análise ao montar (aproveita o cache de hoje se existir, gastando 0 requisições)
   useEffect(() => {
-    setMounted(true);
     let isMounted = true;
     async function loadInitial() {
-      setIsLoading(true);
-      setError(null);
       try {
         const res = await fetch("/api/ai-advisor");
         if (!res.ok) {
@@ -69,10 +67,10 @@ export function AiEnergyAdvisor({
         if (isMounted) {
           setData(json);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Falha ao carregar Consultor IA:", err);
         if (isMounted) {
-          setError(err?.message || "Não foi possível conectar à IA.");
+          setError((err instanceof Error && err.message) || "Não foi possível conectar à IA.");
         }
       } finally {
         if (isMounted) {
@@ -103,9 +101,9 @@ export function AiEnergyAdvisor({
       }
       const json: UnifiedAdvisorData = await res.json();
       setData(json);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Falha ao regerar Consultor IA:", err);
-      setError(err?.message || "Erro ao regerar análise da IA.");
+      setError((err instanceof Error && err.message) || "Erro ao regerar análise da IA.");
     } finally {
       setIsLoading(false);
     }

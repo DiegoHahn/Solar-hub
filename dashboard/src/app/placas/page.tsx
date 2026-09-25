@@ -1,5 +1,4 @@
 import { Card } from "@/components/Card";
-import { Badge } from "@/components/Badge";
 import { InverterCard } from "@/components/InverterCard";
 import { GenerationPeriodSection } from "@/components/GenerationPeriodSection";
 import {
@@ -7,10 +6,9 @@ import {
   RiFlashlightLine,
   RiPercentLine,
   RiPulseLine,
-  RiCpuLine,
-  RiShieldCheckLine,
   RiTempHotLine,
 } from "@remixicon/react";
+import { getNominalKw, readNumericSensor } from "@/lib/inverter";
 import {
   getLatestTelemetry,
   getTodaySunCurve,
@@ -51,8 +49,8 @@ export default async function PlacasPage() {
       : null;
 
   const validPF = inverters
-    .map((i) => i.raw_sensors?.power_factor)
-    .filter((pf): pf is number => typeof pf === "number" && pf > 0);
+    .map((i) => readNumericSensor(i, "power_factor"))
+    .filter((pf): pf is number => pf !== null && pf > 0);
   const avgPF =
     validPF.length > 0
       ? (validPF.reduce((a, b) => a + b, 0) / validPF.length).toFixed(3)
@@ -182,9 +180,8 @@ export default async function PlacasPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono text-[11px]">
                   {inverters.map((inv) => {
-                    const raw = inv.raw_sensors || {};
-                    const heatsink = raw.temperature_heatsink;
-                    const pf = raw.power_factor;
+                    const heatsink = readNumericSensor(inv, "temperature_heatsink");
+                    const pf = readNumericSensor(inv, "power_factor");
                     const pv1W = inv.pv1?.w ?? 0;
                     const pv2W = inv.pv2?.w ?? 0;
 
@@ -265,12 +262,4 @@ export default async function PlacasPage() {
       )}
     </main>
   );
-}
-
-function getNominalKw(inverter: any): number {
-  if (inverter.nominal_kw) return inverter.nominal_kw;
-  if (inverter.id === "inv_1" || inverter.brand?.toLowerCase().includes("solis")) {
-    return 6.0;
-  }
-  return 5.0;
 }

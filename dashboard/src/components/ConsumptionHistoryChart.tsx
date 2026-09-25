@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useIsClient } from "@/lib/useIsClient";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { Card } from "@/components/Card";
 import { RiBarChartBoxLine } from "@remixicon/react";
@@ -28,8 +28,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export function ConsumptionHistoryChart({ data }: { data: HistoricoConsumoMes[] }) {
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
+  const isMounted = useIsClient();
 
   if (!data || data.length === 0) return null;
 

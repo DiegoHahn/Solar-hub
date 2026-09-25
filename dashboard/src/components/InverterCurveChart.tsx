@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useIsClient } from "@/lib/useIsClient";
+import { getActiveDatum } from "@/lib/chartUtils";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -68,12 +70,10 @@ function CustomTooltip({ active, payload, label, onActivePoint }: CustomTooltipP
 }
 
 export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsClient();
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
   const isResettingRef = useRef(false);
-
-  useEffect(() => setIsMounted(true), []);
 
   const handleReset = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -165,9 +165,10 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
               key={chartKey}
               data={data}
               margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
-              onClick={(e: any) => {
+              onClick={(state) => {
                 if (isResettingRef.current) return;
-                if (e?.activePayload?.[0]?.payload) setInspectedPoint(e.activePayload[0].payload);
+                const point = getActiveDatum(state, data);
+                if (point) setInspectedPoint(point);
               }}
             >
               <defs>

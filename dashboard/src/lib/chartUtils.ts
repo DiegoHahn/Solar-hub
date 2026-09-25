@@ -1,5 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { MouseHandlerDataParam } from "recharts"
+
+/**
+ * Retorna o item de `data` sob o cursor/toque, a partir do índice ativo informado
+ * nos eventos de mouse/toque do gráfico (`onClick`, `onMouseMove`).
+ */
+export function getActiveDatum<T>(
+  state: MouseHandlerDataParam | null | undefined,
+  data: readonly T[],
+): T | undefined {
+  const rawIndex = state?.activeIndex ?? state?.activeTooltipIndex
+  if (rawIndex === null || rawIndex === undefined) return undefined
+  const index = Number(rawIndex)
+  return Number.isInteger(index) ? data[index] : undefined
+}
+
 export type ColorUtility = "bg" | "stroke" | "fill" | "text"
 
 export const chartColors = {

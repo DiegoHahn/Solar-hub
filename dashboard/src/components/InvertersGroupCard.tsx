@@ -10,17 +10,10 @@ import {
 } from "@remixicon/react";
 import { cx } from "@/lib/utils";
 import type { InverterReading } from "@/lib/types";
+import { getNominalKw } from "@/lib/inverter";
 
 interface InvertersGroupCardProps {
   inverters: InverterReading[];
-}
-
-function getNominalKw(inverter: InverterReading): number {
-  if (inverter.nominal_kw) return inverter.nominal_kw;
-  if (inverter.id === "inv_1" || inverter.brand?.toLowerCase().includes("solis")) {
-    return 6.0;
-  }
-  return 5.0;
 }
 
 export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {

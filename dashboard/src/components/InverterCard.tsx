@@ -8,24 +8,14 @@ import {
   RiTempHotLine,
   RiFlashlightLine,
   RiSunLine,
-  RiWifiLine,
   RiArrowDownSLine,
   RiArrowUpSLine,
   RiCpuLine,
   RiShieldCheckLine,
   RiTimeLine,
-  RiPulseLine,
-  RiPercentLine,
 } from "@remixicon/react";
 import type { InverterReading } from "@/lib/types";
-
-function getNominalKw(inverter: InverterReading): number {
-  if (inverter.nominal_kw) return inverter.nominal_kw;
-  if (inverter.id === "inv_1" || inverter.brand?.toLowerCase().includes("solis")) {
-    return 6.0;
-  }
-  return 5.0;
-}
+import { getNominalKw, readNumericSensor } from "@/lib/inverter";
 
 interface InverterCardProps {
   inverter: InverterReading;
@@ -48,14 +38,12 @@ export function InverterCard({ inverter, detailed = false }: InverterCardProps) 
   const raw = inverter.raw_sensors || {};
   const rawVars = inverter.raw_variables || {};
 
-  const heatsinkTemp: number | null = raw.temperature_heatsink ?? null;
-  const powerFactor: number | null = raw.power_factor ?? null;
-  const apparentPower: number | null = raw.apparent_power ?? null;
-  const reactivePower: number | null = raw.reactive_power ?? null;
-  const hoursTotal: number | null = raw.h_total ?? null;
-  const leakageCurrent: number | null = raw.leakage_current ?? null;
-  const vbus: number | null = raw.vbus ?? null;
-  const workMode: string = inverter.work_mode || raw.work_mode_label || "Normal";
+  const heatsinkTemp = readNumericSensor(inverter, "temperature_heatsink");
+  const powerFactor = readNumericSensor(inverter, "power_factor");
+  const apparentPower = readNumericSensor(inverter, "apparent_power");
+  const hoursTotal = readNumericSensor(inverter, "h_total");
+  const leakageCurrent = readNumericSensor(inverter, "leakage_current");
+  const vbus = readNumericSensor(inverter, "vbus");
 
   const modelName =
     inverter.model ||

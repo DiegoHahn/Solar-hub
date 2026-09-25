@@ -3,14 +3,9 @@
 import { useState } from "react";
 import {
   RiSunLine,
-  RiHome5Line,
   RiBuilding2Line,
-  RiArrowRightLine,
-  RiArrowDownLine,
   RiFlashlightLine,
   RiShieldCheckLine,
-  RiInformationLine,
-  RiPercentLine,
 } from "@remixicon/react";
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
@@ -32,8 +27,7 @@ export function EnergyFlowSection({
 
   const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
   const gd = uc?.geracao_distribuida;
-  const fatura = uc?.resumo_ultima_fatura;
-  const hist12 = (uc as any)?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
+  const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
   const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
   const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
@@ -48,7 +42,6 @@ export function EnergyFlowSection({
   const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
   const mesCompensadoKwh = lastMonthItem?.kwhCreditado ?? 0;
   const mesSaldoLiquidoKwh = mesInjetadoKwh - mesCompensadoKwh; // Superávit que virou crédito no mês
-  const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
   const geracaoMesEstimadaOuReal = monthSolarKwh > 0 ? monthSolarKwh : mesInjetadoKwh;
   const economiaMesReais = mesInjetadoKwh * tarifaKwh;
 

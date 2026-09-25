@@ -4,10 +4,8 @@ import {
   RiWallet3Line,
   RiSunLine,
   RiBuilding2Line,
-  RiArrowRightUpLine,
   RiHistoryLine,
 } from "@remixicon/react";
-import Link from "next/link";
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
 import { ProgressCircle } from "@/components/ProgressCircle";
@@ -22,7 +20,7 @@ import {
   GENERATOR_UC,
 } from "@/lib/queries";
 import { getIcaraWeatherData } from "@/lib/weather";
-import { formatRelativeTime } from "@/lib/formatRelativeTime";
+import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
 import { cx } from "@/lib/utils";
 import type { BadgeProps } from "@/components/Badge";
 
@@ -86,9 +84,7 @@ export default async function Home() {
   const totalLifetimeKwh = telemetry?.total_lifetime_kwh ?? 0;
   const rendimentoHsp = capacityKw > 0 ? (geradoHojeKwh / capacityKw).toFixed(2) : "0.00";
 
-  const telemetryAgeMin = telemetry
-    ? Math.round((Date.now() - new Date(telemetry.recorded_at).getTime()) / 60000)
-    : null;
+  const telemetryAgeMin = telemetry ? minutesSince(telemetry.recorded_at) : null;
   const isStale = telemetryAgeMin !== null && telemetryAgeMin > STALE_THRESHOLD_MIN;
 
   // Pico da curva solar de hoje
@@ -189,11 +185,13 @@ export default async function Home() {
           </div>
 
           <span className="text-xs text-gray-400 dark:text-gray-500">
-            {new Date(telemetry?.recorded_at || Date.now()).toLocaleTimeString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {telemetry
+              ? new Date(telemetry.recorded_at).toLocaleTimeString("pt-BR", {
+                  timeZone: "America/Sao_Paulo",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
           </span>
         </div>
 

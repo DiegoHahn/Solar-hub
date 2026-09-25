@@ -33,7 +33,7 @@ export async function GET() {
   }
 
   // Se não houver cache, gera a análise inicial
-  return handleGenerate(false);
+  return handleGenerate();
 }
 
 export async function POST(req: Request) {
@@ -57,10 +57,10 @@ export async function POST(req: Request) {
     }
   }
 
-  return handleGenerate(force);
+  return handleGenerate();
 }
 
-async function handleGenerate(force: boolean) {
+async function handleGenerate() {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -105,7 +105,7 @@ async function handleGenerate(force: boolean) {
     const uc = utilityData?.unidades_consumidoras?.[GENERATOR_UC];
     const gd = uc?.geracao_distribuida;
     const fatura = uc?.resumo_ultima_fatura;
-    const hist12 = (uc as any)?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
+    const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
     const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
     const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
@@ -121,7 +121,6 @@ async function handleGenerate(force: boolean) {
 
     // Dados meteorológicos reais de hoje e dos últimos dias (Open-Meteo)
     const todayWeather = weatherHistory[weatherHistory.length - 1];
-    const yesterdayWeather = weatherHistory[weatherHistory.length - 2];
     const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
     const avgRecentProduction =
       recentSunnyDays.length > 0
@@ -230,7 +229,7 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
   }
 }`;
 
-    let lastError: any = null;
+    let lastError: unknown = null;
     let rawText: string | null = null;
     let modelSuccessfullyUsed = candidateModels[0] || configuredModel;
 
@@ -271,14 +270,16 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           lastError = new Error(`Modelo ${modelToTry} retornou ${res.status}: ${errText}`);
           console.warn(`[Consultor IA] ${modelToTry} falhou (${res.status}) em ${elapsed}s. Tentando próximo...`);
         }
-      } catch (err: any) {
+      } catch (err) {
         const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         lastError = err;
-        console.warn(`[Consultor IA] ${modelToTry} gerou erro/timeout (${err.message}) em ${elapsed}s. Tentando próximo...`);
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`[Consultor IA] ${modelToTry} gerou erro/timeout (${message}) em ${elapsed}s. Tentando próximo...`);
       }
     }
 
     if (!rawText) {
+      console.error("[Consultor IA] Todos os modelos falharam. Último erro:", lastError);
       const cached = getAdvisorCache();
       if (cached) {
         return NextResponse.json({
@@ -325,10 +326,10 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
       isCached: false,
       updatedAt: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro interno no Consultor IA:", error);
     return NextResponse.json(
-      { error: error?.message || "Erro interno ao processar análise da IA" },
+      { error: error instanceof Error ? error.message : "Erro interno ao processar análise da IA" },
       { status: 500 }
     );
   }

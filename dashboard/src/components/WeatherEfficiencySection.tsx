@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { getActiveDatum } from "@/lib/chartUtils";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -276,17 +277,15 @@ export function WeatherEfficiencySection({
           <ComposedChart
             data={displayedData}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            onMouseMove={(state: any) => {
+            onMouseMove={(state) => {
               if (resetCooldownRef.current) return;
-              if (state?.activePayload?.[0]?.payload) {
-                setActivePoint(state.activePayload[0].payload as DailyWeather);
-              }
+              const point = getActiveDatum(state, displayedData);
+              if (point) setActivePoint(point);
             }}
-            onClick={(state: any) => {
+            onClick={(state) => {
               if (resetCooldownRef.current) return;
-              if (state?.activePayload?.[0]?.payload) {
-                setActivePoint(state.activePayload[0].payload as DailyWeather);
-              }
+              const point = getActiveDatum(state, displayedData);
+              if (point) setActivePoint(point);
             }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.2} />

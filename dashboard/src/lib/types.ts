@@ -24,8 +24,10 @@ export interface InverterReading {
   serial?: string;
   firmware?: string;
   work_mode?: string;
-  raw_sensors?: Record<string, any>;
-  raw_variables?: Record<string, any>;
+  /** Sensores GoodWe crus (o coletor converte valores não numéricos para string) */
+  raw_sensors?: Record<string, number | string | boolean>;
+  /** Variáveis do status.html do logger Solarman (Solis) */
+  raw_variables?: Record<string, string>;
   error?: string;
 }
 
@@ -77,7 +79,7 @@ export interface TarifaReferencia {
 }
 
 export interface GeracaoDistribuida {
-  CodigoUc: number;
+  CodigoUc?: number;
   PotenciaInstalada: number;
   PercentualFatUcGeradora: number;
   ProximoSaldoVencer: string;
@@ -106,18 +108,57 @@ export interface ExtratoGdEntry {
   grupo: 1 | 2; // 1 = GD I (Art. 26) · 2 = GD II (Lei 14.300)
 }
 
+// ---- Payload cru da API Useall/Cooperaliança (como gravado pelo collector_utility.py) ----
+
+/** Item de GeracaoDistribuida/BuscaDadosHistoricoGeracaoConsumo. `AnoMes` vem como "DD/MM/YYYY HH:mm:ss". */
+export interface CoopHistoricoGeracaoConsumo {
+  AnoMes: string;
+  KwhGerado: number;
+  kwhCreditado: number;
+  Saldo: number;
+}
+
+/** Item de GeracaoDistribuida/RecuperarDadosHistoricoGeracao. Datas "DD/MM/YYYY HH:mm:ss"; "01/01/0001" = vazio. */
+export interface CoopExtratoGd {
+  Operacao?: string;
+  MesGeracao?: string;
+  MesFaturamento?: string;
+  KwhGerado: number;
+  kwhCreditado: number;
+  Saldo: number;
+  GrupoTransicaoLei14300?: number;
+}
+
+/** Item de Fatura/RecuperarHistoricoFaturaConsumo60Meses. */
+export interface CoopFatura {
+  AnoMes?: string;
+  ValorTotal?: number;
+  ConsumoFaturado?: number;
+  Vcto?: string;
+}
+
+export interface ResumoUltimaFatura {
+  AnoMes: string;
+  ValorFatura: number;
+  KwhReal: number;
+  DataLProxima: string;
+}
+
 export interface UnidadeConsumidora {
   codigo_uc: string;
   geracao_distribuida?: GeracaoDistribuida;
-  resumo_ultima_fatura?: {
-    AnoMes: string;
-    ValorFatura: number;
-    KwhReal: number;
-    DataLProxima: string;
-  };
+  resumo_ultima_fatura?: ResumoUltimaFatura;
   historico_consumo?: HistoricoConsumoMes[];
   balanco_energetico?: BalancoEnergeticoMes[];
   extrato_gd?: ExtratoGdEntry[];
+  // Campos crus vindos da concessionária, normalizados em lib/queries.ts
+  historico_faturas_60_meses?: CoopFatura[];
+  grafico_historico_12_meses?: {
+    RetornoDadosHistoricoGeracaoConsumoKwhNormal?: CoopHistoricoGeracaoConsumo[];
+  };
+  extrato_historico_gd?: {
+    RetornoDadosHistoricoGeracaoKwhNormal?: CoopExtratoGd[];
+  };
 }
 
 export interface UtilityDataRow {

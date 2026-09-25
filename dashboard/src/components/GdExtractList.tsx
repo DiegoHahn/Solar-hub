@@ -9,7 +9,6 @@ import {
   RiFileList3Line,
   RiSearchLine,
   RiCloseLine,
-  RiFilter3Line,
 } from "@remixicon/react";
 import type { ExtratoGdEntry } from "@/lib/types";
 

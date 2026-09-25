@@ -1,6 +1,9 @@
-export function formatRelativeTime(isoDate: string): string {
-  const diffMs = Date.now() - new Date(isoDate).getTime();
-  const diffMin = Math.round(diffMs / 60000);
+export function minutesSince(isoDate: string, now: number = Date.now()): number {
+  return Math.round((now - new Date(isoDate).getTime()) / 60000);
+}
+
+export function formatRelativeTime(isoDate: string, now: number = Date.now()): string {
+  const diffMin = minutesSince(isoDate, now);
 
   if (diffMin < 1) return "agora mesmo";
   if (diffMin < 60) return `há ${diffMin} min`;
