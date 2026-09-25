@@ -42,8 +42,8 @@ flowchart TB
         INV2["☀️ Inversor 2 (GoodWe 5 kW)\nModbus TCP / UDP (Porta 502/8899)"]
         INV3["☀️ Inversor 3 (GoodWe 5 kW)\nModbus TCP / UDP (Porta 502/8899)"]
 
-        COLLECTOR["🤖 collector_inverters.py\n(Ciclo 10m · Daemon Systemd · In-Memory)"]
-        UTILITY["🏢 collector_utility.py\n(Cron Diário 21h · JWT Concessionária)"]
+        COLLECTOR["🤖 collector/inverters.py\n(Ciclo 10m · Daemon Systemd · In-Memory)"]
+        UTILITY["🏢 collector/utility.py\n(Timer Systemd 21h · JWT Concessionária)"]
         RETRY_QUEUE[("📦 Fila Offline\n(Buffer Transitório)")]
 
         INV1 -->|Holding Regs 0..39| COLLECTOR
@@ -134,22 +134,25 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 ## 5. Estrutura do Repositório
 
 ```text
-├── collector_inverters.py          # Coletor de telemetria dos 3 inversores (Modbus/V5/TCP/UDP)
-├── collector_utility.py            # Coletor de faturas e extratos de GD da concessionária
-├── config.json                     # Mapeamento de IPs, portas, Seriais e topologia dos inversores
-├── requirements.txt                # Dependências Python dos coletores
-├── run_inverters.sh / .bat         # Scripts de inicialização do coletor em background
-├── run_utility.sh / .bat           # Scripts de sincronização contábil
-├── solar-inverters.service         # Unidade Systemd para execução 24/7 em Linux embarcado
-├── schema_supabase.sql             # Definição DDL do PostgreSQL, tabelas e políticas RLS
-└── dashboard/                      # Aplicação Web Next.js 16
-    ├── src/
-    │   ├── app/                    # Rotas: /, /placas, /combinada, /cooperativa, /login
-    │   ├── components/             # InverterCard, Gauge, Charts, Nav, AppShell
-    │   ├── lib/                    # Supabase SSR client/server, queries, weather, types
-    │   └── proxy.ts                # Next.js 16 Proxy de autenticação e proteção de rotas
-    ├── tailwind.config.ts          # Design system e tokens de cores
-    └── package.json
+├── collector/                          # Edge: coletores Python (Orange Pi / Raspberry Pi)
+│   ├── inverters.py                    # Telemetria dos 3 inversores (Solarman V5 / Modbus TCP / UDP) + API REST local
+│   ├── utility.py                      # Faturas, extrato de GD e créditos da concessionária
+│   ├── config.example.json             # Modelo de topologia: IPs, portas e seriais dos inversores
+│   ├── .env.example                    # Credenciais do Supabase (service_role) e da concessionária
+│   ├── requirements.txt
+│   └── deploy/
+│       ├── solar-inverters@.service    # Unit systemd do coletor 24/7
+│       ├── solar-utility@.service      # Unit systemd da sincronização da concessionária
+│       ├── solar-utility@.timer        # Agendamento diário (21h)
+│       └── run_*.sh                    # Execução manual com watchdog
+├── dashboard/                          # Web: Next.js 16 (App Router)
+│   └── src/
+│       ├── app/                        # Rotas: /, /placas, /combinada, /cooperativa, /login, /api/ai-advisor
+│       ├── components/                 # Cards, gráficos Recharts, navegação
+│       ├── lib/                        # Queries Supabase, clima, cota da IA, tipos
+│       └── proxy.ts                    # Proteção de rotas por sessão
+└── supabase/
+    └── migrations/                     # Schema, índices e políticas RLS (Supabase CLI)
 ```
 
 ---
@@ -157,62 +160,60 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 ## 6. Instalação e Execução
 
 ### Pré-requisitos
-* Python 3.10+ (para os coletores)
-* Node.js 20+ (para o dashboard)
-* Projeto no Supabase configurado com o script `schema_supabase.sql`
+* Python 3.10+ (coletores)
+* Node.js 20.9+ (dashboard)
+* Projeto no Supabase com as migrations de `supabase/migrations` aplicadas (`supabase db push` ou SQL Editor, na ordem dos arquivos)
 
-### 1. Configurando os Coletores IoT (Edge)
+### 1. Coletores (Edge)
 ```bash
-# Clone o repositório
 git clone https://github.com/DiegoHahn/Solar-hub.git
-cd Solar-hub
+cd Solar-hub/collector
 
-# Crie e ative o ambiente virtual
 python3 -m venv .venv
 source .venv/bin/activate  # No Windows: .venv\Scripts\activate
-
-# Instale as dependências
 pip install -r requirements.txt
 
-# Configure as credenciais no .env (baseado em .env.example)
-cp .env.example .env
+cp .env.example .env                 # credenciais e UCs
+cp config.example.json config.json   # IPs e seriais dos inversores
 ```
 
-Execute uma coleta de teste para validar a comunicação na rede:
+Coleta de teste para validar a comunicação com os inversores:
 ```bash
-python3 collector_inverters.py --once
+python3 inverters.py --once
 ```
 
-Para rodar em regime permanente (24/7) no Linux / Orange Pi / Raspberry Pi:
+Execução permanente no Linux (o sufixo após `@` é o usuário dono do clone em `/home/<usuário>/Solar-hub`):
 ```bash
-sudo cp solar-inverters.service /etc/systemd/system/
+sudo cp deploy/solar-inverters@.service deploy/solar-utility@.service deploy/solar-utility@.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now solar-inverters.service
+sudo systemctl enable --now solar-inverters@$USER.service
+sudo systemctl enable --now solar-utility@$USER.timer
 ```
 
-### 2. Configurando o Dashboard Web
+### 2. Dashboard Web
 ```bash
 cd dashboard
-
-# Instale as dependências
 npm install
-
-# Configure o arquivo de ambiente
 cp .env.example .env.local
-
-# Inicie o servidor de desenvolvimento
 npm run dev
 ```
-Acesse no navegador: **`http://localhost:3000`**
+Acesse **`http://localhost:3000`**.
+
+Scripts de qualidade:
+```bash
+npm run lint        # ESLint (next/core-web-vitals + typescript)
+npm run typecheck   # tsc --noEmit
+npm test            # Vitest
+```
 
 ---
 
 ## 7. Segurança e Autenticação
 
-* **Zero Exposição de Chaves Sensíveis:** Arquivos `.env` e `.env.local` são estritamente excluídos do controle de versão pelo `.gitignore`.
-* **Controle de Acesso Baseado em Sessão (RBAC):** Proteção de rotas em tempo de execução via `@supabase/ssr` e Next.js 16 Proxy. Usuários não autenticados são redirecionados automaticamente para a tela de login (`/login`).
-* **Segurança no Banco (RLS):** As tabelas `solar_telemetry` e `utility_data` possuem políticas RLS no Postgres, permitindo escrita exclusivamente via `service_role` (coletores locais autenticados) e leitura apenas para usuários autorizados.
-* **Comunicação Segura:** Todas as trocas de telemetria e faturas para a nuvem utilizam TLS/HTTPS com criptografia de ponta a ponta.
+* **Segredos fora do repositório:** `.env`, `.env.local` e `collector/config.json` são ignorados pelo git; o repositório traz apenas modelos (`*.example`).
+* **Rotas protegidas por sessão:** `@supabase/ssr` + Proxy do Next.js 16 redirecionam usuários não autenticados para `/login`; o login com Google é restrito aos e-mails de `ALLOWED_EMAILS`.
+* **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. Nenhuma política de escrita é concedida a `anon`/`authenticated` nas tabelas de dados; os coletores gravam com a `service_role` key, que fica apenas no dispositivo edge.
+* **Cadastro fechado:** o cadastro público do Supabase Auth deve permanecer desativado, para que só as contas criadas pelo administrador obtenham sessão.
 
 ---
 
