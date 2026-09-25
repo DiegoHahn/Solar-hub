@@ -6,7 +6,7 @@ export interface QuotaState {
   primary_count: number; // contador de chamadas do modelo primário configurado no .env
   total_calls_today: number;
   last_call_at: string;
-  gemini_3_8_count?: number; // retrocompatibilidade com versões anteriores
+  gemini_3_8_count?: number; // espelho de primary_count; lido como fallback quando primary_count está ausente
 }
 
 export interface CachedAdvisorData {
@@ -120,12 +120,12 @@ export function getQuotaState(): QuotaState {
     console.error("Erro ao ler ai_quota.json:", err);
   }
 
-  // Novo dia: inicializa com 0 (ou preserva o que já foi usado se configurado)
+  // Novo dia (ou arquivo ausente/ilegível): zera os contadores
   const newState: QuotaState = {
     date: today,
-    primary_count: 2, // Inicializado em 2 conforme uso registrado no AI Studio hoje
-    gemini_3_8_count: 2,
-    total_calls_today: 2,
+    primary_count: 0,
+    gemini_3_8_count: 0,
+    total_calls_today: 0,
     last_call_at: new Date().toISOString(),
   };
   saveQuotaState(newState);
