@@ -67,10 +67,12 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
     uc.geracao_distribuida = {
       ...gd,
       ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer || fallbackSaldo,
-      ProximoSaldoVencer: gd?.ProximoSaldoVencer || "Próx. ciclo",
+      ProximoSaldoVencer: gd?.ProximoSaldoVencer ? gd.ProximoSaldoVencer.split(" ")[0] : "Próx. ciclo",
       PotenciaInstalada: gd?.PotenciaInstalada || NOMINAL_CAPACITY_KW,
       PercentualFatUcGeradora: gd?.PercentualFatUcGeradora || 100,
     };
+  } else if (gd.ProximoSaldoVencer) {
+    gd.ProximoSaldoVencer = gd.ProximoSaldoVencer.split(" ")[0];
   }
 
   // Normaliza resumo_ultima_fatura caso o endpoint do portal venha vazio
@@ -86,6 +88,13 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
         AnoMes: anoMesParts.length >= 3 ? `${anoMesParts[1]}/${anoMesParts[2]}` : "—",
         DataLProxima: lastFatura.Vcto ? lastFatura.Vcto.split(" ")[0] : "—",
       };
+    }
+  } else {
+    if (resumo.DataLProxima) {
+      resumo.DataLProxima = resumo.DataLProxima.split(" ")[0];
+    }
+    if (resumo.AnoMes) {
+      resumo.AnoMes = resumo.AnoMes.split(" ")[0];
     }
   }
 
@@ -132,10 +141,16 @@ const SLOT_MINUTES = 30;
 const SLOT_MATCH_WINDOW_MS = 20 * 60 * 1000;
 
 /**
- * Monta a grade contínua de 30 em 30 minutos desde `startOfDay` até `now`, casando cada slot
- * com a leitura mais próxima (dentro de 20 min). Slots sem leitura ficam zerados.
+ * Monta a grade diária fixa de 30 em 30 minutos das 05:00 às 20:00 no fuso de Brasília.
+ * Esse intervalo abrange 100% da janela solar de Içara/SC no dia mais longo do ano
+ * (solstício de verão em 21/dez: nascer do sol às 05:14 e pôr do sol às 19:16).
+ * Slots futuros (após `now`) recebem null para manter o eixo X fixo sem desenhar dados falsos.
  */
-export function buildSunCurveGrid(rows: SunCurveRow[], startOfDay: Date, now: Date): SunCurvePoint[] {
+export function buildSunCurveGrid(
+  rows: SunCurveRow[],
+  todayIso: string,
+  now: Date = new Date(),
+): SunCurvePoint[] {
   const formatTime = (d: Date) =>
     d.toLocaleTimeString("pt-BR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 
@@ -154,55 +169,72 @@ export function buildSunCurveGrid(rows: SunCurveRow[], startOfDay: Date, now: Da
   });
 
   const grid: SunCurvePoint[] = [];
-  const currentSlot = new Date(startOfDay);
+  const startSlot = new Date(`${todayIso}T05:00:00-03:00`);
+  const endSlot = new Date(`${todayIso}T20:00:00-03:00`);
+  const nowMs = now.getTime();
 
-  while (currentSlot <= now) {
+  const currentSlot = new Date(startSlot);
+  while (currentSlot <= endSlot) {
     const slotTimeMs = currentSlot.getTime();
+    const isFuture = slotTimeMs > nowMs + (SLOT_MINUTES * 60 * 1000) / 2;
 
-    let closest: (typeof rawPoints)[number] | null = null;
-    let closestDiff = Infinity;
-    for (const p of rawPoints) {
-      const diff = Math.abs(p.timestamp - slotTimeMs);
-      if (diff < closestDiff) {
-        closest = p;
-        closestDiff = diff;
+    if (isFuture) {
+      grid.push({
+        time: formatTime(currentSlot),
+        power_kw: null,
+        nominal_cap_kw: NOMINAL_CAPACITY_KW,
+        solis_kw: null,
+        goodwe1_kw: null,
+        goodwe2_kw: null,
+      });
+    } else {
+      let closest: (typeof rawPoints)[number] | null = null;
+      let closestDiff = Infinity;
+      for (const p of rawPoints) {
+        const diff = Math.abs(p.timestamp - slotTimeMs);
+        if (diff < closestDiff) {
+          closest = p;
+          closestDiff = diff;
+        }
       }
-    }
-    const matched = closestDiff <= SLOT_MATCH_WINDOW_MS ? closest : null;
+      const matched = closestDiff <= SLOT_MATCH_WINDOW_MS ? closest : null;
 
-    grid.push({
-      time: formatTime(currentSlot),
-      power_kw: matched?.power_kw ?? 0,
-      nominal_cap_kw: NOMINAL_CAPACITY_KW,
-      solis_kw: matched?.solis_kw ?? 0,
-      goodwe1_kw: matched?.goodwe1_kw ?? 0,
-      goodwe2_kw: matched?.goodwe2_kw ?? 0,
-    });
+      grid.push({
+        time: formatTime(currentSlot),
+        power_kw: matched?.power_kw ?? 0,
+        nominal_cap_kw: NOMINAL_CAPACITY_KW,
+        solis_kw: matched?.solis_kw ?? 0,
+        goodwe1_kw: matched?.goodwe1_kw ?? 0,
+        goodwe2_kw: matched?.goodwe2_kw ?? 0,
+      });
+    }
 
     currentSlot.setMinutes(currentSlot.getMinutes() + SLOT_MINUTES);
   }
 
-  return grid.length > 0 ? grid : rawPoints;
+  return grid;
 }
 
 export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
   try {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const todayIso = toBrasiliaIsoDate(now);
+    const startOfFetch = new Date(`${todayIso}T04:30:00-03:00`);
 
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("solar_telemetry")
       .select("recorded_at, total_power_kw, inverters_data")
-      .gte("recorded_at", todayStart.toISOString())
+      .gte("recorded_at", startOfFetch.toISOString())
       .order("recorded_at", { ascending: true })
       .limit(300);
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      console.error("Erro ao buscar curva diária do Supabase:", error);
       return [];
     }
 
-    return buildSunCurveGrid(data as SunCurveRow[], todayStart, new Date());
+    return buildSunCurveGrid((data ?? []) as SunCurveRow[], todayIso, now);
   } catch (err) {
     console.error("Erro ao buscar curva diária do Supabase:", err);
     return [];

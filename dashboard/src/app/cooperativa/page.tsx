@@ -19,6 +19,11 @@ function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
   return "neutral";
 }
 
+function formatDateOnly(val: string | undefined | null): string {
+  if (!val) return "—";
+  return val.split(" ")[0];
+}
+
 export default async function CooperativaPage() {
   const utilityData = await getLatestUtilityData();
   const uc = getGeneratorUc(utilityData);
@@ -83,7 +88,7 @@ export default async function CooperativaPage() {
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
             <RiCalendarEventLine className="size-4 shrink-0" />
-            Vencimento parcial em {gd?.ProximoSaldoVencer || "Próx. ciclo"}
+            Vencimento parcial em {formatDateOnly(gd?.ProximoSaldoVencer) || "Próx. ciclo"}
           </div>
         </div>
       </Card>
@@ -94,13 +99,13 @@ export default async function CooperativaPage() {
           icon={RiFileTextLine}
           label="Fatura Atual"
           value={fatura?.ValorFatura !== undefined ? `R$ ${Number(fatura.ValorFatura).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
-          hint={fatura?.KwhReal !== undefined ? `${fatura.KwhReal.toLocaleString("pt-BR")} kWh · ${fatura.AnoMes}` : undefined}
+          hint={fatura?.KwhReal !== undefined ? `${fatura.KwhReal.toLocaleString("pt-BR")} kWh · ${formatDateOnly(fatura.AnoMes)}` : undefined}
           accent="amber"
         />
         <StatCard
           icon={RiCalendarEventLine}
           label="Próximo Vencimento"
-          value={fatura?.DataLProxima ?? "—"}
+          value={formatDateOnly(fatura?.DataLProxima)}
           hint="Data de leitura"
           accent="blue"
         />

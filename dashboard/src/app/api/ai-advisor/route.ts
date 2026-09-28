@@ -105,10 +105,10 @@ async function handleGenerate() {
     const currentPowerKw = telemetry?.total_power_kw ?? 0;
 
     const peakPoint = sunCurve.reduce(
-      (max, p) => (p.power_kw > max.power_kw ? p : max),
-      sunCurve[0] || { power_kw: telemetry?.total_power_kw ?? 0, time: "—" }
+      (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
+      sunCurve.find((p) => p.power_kw !== null) || { power_kw: telemetry?.total_power_kw ?? 0, time: "—" }
     );
-    const peakKw = peakPoint.power_kw || (telemetry?.total_power_kw ?? 0);
+    const peakKw = peakPoint.power_kw ?? (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
     // Dados meteorológicos de hoje e dos últimos dias (Open-Meteo)

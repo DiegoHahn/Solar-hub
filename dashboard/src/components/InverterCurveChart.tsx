@@ -33,13 +33,16 @@ function CustomTooltip({ active, payload, label, onActivePoint }: CustomTooltipP
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload;
-      if (point) {
+      if (point && point.power_kw !== null && point.power_kw !== undefined) {
         onActivePoint(point);
       }
     }
   }, [active, payload, onActivePoint]);
 
   if (!active || !payload || !payload.length) return null;
+  const firstPoint = payload[0]?.payload as SunCurvePoint | undefined;
+  if (firstPoint?.power_kw === null || firstPoint?.power_kw === undefined) return null;
+
   const total = payload.reduce((sum, p) => sum + (p.value ?? 0), 0);
 
   return (
@@ -59,7 +62,7 @@ function CustomTooltip({ active, payload, label, onActivePoint }: CustomTooltipP
                 {series.label}
               </span>
               <span className="tabular-nums text-gray-700 dark:text-gray-200">
-                {p.value.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW
+                {p.value?.toLocaleString("pt-BR", { minimumFractionDigits: 1 }) ?? "0,0"} kW
               </span>
             </div>
           );
@@ -89,12 +92,14 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
   if (!data || data.length === 0) return null;
 
   // Ponto de pico do dia (usado como referência padrão para nunca ficar vazio)
+  const fallbackPoint: SunCurvePoint = { power_kw: 0, time: "--:--", nominal_cap_kw: 16.0 };
   const peakPoint = data.reduce(
-    (max, p) => (p.power_kw > max.power_kw ? p : max),
-    data[0] || { power_kw: 0, time: "--:--" }
+    (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
+    data.find((p) => p.power_kw !== null) || fallbackPoint
   );
 
   const displayPoint = inspectedPoint || peakPoint;
+  const displayKw = displayPoint.power_kw ?? 0;
   const isInspecting = inspectedPoint !== null;
 
   return (
@@ -106,7 +111,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
         </h2>
       </div>
       <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-        Potência individual em tempo real de cada inversor ao longo do dia
+        Janela solar das 05:00 às 20:00 em tempo real (intervalos de 30 min)
       </p>
 
       {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (mostra o pico do dia até o usuário tocar em um ponto) */}
@@ -118,7 +123,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 Horário {displayPoint.time}:
               </span>
               <span className="text-xl font-extrabold text-blue-500 tabular-nums">
-                {displayPoint.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+                {displayKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
                 <span className="ml-1 text-xs font-semibold text-blue-500/80">kW total</span>
               </span>
               {!isInspecting && (
@@ -168,7 +173,9 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
               onClick={(state) => {
                 if (isResettingRef.current) return;
                 const point = getActiveDatum(state, data);
-                if (point) setInspectedPoint(point);
+                if (point && point.power_kw !== null && point.power_kw !== undefined) {
+                  setInspectedPoint(point);
+                }
               }}
             >
               <defs>
@@ -185,10 +192,9 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 tickLine={false}
                 axisLine={false}
                 ticks={[
-                  "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-                  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-                  "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+                  "05:00", "06:00", "07:00", "08:00", "09:00", "10:00",
+                  "11:00", "12:00", "13:00", "14:00", "15:00", "16:00",
+                  "17:00", "18:00", "19:00", "20:00"
                 ]}
                 tickFormatter={(val: string) => val ? val.slice(0, 5) : ""}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
@@ -214,6 +220,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                   stroke={s.color}
                   strokeWidth={2}
                   fill={`url(#grad-${s.key})`}
+                  connectNulls={false}
                   animationDuration={900}
                 />
               ))}

@@ -43,6 +43,7 @@ function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint, ca
 
   if (!active || !payload || !payload.length) return null;
   const point = payload[0].payload as SunCurvePoint;
+  if (point.power_kw === null || point.power_kw === undefined) return null;
   const pct = Math.round((point.power_kw / nominalCapKw) * 100);
   const isOver = pct > 100;
 
@@ -61,21 +62,21 @@ function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint, ca
           <span className="tabular-nums">{point.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
         </div>
 
-        {point.solis_kw !== undefined && (
+        {point.solis_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>Solis 6kW:</span>
             <span className="tabular-nums">{point.solis_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
           </div>
         )}
 
-        {point.goodwe1_kw !== undefined && (
+        {point.goodwe1_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>GoodWe #1 (5kW):</span>
             <span className="tabular-nums">{point.goodwe1_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
           </div>
         )}
 
-        {point.goodwe2_kw !== undefined && (
+        {point.goodwe2_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>GoodWe #2 (5kW):</span>
             <span className="tabular-nums">{point.goodwe2_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
@@ -109,14 +110,17 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
   }
 
   // Encontra o pico de potência do dia
+  const fallbackPoint: SunCurvePoint = { power_kw: 0, time: "--:--", nominal_cap_kw: nominalCapKw };
   const peakPoint = data.reduce(
-    (max, p) => (p.power_kw > max.power_kw ? p : max),
-    data[0] || { power_kw: 0, time: "--:--" }
+    (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
+    data.find((p) => p.power_kw !== null) || fallbackPoint
   );
-  const peakPct = Math.round((peakPoint.power_kw / nominalCapKw) * 100);
+  const peakKw = peakPoint.power_kw ?? 0;
+  const peakPct = Math.round((peakKw / nominalCapKw) * 100);
   const isPeakOverload = peakPct > 100;
 
   const displayPoint = inspectedPoint || peakPoint;
+  const displayKw = displayPoint.power_kw ?? 0;
   const isInspecting = inspectedPoint !== null;
 
   return (
@@ -131,7 +135,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
             </h2>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Geração ao longo do dia em tempo real (intervalos de 30 min)
+            Janela solar das 05:00 às 20:00 em tempo real (intervalos de 30 min)
           </p>
         </div>
 
@@ -142,7 +146,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
             className="flex items-center gap-1 text-xs py-1 px-2.5"
           >
             <RiFlashlightLine className="size-3.5" />
-            Pico: <span className="font-bold">{peakPoint.power_kw.toLocaleString("pt-BR")} kW</span> às {peakPoint.time} ({peakPct}%)
+            Pico: <span className="font-bold">{peakKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span> às {peakPoint.time} ({peakPct}%)
           </Badge>
         </div>
       </div>
@@ -156,14 +160,14 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 Horário {displayPoint.time}:
               </span>
               <span className="text-xl font-extrabold text-amber-500 tabular-nums">
-                {displayPoint.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+                {displayKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
                 <span className="ml-1 text-xs font-semibold text-amber-500/80">kW</span>
               </span>
               <Badge
-                variant={Math.round((displayPoint.power_kw / nominalCapKw) * 100) > 100 ? "warning" : "neutral"}
+                variant={Math.round((displayKw / nominalCapKw) * 100) > 100 ? "warning" : "neutral"}
                 className="text-[10px] px-1.5 py-0"
               >
-                {Math.round((displayPoint.power_kw / nominalCapKw) * 100)}% pico
+                {Math.round((displayKw / nominalCapKw) * 100)}% pico
               </Badge>
             </div>
             {isInspecting && (
@@ -199,7 +203,9 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
               onClick={(state) => {
                 if (isResettingRef.current) return;
                 const point = getActiveDatum(state, data);
-                if (point) setInspectedPoint(point);
+                if (point && point.power_kw !== null && point.power_kw !== undefined) {
+                  setInspectedPoint(point);
+                }
               }}
             >
               <defs>
@@ -215,10 +221,9 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 tickLine={false}
                 axisLine={false}
                 ticks={[
-                  "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
-                  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-                  "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+                  "05:00", "06:00", "07:00", "08:00", "09:00", "10:00",
+                  "11:00", "12:00", "13:00", "14:00", "15:00", "16:00",
+                  "17:00", "18:00", "19:00", "20:00"
                 ]}
                 tickFormatter={(val: string) => val ? val.slice(0, 5) : ""}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
@@ -266,6 +271,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 stroke="#f59e0b"
                 strokeWidth={2.5}
                 fill="url(#sunGradient)"
+                connectNulls={false}
                 animationDuration={900}
               />
             </AreaChart>

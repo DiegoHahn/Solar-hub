@@ -79,9 +79,10 @@ export default async function Home() {
 
   // Pico da curva solar de hoje
   const peakPoint = sunCurve.reduce(
-    (max, p) => (p.power_kw > max.power_kw ? p : max),
-    sunCurve[0] || { power_kw: currentPowerKw, time: "—" }
+    (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
+    sunCurve.find((p) => p.power_kw !== null) || { power_kw: currentPowerKw, time: "—" }
   );
+  const peakKw = peakPoint.power_kw ?? 0;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -273,9 +274,9 @@ export default async function Home() {
         <StatCard
           icon={RiFlashlightLine}
           label="Pico da Usina"
-          value={peakPoint.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+          value={peakKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
           unit="kW"
-          hint={`${Math.round((peakPoint.power_kw / capacityKw) * 100)}% de 16 kWp`}
+          hint={`${Math.round((peakKw / capacityKw) * 100)}% de 16 kWp`}
           accent="blue"
         />
 

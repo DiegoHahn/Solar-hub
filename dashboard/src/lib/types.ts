@@ -33,11 +33,11 @@ export interface InverterReading {
 
 export interface SunCurvePoint {
   time: string;
-  power_kw: number;
+  power_kw: number | null;
   nominal_cap_kw: number;
-  solis_kw: number;
-  goodwe1_kw: number;
-  goodwe2_kw: number;
+  solis_kw?: number | null;
+  goodwe1_kw?: number | null;
+  goodwe2_kw?: number | null;
 }
 
 export interface GenerationPoint {
