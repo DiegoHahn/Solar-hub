@@ -249,10 +249,10 @@ A topologia dos inversores (IPs, portas, seriais, nome e capacidade da usina) fi
 
 ## 7. Segurança e Autenticação
 
-* **Segredos fora do repositório:** `.env`, `.env.local` e `collector/config.json` são ignorados pelo git; o repositório traz apenas modelos (`*.example`).
-* **Rotas protegidas por sessão:** `@supabase/ssr` + Proxy do Next.js 16 redirecionam usuários não autenticados para `/login`; o login com Google é restrito aos e-mails de `ALLOWED_EMAILS`.
-* **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. Nenhuma política de escrita é concedida a `anon`/`authenticated` nas tabelas de dados; os coletores gravam com a `service_role` key, que fica apenas no dispositivo edge.
-* **Cadastro fechado:** o cadastro público do Supabase Auth deve permanecer desativado, para que só as contas criadas pelo administrador obtenham sessão.
+* **Segredos fora do repositório:** `.env`, `.env.local` e `collector/config.json` são ignorados pelo git; o repositório traz apenas modelos (`*.example`). No dispositivo edge (Orange Pi), mantenha permissões restritas no arquivo: `chmod 600 collector/.env`.
+* **Rotas protegidas por sessão:** `@supabase/ssr` + middleware do Next.js 16 redirecionam usuários não autenticados para `/login` e bloqueiam chamadas a `/api` com HTTP 401; o acesso (Google ou senha) é validado de forma fail-closed contra a lista `ALLOWED_EMAILS`.
+* **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. As tabelas de telemetria e concessionária são gravadas apenas pela chave `service_role` no dispositivo edge. As tabelas `ai_advisor_daily` e `daily_weather` permitem inserção/atualização por usuários autenticados para viabilizar cache da IA e histórico climático via serverless functions na Vercel sem expor a `service_role` na nuvem pública.
+* **Cadastro fechado:** o cadastro público do Supabase Auth permanece desativado, garantindo que apenas contas expressamente autorizadas obtenham sessão.
 
 ---
 
