@@ -51,16 +51,7 @@ function LoginForm() {
       router.refresh();
     } catch (err) {
       console.error("Erro no login:", err);
-      const rawMsg = err instanceof Error ? err.message : "";
-      let errMsg = "Credenciais inválidas. Verifique seu e-mail e senha.";
-      if (rawMsg.includes("Invalid login credentials")) {
-        errMsg = "E-mail ou senha incorretos.";
-      } else if (rawMsg.includes("Email not confirmed")) {
-        errMsg = "E-mail ainda não confirmado.";
-      } else if (rawMsg) {
-        errMsg = rawMsg;
-      }
-      setMessage({ type: "error", text: errMsg });
+      setMessage({ type: "error", text: "E-mail ou senha incorretos." });
     } finally {
       setLoading(false);
     }
@@ -83,9 +74,7 @@ function LoginForm() {
       console.error("Erro no login Google:", err);
       setMessage({
         type: "error",
-        text:
-          (err instanceof Error && err.message) ||
-          "Não foi possível conectar com o Google. Verifique se o provedor está ativo no Supabase.",
+        text: "Não foi possível entrar com o Google. Tente novamente.",
       });
       setGoogleLoading(false);
     }
