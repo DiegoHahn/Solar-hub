@@ -21,10 +21,29 @@ interface InverterCardProps {
   inverter: InverterReading;
   /** Mostra detalhe das strings PV1/PV2 e telemetria avançada — usado na página Placas. */
   detailed?: boolean;
+  /** Controla a expansão do diagnóstico por fora, para manter vários cards sincronizados. */
+  showAdvanced?: boolean;
+  onToggleAdvanced?: () => void;
 }
 
-export function InverterCard({ inverter, detailed = false }: InverterCardProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+export function InverterCard({
+  inverter,
+  detailed = false,
+  showAdvanced: controlledShowAdvanced,
+  onToggleAdvanced,
+}: InverterCardProps) {
+  const [internalShowAdvanced, setInternalShowAdvanced] = useState(false);
+  const isControlled = controlledShowAdvanced !== undefined;
+  const showAdvanced = isControlled ? controlledShowAdvanced : internalShowAdvanced;
+
+  const handleToggle = () => {
+    if (onToggleAdvanced) {
+      onToggleAdvanced();
+    } else {
+      setInternalShowAdvanced((prev) => !prev);
+    }
+  };
+
   const isOnline = inverter.status === "online";
   const nominalKw = getNominalKw(inverter);
   const nominalW = nominalKw * 1000;
@@ -239,7 +258,7 @@ export function InverterCard({ inverter, detailed = false }: InverterCardProps) 
           <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-900">
             <button
               type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
+              onClick={handleToggle}
               className="flex w-full items-center justify-between text-left text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
             >
               <span className="flex items-center gap-1.5">

@@ -1,14 +1,13 @@
 import { Card } from "@/components/Card";
-import { InverterCard } from "@/components/InverterCard";
+import { InverterCardsSection } from "@/components/InverterCardsSection";
 import { GenerationPeriodSection } from "@/components/GenerationPeriodSection";
 import {
   RiSunLine,
   RiFlashlightLine,
   RiPercentLine,
   RiPulseLine,
-  RiTempHotLine,
 } from "@remixicon/react";
-import { getNominalKw, readNumericSensor } from "@/lib/inverter";
+import { readNumericSensor } from "@/lib/inverter";
 import {
   getLatestTelemetry,
   getTodaySunCurve,
@@ -91,11 +90,7 @@ export default async function PlacasPage() {
           />
 
           {/* Cards dos 3 Inversores com Strings e Diagnóstico Modbus */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {inverters.map((inv) => (
-              <InverterCard key={inv.id} inverter={inv} detailed />
-            ))}
-          </div>
+          <InverterCardsSection inverters={inverters} />
 
           {/* Quadro de Engenharia e Parâmetros da Usina */}
           <div className="space-y-4">
@@ -157,106 +152,6 @@ export default async function PlacasPage() {
                 <p className="mt-0.5 text-[11px] text-emerald-500">Qualidade ótima (~1.0)</p>
               </Card>
             </div>
-
-            {/* Tabela Comparativa de Telemetria Técnica */}
-            <Card className="overflow-x-auto p-0">
-              <div className="border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-                <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                  Comparativo Técnico Lado a Lado dos Inversores
-                </p>
-              </div>
-
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-gray-100 bg-gray-50/50 text-[11px] text-gray-400 uppercase tracking-wider dark:border-gray-800 dark:bg-gray-900/50">
-                  <tr>
-                    <th className="py-2.5 px-4 font-medium">Inversor</th>
-                    <th className="py-2.5 px-3 font-medium">Geração CA</th>
-                    <th className="py-2.5 px-3 font-medium">Strings PV1 / PV2</th>
-                    <th className="py-2.5 px-3 font-medium">Rede CA (V · A)</th>
-                    <th className="py-2.5 px-3 font-medium">Freq / FP</th>
-                    <th className="py-2.5 px-3 font-medium">Térmico</th>
-                    <th className="py-2.5 px-4 font-medium text-right">Hoje</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono text-[11px]">
-                  {inverters.map((inv) => {
-                    const heatsink = readNumericSensor(inv, "temperature_heatsink");
-                    const pf = readNumericSensor(inv, "power_factor");
-                    const pv1W = inv.pv1?.w ?? 0;
-                    const pv2W = inv.pv2?.w ?? 0;
-
-                    return (
-                      <tr
-                        key={inv.id}
-                        className="hover:bg-gray-50/60 dark:hover:bg-gray-900/40 transition-colors"
-                      >
-                        <td className="py-3 px-4 font-sans font-medium text-gray-900 dark:text-gray-100">
-                          <div className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-emerald-500" />
-                            <span>{inv.name}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-400">
-                            {inv.model || inv.brand}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-gray-800 dark:text-gray-200">
-                          <span className="font-bold text-gray-900 dark:text-gray-50">
-                            {inv.power_w.toLocaleString("pt-BR")} W
-                          </span>
-                          <span className="block text-[10px] text-gray-400">
-                            {Math.round((inv.power_w / (getNominalKw(inv) * 1000)) * 100)}% de{" "}
-                            {getNominalKw(inv)}kW
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-gray-700 dark:text-gray-300">
-                          <span>
-                            PV1: {pv1W.toLocaleString("pt-BR")}W{" "}
-                            <span className="text-[10px] text-gray-400">({inv.pv1?.v ?? 0}V)</span>
-                          </span>
-                          <span className="block">
-                            PV2: {pv2W.toLocaleString("pt-BR")}W{" "}
-                            <span className="text-[10px] text-gray-400">({inv.pv2?.v ?? 0}V)</span>
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-gray-700 dark:text-gray-300">
-                          <span>{inv.vgrid ? `${Math.round(inv.vgrid)} V` : "—"}</span>
-                          <span className="block text-[10px] text-gray-400">
-                            {inv.igrid ? `${inv.igrid.toFixed(1)} A` : "—"}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-gray-700 dark:text-gray-300">
-                          <span>{inv.fgrid ? `${inv.fgrid.toFixed(1)} Hz` : "60.0 Hz"}</span>
-                          <span className="block text-[10px] text-emerald-500">
-                            FP: {pf ? pf.toFixed(3) : "1.000"}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-3 text-gray-700 dark:text-gray-300">
-                          <span className="flex items-center gap-1">
-                            <RiTempHotLine className="size-3 text-rose-500" />
-                            {inv.temperature_c ? `${inv.temperature_c.toFixed(1)}°C` : "—"}
-                          </span>
-                          {heatsink && (
-                            <span className="block text-[10px] text-gray-400">
-                              Dissipador: {heatsink.toFixed(1)}°C
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4 text-right font-sans font-semibold text-gray-900 dark:text-gray-100">
-                          {inv.energy_today_kwh.toLocaleString("pt-BR")}{" "}
-                          <span className="text-[10px] font-normal text-gray-400">kWh</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </Card>
           </div>
         </>
       )}
