@@ -16,5 +16,11 @@ RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
+# Hardening de segurança
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/%i/Solar-hub/collector
+
 [Install]
 WantedBy=multi-user.target

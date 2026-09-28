@@ -60,7 +60,7 @@ def push_utility_to_supabase(result):
         if resp.status_code in [200, 201]:
             print(f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})")
         else:
-            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária: {resp.status_code} - {resp.text[:100]}")
+            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
     except Exception as e:
         print(f" ⚠️ [SUPABASE] Erro de rede ao sincronizar concessionária: {e}")
 
@@ -138,7 +138,7 @@ def sync_cooperalianca(cpf=None, senha=None):
         print(f" ❌ [COOPERALIANCA] Falha de autenticacao ({resp.status_code}). Verifique se o COOPERALIANCA_TOKEN_EXTERNO no .env expirou.")
         return None
     elif resp.status_code != 200:
-        print(f" ❌ [COOPERALIANCA] Falha ao autenticar ({resp.status_code}): {resp.text[:120]}")
+        print(f" ❌ [COOPERALIANCA] Falha ao autenticar (Status {resp.status_code})")
         return None
 
     auth_data = resp.json()
