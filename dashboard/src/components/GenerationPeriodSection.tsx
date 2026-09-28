@@ -33,21 +33,21 @@ export function GenerationPeriodSection({
   // Determina os dados do gráfico para a aba "Ano"
   let annualChartData: GenerationPoint[] = yearData;
   let annualTitle = "Geração Anual";
-  let annualSubtitle = "Total gerado por mês — últimos 12 meses";
+  let annualSubtitle = "Total bruto gerado por mês — últimos 12 meses";
 
   if (multiYearHistory) {
     if (annualFilter === "ultimos_12") {
       annualChartData = multiYearHistory.last12Months;
       annualTitle = "Geração Anual — Últimos 12 Meses";
-      annualSubtitle = "Total gerado a cada mês (visão móvel contínua)";
+      annualSubtitle = "Total bruto gerado a cada mês (visão móvel contínua)";
     } else if (annualFilter === "comparativo") {
       annualChartData = multiYearHistory.yearsTotals;
       annualTitle = "Comparativo Histórico por Ano";
-      annualSubtitle = "Total acumulado injetado na rede a cada ano (2021 a 2026)";
+      annualSubtitle = "Total bruto gerado pela usina a cada ano";
     } else if (multiYearHistory.byYear[annualFilter]) {
       annualChartData = multiYearHistory.byYear[annualFilter];
       annualTitle = `Geração Anual — ${annualFilter}`;
-      annualSubtitle = `Total gerado mês a mês em ${annualFilter}`;
+      annualSubtitle = `Total bruto gerado mês a mês em ${annualFilter}`;
     }
   }
 
@@ -136,7 +136,7 @@ export function GenerationPeriodSection({
           <GenerationBarChart
             data={monthData}
             title="Geração Mensal"
-            subtitle="Total gerado por dia — mês atual"
+            subtitle="Total bruto gerado por dia — mês atual"
             unitLabel="kWh"
           />
         ) : (

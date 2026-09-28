@@ -52,6 +52,13 @@ export interface MultiYearHistory {
   availableYears: string[];
 }
 
+export interface InverterMonthlyHistoryRow {
+  month: string; // YYYY-MM
+  inverter_id: string;
+  kwh: number | string | null;
+  is_estimated?: boolean | null;
+}
+
 export interface SolarTelemetryRow {
   id: number;
   recorded_at: string;

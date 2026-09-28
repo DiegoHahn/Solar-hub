@@ -99,7 +99,11 @@ export function GenerationBarChart({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                {title.includes("Mensal") ? `Dia ${inspectedPoint.label}:` : `Mês de ${inspectedPoint.label}:`}
+                {title.includes("Mensal")
+                  ? `Dia ${inspectedPoint.label}:`
+                  : inspectedPoint.label.length === 4
+                    ? `Ano ${inspectedPoint.label}:`
+                    : `Mês de ${inspectedPoint.label}:`}
               </span>
               <span className="text-xl font-extrabold text-amber-500 tabular-nums">
                 {inspectedPoint.kwh.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}

@@ -7,9 +7,10 @@ import type {
   GenerationPoint,
   MultiYearHistory,
   DailyWeatherRow,
+  InverterMonthlyHistoryRow,
 } from "@/lib/types";
-import { findGeneratorUcCode, getGeneratorUc } from "@/lib/utility";
-import { brasiliaIsoDaysAgo } from "@/lib/dates";
+import { findGeneratorUcCode } from "@/lib/utility";
+import { brasiliaIsoDaysAgo, toBrasiliaIsoDate } from "@/lib/dates";
 
 const NOMINAL_CAPACITY_KW = 16.0;
 const TZ = "America/Sao_Paulo";
@@ -308,60 +309,74 @@ export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
 const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 /**
- * Monta o histórico plurianual de geração a partir do extrato de GD (lançamentos "(C) Energia injetada")
- * e os últimos 12 meses a partir do gráfico da concessionária.
+ * Monta o histórico plurianual de geração bruta a partir de `inverter_monthly_history`.
+ * Os meses a partir de `dailyFromMonth` (YYYY-MM) são somados dos dados diários, pois o
+ * último mês importado na tabela mensal pode estar incompleto e os seguintes não existem nela.
  */
-export function buildMultiYearHistory(uc: UnidadeConsumidora | undefined, now: Date): MultiYearHistory {
-  const currentYear = String(now.getFullYear());
-  const currentMonth = now.getMonth() + 1;
+export function buildMultiYearHistory(
+  monthlyRows: InverterMonthlyHistoryRow[],
+  dailyEntries: Record<string, DailyGenerationEntry>,
+  dailyFromMonth: string,
+  todayIso: string,
+): MultiYearHistory {
+  const currentYear = todayIso.slice(0, 4);
+  const currentMonthNum = Number(todayIso.slice(5, 7));
 
-  // 1. Os 12 meses mais recentes da concessionária (gráfico padrão)
-  const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
-  const last12: GenerationPoint[] = hist12.map((i) => {
-    const parts = splitCoopDate(i.AnoMes);
-    const mes = parts[1] || "";
-    const ano = (parts[2] || "").slice(-2);
-    return {
-      label: `${mes}/${ano}`,
-      kwh: Number(i.KwhGerado) || 0,
-    };
-  });
+  const groupedByMonth: Record<string, Record<string, number>> = {};
+  for (const r of monthlyRows) {
+    if (!r.month || !r.inverter_id) continue;
+    if (!groupedByMonth[r.month]) groupedByMonth[r.month] = {};
+    groupedByMonth[r.month][r.inverter_id] = Number(r.kwh) || 0;
+  }
 
-  // 2. Histórico completo plurianual a partir do extrato_historico_gd
-  const rawGd = uc?.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal || [];
+  const monthlyTotals: Record<string, number> = {};
+  for (const [m, invs] of Object.entries(groupedByMonth)) {
+    if (invs.plant_total !== undefined) {
+      monthlyTotals[m] = invs.plant_total;
+    } else if (invs.goodwe_combined !== undefined && invs.inv_1 !== undefined) {
+      monthlyTotals[m] = invs.goodwe_combined + invs.inv_1;
+    } else if (invs.goodwe_combined !== undefined) {
+      monthlyTotals[m] = invs.goodwe_combined;
+    } else if (invs.inv_1 !== undefined) {
+      monthlyTotals[m] = invs.inv_1;
+    } else {
+      monthlyTotals[m] = Object.values(invs).reduce((acc, v) => acc + v, 0);
+    }
+  }
 
-  // Mapeamento: year -> monthNumber (1..12) -> kwh
+  const dailyTotals: Record<string, number> = {};
+  for (const [dateIso, entry] of Object.entries(dailyEntries)) {
+    const month = dateIso.slice(0, 7);
+    if (month >= dailyFromMonth) dailyTotals[month] = (dailyTotals[month] || 0) + entry.kwh;
+  }
+  for (const [month, kwh] of Object.entries(dailyTotals)) {
+    monthlyTotals[month] = Number(kwh.toFixed(1));
+  }
+
+  const allMonths = Object.keys(monthlyTotals).sort();
   const yearMonthMap: Record<string, Record<number, number>> = {};
   const yearTotalsMap: Record<string, number> = {};
 
-  for (const item of rawGd) {
-    if (!(item.Operacao || "").includes("(C) Energia injetada")) continue;
+  for (const m of allMonths) {
+    const parts = m.split("-");
+    const yStr = parts[0];
+    const mNum = parseInt(parts[1], 10);
+    const kwh = monthlyTotals[m] || 0;
 
-    const rawDate = item.MesGeracao || "";
-    if (!rawDate || rawDate.startsWith("01/01/0001")) continue;
-
-    const parts = splitCoopDate(rawDate);
-    if (parts.length < 3) continue;
-
-    const month = parseInt(parts[1], 10);
-    const year = parts[2];
-    const kwh = Number(item.KwhGerado) || 0;
-
-    if (!yearMonthMap[year]) {
-      yearMonthMap[year] = {};
-      yearTotalsMap[year] = 0;
+    if (!yearMonthMap[yStr]) {
+      yearMonthMap[yStr] = {};
+      yearTotalsMap[yStr] = 0;
     }
-    yearMonthMap[year][month] = (yearMonthMap[year][month] || 0) + kwh;
-    yearTotalsMap[year] += kwh;
+    yearMonthMap[yStr][mNum] = (yearMonthMap[yStr][mNum] || 0) + kwh;
+    yearTotalsMap[yStr] += kwh;
   }
 
   const availableYears = Object.keys(yearMonthMap).sort((a, b) => b.localeCompare(a)); // mais recente primeiro
 
-  // Para o ano corrente, vai até o mês atual; para anos anteriores, os 12 meses
   const byYear: Record<string, GenerationPoint[]> = {};
   for (const yr of availableYears) {
     const months = yearMonthMap[yr];
-    const maxMonth = yr === currentYear ? currentMonth : 12;
+    const maxMonth = yr === currentYear ? currentMonthNum : 12;
     const pts: GenerationPoint[] = [];
     for (let m = 1; m <= maxMonth; m++) {
       pts.push({ label: MONTH_NAMES[m - 1], kwh: Math.round(months[m] || 0) });
@@ -369,13 +384,22 @@ export function buildMultiYearHistory(uc: UnidadeConsumidora | undefined, now: D
     byYear[yr] = pts;
   }
 
-  // yearsTotals em ordem cronológica
   const yearsTotals: GenerationPoint[] = Object.keys(yearTotalsMap)
     .sort((a, b) => a.localeCompare(b))
     .map((yr) => ({ label: yr, kwh: Math.round(yearTotalsMap[yr]) }));
 
+  const last12Keys = allMonths.slice(-12);
+  const last12Months: GenerationPoint[] = last12Keys.map((m) => {
+    const parts = m.split("-");
+    const mIndex = parseInt(parts[1], 10) - 1;
+    return {
+      label: `${MONTH_NAMES[mIndex]}/${parts[0].slice(-2)}`,
+      kwh: Math.round(monthlyTotals[m] || 0),
+    };
+  });
+
   return {
-    last12Months: last12.length > 0 ? last12 : byYear[currentYear] || [],
+    last12Months,
     yearsTotals,
     byYear,
     availableYears,
@@ -384,8 +408,25 @@ export function buildMultiYearHistory(uc: UnidadeConsumidora | undefined, now: D
 
 export async function getMultiYearHistory(): Promise<MultiYearHistory> {
   try {
-    const utility = await getLatestUtilityData();
-    return buildMultiYearHistory(getGeneratorUc(utility), new Date());
+    const todayIso = toBrasiliaIsoDate(new Date());
+    const supabase = await createClient();
+    const monthlyRes = await supabase
+      .from("inverter_monthly_history")
+      .select("month, inverter_id, kwh, is_estimated")
+      .order("month", { ascending: true });
+
+    if (monthlyRes.error) {
+      console.error("Erro ao obter inverter_monthly_history:", monthlyRes.error);
+    }
+    const monthlyRows = monthlyRes.data ?? [];
+
+    const dailyFromMonth = monthlyRows[monthlyRows.length - 1]?.month ?? todayIso.slice(0, 7);
+    const daysSince = Math.ceil(
+      (Date.parse(`${todayIso}T00:00:00Z`) - Date.parse(`${dailyFromMonth}-01T00:00:00Z`)) / (24 * 60 * 60 * 1000),
+    );
+    const dailyEntries = await getGenerationByDay(daysSince + 1);
+
+    return buildMultiYearHistory(monthlyRows, dailyEntries, dailyFromMonth, todayIso);
   } catch (err) {
     console.error("Erro ao obter histórico plurianual:", err);
     return { last12Months: [], yearsTotals: [], byYear: {}, availableYears: [] };
