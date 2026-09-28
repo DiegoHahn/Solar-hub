@@ -155,6 +155,17 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
     └── migrations/                     # Schema, índices e políticas RLS (Supabase CLI)
 ```
 
+### Páginas do Dashboard
+
+| Rota | Conteúdo | Fonte dos dados |
+| :--- | :--- | :--- |
+| `/` Início | Potência instantânea e % da capacidade, geração e economia do dia, saldo de créditos, curva solar de hoje, resumo dos inversores e clima dos últimos 7 dias | `solar_telemetry`, `utility_data`, Open-Meteo |
+| `/placas` Placas | Geração por dia/mês/ano, cards detalhados de cada inversor (strings PV1/PV2, rede CA, sensores Modbus) e tabela comparativa de telemetria | `solar_telemetry`, `inverter_daily_history`, extrato de GD |
+| `/cooperativa` Cooperativa | Saldo de créditos GD, última fatura, balanço energético de 12 meses (injeção x compensação x saldo) e extrato GD com filtros | `utility_data` |
+| `/combinada` Análise | Consultor IA (análise diária e mensal), fluxo de energia usina → rede → créditos e eficiência frente à irradiação de até 90 dias | Gemini, `utility_data`, `solar_telemetry`, Open-Meteo |
+
+A rota `/api/ai-advisor` gera a análise do Consultor IA com o modelo configurado em `GEMINI_MODEL`, recorre aos modelos de `GEMINI_MODEL_FALLBACKS` quando ele falha ou atinge a cota diária, e guarda uma análise por dia na tabela `ai_advisor_daily`.
+
 ---
 
 ## 6. Instalação e Execução
@@ -205,6 +216,34 @@ npm run lint        # ESLint (next/core-web-vitals + typescript)
 npm run typecheck   # tsc --noEmit
 npm test            # Vitest
 ```
+
+### Variáveis de Ambiente
+
+**Dashboard** (`dashboard/.env.local`, e nas variáveis do projeto na Vercel):
+
+| Variável | Uso |
+| :--- | :--- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública (publishable/anon); o acesso aos dados depende da sessão do usuário e do RLS |
+| `ALLOWED_EMAILS` | E-mails autorizados no login com Google, separados por vírgula |
+| `GEMINI_API_KEY` | Chave do Google AI Studio para o Consultor IA |
+| `GEMINI_MODEL` | Modelo primário do Consultor IA |
+| `GEMINI_MODEL_FALLBACKS` | Modelos de reserva, em ordem de prioridade, separados por vírgula |
+| `GEMINI_PRIMARY_MAX_QUOTA` | Máximo de chamadas diárias ao modelo primário antes de usar os de reserva |
+| `NEXT_PUBLIC_SOLAR_LATITUDE` / `_LONGITUDE` | Localização da usina para a previsão e o histórico da Open-Meteo |
+| `NEXT_PUBLIC_SOLAR_TILT` / `_AZIMUTH` | Inclinação e orientação dos painéis (graus) |
+
+**Coletores** (`collector/.env`):
+
+| Variável | Uso |
+| :--- | :--- |
+| `SUPABASE_URL` | URL do projeto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave de gravação dos coletores (ignora RLS; fica só no dispositivo edge) |
+| `COOPERALIANCA_CPF` / `COOPERALIANCA_SENHA` | Login no portal da concessionária |
+| `COOPERALIANCA_TOKEN_EXTERNO` | Token exigido pela API Useall no cabeçalho `use-token-externo` |
+| `COOPERALIANCA_UCS` | Unidades consumidoras do titular, separadas por vírgula; a primeira é a UC geradora |
+
+A topologia dos inversores (IPs, portas, seriais, nome e capacidade da usina) fica em `collector/config.json`, a partir de `collector/config.example.json`.
 
 ---
 
