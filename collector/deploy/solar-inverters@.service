@@ -8,6 +8,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=%i
+Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/home/%i/Solar-hub/collector
 ExecStart=/home/%i/Solar-hub/collector/.venv/bin/python /home/%i/Solar-hub/collector/inverters.py
 Restart=always

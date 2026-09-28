@@ -7,6 +7,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=%i
+Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/home/%i/Solar-hub/collector
 ExecStart=/home/%i/Solar-hub/collector/.venv/bin/python /home/%i/Solar-hub/collector/utility.py --pdf
 StandardOutput=journal
