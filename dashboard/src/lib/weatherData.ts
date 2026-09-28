@@ -1,95 +1,220 @@
-import { getTelemetryByDay } from "@/lib/queries";
+import {
+  getGenerationByDay,
+  getStoredDailyWeather,
+  saveDailyWeather,
+  type DailyGenerationEntry,
+} from "@/lib/queries";
+import { brasiliaIsoDaysAgo, toBrasiliaIsoDate } from "@/lib/dates";
 import { fallbackDailyWeather, parseWmoCode, type DailyWeather } from "@/lib/weather";
+import type { DailyWeatherRow } from "@/lib/types";
+
+const HISTORY_DAYS = 90;
+/** Janela sempre rebuscada: nela a Open-Meteo ainda troca previsão por dado observado. */
+const REFRESH_DAYS = 7;
+const NOMINAL_KWP = 16.0;
+/** Fator de desempenho usado para estimar a geração a partir da irradiação (HSP). */
+const PERFORMANCE_RATIO = 0.81;
+
+const DAILY_FIELDS =
+  "weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum";
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
+interface OpenMeteoDaily {
+  time: string[];
+  weather_code: (number | null)[];
+  temperature_2m_max: (number | null)[];
+  temperature_2m_min: (number | null)[];
+  sunshine_duration: (number | null)[];
+  shortwave_radiation_sum: (number | null)[];
+  precipitation_sum: (number | null)[];
+}
+
+interface PlantLocation {
+  lat: string;
+  lon: string;
+  tilt: string;
+  azimuth: string;
+}
+
+function getPlantLocation(): PlantLocation {
+  return {
+    lat: process.env.NEXT_PUBLIC_SOLAR_LATITUDE || process.env.SOLAR_LATITUDE || "-28.7139",
+    lon: process.env.NEXT_PUBLIC_SOLAR_LONGITUDE || process.env.SOLAR_LONGITUDE || "-49.3003",
+    tilt: process.env.NEXT_PUBLIC_SOLAR_TILT || process.env.SOLAR_TILT || "15",
+    azimuth: process.env.NEXT_PUBLIC_SOLAR_AZIMUTH || process.env.SOLAR_AZIMUTH || "155",
+  };
+}
+
+function locationQuery({ lat, lon, tilt, azimuth }: PlantLocation): string {
+  return `latitude=${lat}&longitude=${lon}&daily=${DAILY_FIELDS}&tilt=${tilt}&azimuth=${azimuth}&timezone=America%2FSao_Paulo`;
+}
+
+async function fetchDaily(url: string): Promise<OpenMeteoDaily | null> {
+  try {
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { daily?: OpenMeteoDaily };
+    return json.daily?.time?.length ? json.daily : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Converte a resposta da Open-Meteo em linhas; dias com qualquer valor nulo são descartados. */
+function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["source"]): DailyWeatherRow[] {
+  const rows: DailyWeatherRow[] = [];
+  daily.time.forEach((date, i) => {
+    const code = daily.weather_code[i];
+    const tempMax = daily.temperature_2m_max[i];
+    const tempMin = daily.temperature_2m_min[i];
+    const sunshine = daily.sunshine_duration[i];
+    const radiation = daily.shortwave_radiation_sum[i];
+    const precipitation = daily.precipitation_sum[i];
+    if (code == null || tempMax == null || tempMin == null || sunshine == null || radiation == null || precipitation == null) {
+      return;
+    }
+    rows.push({
+      date,
+      weather_code: code,
+      temperature_max_c: tempMax,
+      temperature_min_c: tempMin,
+      sunshine_duration_s: sunshine,
+      shortwave_radiation_mj: radiation,
+      precipitation_mm: precipitation,
+      source,
+    });
+  });
+  return rows;
+}
+
+/** Datas ISO de `startIso` (inclusive) até `endIso` (exclusive). */
+function isoDateRange(startIso: string, endIso: string): string[] {
+  const dates: string[] = [];
+  const cursor = new Date(`${startIso}T00:00:00Z`);
+  const end = new Date(`${endIso}T00:00:00Z`);
+  while (cursor < end) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+
 /**
- * Busca histórico recente e previsão do tempo via Open-Meteo
- * Cruza com a telemetria registrada no Supabase (se houver para a data)
+ * Busca na Open-Meteo o que precisa ser atualizado. Com o histórico já armazenado, só a janela
+ * recente; senão, os 90 dias do forecast, completando pela Archive API os dias em que o forecast
+ * não traz radiação (ele deixa de informá-la para datas com mais de ~60 dias).
+ */
+async function fetchWeatherUpdates(
+  location: PlantLocation,
+  startIso: string,
+  refreshFromIso: string,
+  stored: Map<string, DailyWeatherRow>,
+): Promise<DailyWeatherRow[]> {
+  const olderDates = isoDateRange(startIso, refreshFromIso);
+  const query = locationQuery(location);
+
+  if (olderDates.every((d) => stored.has(d))) {
+    const recent = await fetchDaily(
+      `https://api.open-meteo.com/v1/forecast?${query}&past_days=${REFRESH_DAYS}&forecast_days=1`,
+    );
+    return recent ? toWeatherRows(recent, "forecast") : [];
+  }
+
+  const forecast = await fetchDaily(
+    `https://api.open-meteo.com/v1/forecast?${query}&past_days=${HISTORY_DAYS}&forecast_days=1`,
+  );
+  const rows = forecast ? toWeatherRows(forecast, "forecast") : [];
+
+  const fetchedDates = new Set(rows.map((r) => r.date));
+  const missing = olderDates.filter((d) => !fetchedDates.has(d) && !stored.has(d));
+  if (missing.length > 0) {
+    const archive = await fetchDaily(
+      `https://archive-api.open-meteo.com/v1/archive?${query}&start_date=${missing[0]}&end_date=${missing[missing.length - 1]}`,
+    );
+    if (archive) {
+      rows.push(...toWeatherRows(archive, "archive").filter((r) => !fetchedDates.has(r.date)));
+    }
+  }
+
+  return rows;
+}
+
+function sameWeather(a: DailyWeatherRow | undefined, b: DailyWeatherRow): boolean {
+  return (
+    a !== undefined &&
+    a.source === b.source &&
+    Number(a.weather_code) === b.weather_code &&
+    Number(a.temperature_max_c) === b.temperature_max_c &&
+    Number(a.temperature_min_c) === b.temperature_min_c &&
+    Number(a.sunshine_duration_s) === b.sunshine_duration_s &&
+    Number(a.shortwave_radiation_mj) === b.shortwave_radiation_mj &&
+    Number(a.precipitation_mm) === b.precipitation_mm
+  );
+}
+
+function toDailyWeather(
+  row: DailyWeatherRow,
+  todayIso: string,
+  generation: DailyGenerationEntry | undefined,
+): DailyWeather {
+  const [year, month, day] = row.date.split("-");
+  const code = Number(row.weather_code);
+  const { condition, icon } = parseWmoCode(code);
+  // 1 MJ/m² = 1/3.6 kWh/m² (horas de sol pleno)
+  const hsp = Number((Number(row.shortwave_radiation_mj) / 3.6).toFixed(2));
+  const kwh = Number((generation ? generation.kwh : NOMINAL_KWP * hsp * PERFORMANCE_RATIO).toFixed(1));
+  const isReal = Boolean(generation?.isReal);
+
+  return {
+    date: row.date,
+    dayOfWeek: dayNames[new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay()],
+    formattedDate: row.date === todayIso ? "Hoje" : `${day}/${month}`,
+    weatherCode: code,
+    condition,
+    icon,
+    tempMax: Number(row.temperature_max_c),
+    tempMin: Number(row.temperature_min_c),
+    sunshineHours: Number((Number(row.sunshine_duration_s) / 3600).toFixed(1)),
+    solarRadiationHsp: hsp,
+    precipitationMm: Number(row.precipitation_mm),
+    estimatedKwh: kwh,
+    isReal,
+    realKwh: isReal ? kwh : undefined,
+  };
+}
+
+/**
+ * Clima dos últimos 90 dias (Open-Meteo) cruzado com a geração da usina.
+ * O clima fica armazenado em daily_weather: a cada chamada só a janela recente é rebuscada e
+ * apenas os dias alterados são regravados. Dias sem geração registrada recebem uma estimativa
+ * pela irradiação.
  */
 export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
   try {
-    const lat =
-      process.env.NEXT_PUBLIC_SOLAR_LATITUDE ||
-      process.env.SOLAR_LATITUDE ||
-      "-28.7139";
-    const lon =
-      process.env.NEXT_PUBLIC_SOLAR_LONGITUDE ||
-      process.env.SOLAR_LONGITUDE ||
-      "-49.3003";
-    const tilt =
-      process.env.NEXT_PUBLIC_SOLAR_TILT || process.env.SOLAR_TILT || "15";
-    const azimuth =
-      process.env.NEXT_PUBLIC_SOLAR_AZIMUTH ||
-      process.env.SOLAR_AZIMUTH ||
-      "155";
+    const now = new Date();
+    const todayIso = toBrasiliaIsoDate(now);
+    const startIso = brasiliaIsoDaysAgo(HISTORY_DAYS, now);
+    const refreshFromIso = brasiliaIsoDaysAgo(REFRESH_DAYS, now);
 
-    const [res, realTelemetryByDay] = await Promise.all([
-      fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=${tilt}&azimuth=${azimuth}&timezone=America%2FSao_Paulo&past_days=90&forecast_days=1`,
-        { next: { revalidate: 3600 } }
-      ),
-      getTelemetryByDay(90),
+    const [storedRows, generationByDay] = await Promise.all([
+      getStoredDailyWeather(startIso),
+      getGenerationByDay(HISTORY_DAYS),
     ]);
 
-    if (!res.ok) throw new Error("Falha na chamada Open-Meteo");
+    const byDate = new Map(storedRows.map((r) => [r.date, r]));
+    const updates = await fetchWeatherUpdates(getPlantLocation(), startIso, refreshFromIso, byDate);
+    await saveDailyWeather(updates.filter((r) => !sameWeather(byDate.get(r.date), r)));
+    for (const row of updates) byDate.set(row.date, row);
 
-    const data = await res.json();
-    const times: string[] = data.daily?.time || [];
-    const weatherCodes: number[] = data.daily?.weather_code || [];
-    const maxTemps: number[] = data.daily?.temperature_2m_max || [];
-    const minTemps: number[] = data.daily?.temperature_2m_min || [];
-    const sunshine: number[] = data.daily?.sunshine_duration || [];
-    const radiation: number[] = data.daily?.shortwave_radiation_sum || [];
-    const precip: number[] = data.daily?.precipitation_sum || [];
+    const rows = [...byDate.values()]
+      .filter((r) => r.date >= startIso && r.date <= todayIso)
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-    const todayIso = new Date().toLocaleDateString("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).split("/").reverse().join("-");
-
-    const result: DailyWeather[] = times.map((t, idx) => {
-      const parts = t.split("-");
-      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      const dayOfWeek = dayNames[dateObj.getDay()];
-      const isToday = t === todayIso;
-      const formattedDate = isToday ? "Hoje" : `${parts[2]}/${parts[1]}`;
-      const code = weatherCodes[idx] ?? 0;
-      const { condition, icon } = parseWmoCode(code);
-
-      // Conversão: 1 MJ/m² = 1 / 3.6 kWh/m²
-      const radMj = radiation[idx] ?? 15.0;
-      const hsp = Number((radMj / 3.6).toFixed(2));
-      const sunHours = Number(((sunshine[idx] ?? 0) / 3600).toFixed(1));
-
-      // Havendo telemetria dos inversores para o dia, usa a geração medida; senão, estima por 16 kWp × HSP × 0.81
-      const hasRealData = realTelemetryByDay && realTelemetryByDay[t] !== undefined;
-      const actualKwh = hasRealData
-        ? Number(realTelemetryByDay[t].toFixed(1))
-        : Number((16.0 * hsp * 0.81).toFixed(1));
-
-      return {
-        date: t,
-        dayOfWeek,
-        formattedDate,
-        weatherCode: code,
-        condition,
-        icon,
-        tempMax: maxTemps[idx] ?? 22,
-        tempMin: minTemps[idx] ?? 14,
-        sunshineHours: sunHours,
-        solarRadiationHsp: hsp,
-        precipitationMm: precip[idx] ?? 0,
-        estimatedKwh: actualKwh,
-        isReal: hasRealData,
-        realKwh: hasRealData ? actualKwh : undefined,
-      };
-    });
-
-    return result.length > 0 ? result : fallbackDailyWeather;
-  } catch {
+    if (rows.length === 0) return fallbackDailyWeather;
+    return rows.map((row) => toDailyWeather(row, todayIso, generationByDay[row.date]));
+  } catch (err) {
+    console.error("Erro ao montar dados de clima:", err);
     return fallbackDailyWeather;
   }
 }

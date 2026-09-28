@@ -264,7 +264,9 @@ export function WeatherEfficiencySection({
             <div>
               <span className="block text-[10px] text-gray-500 dark:text-gray-400">Eficiência</span>
               <strong className="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                {((point.estimatedKwh / (16.0 * (point.solarRadiationHsp || 1))) * 100).toFixed(0)}%
+                {point.solarRadiationHsp > 0
+                  ? `${Math.min(150, Math.round((point.estimatedKwh / (16.0 * point.solarRadiationHsp)) * 100))}%`
+                  : "—"}
               </strong>
             </div>
           </div>

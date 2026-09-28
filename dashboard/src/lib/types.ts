@@ -173,3 +173,15 @@ export interface UtilityDataRow {
   /** Código da UC geradora, resolvido em getLatestUtilityData (não existe na tabela) */
   generator_uc?: string | null;
 }
+
+/** Linha da tabela daily_weather: valores brutos da Open-Meteo para um dia (fuso de Brasília). */
+export interface DailyWeatherRow {
+  date: string; // YYYY-MM-DD
+  weather_code: number;
+  temperature_max_c: number;
+  temperature_min_c: number;
+  sunshine_duration_s: number;
+  shortwave_radiation_mj: number;
+  precipitation_mm: number;
+  source: "forecast" | "archive";
+}

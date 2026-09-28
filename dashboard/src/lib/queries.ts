@@ -6,8 +6,10 @@ import type {
   SunCurvePoint,
   GenerationPoint,
   MultiYearHistory,
+  DailyWeatherRow,
 } from "@/lib/types";
 import { findGeneratorUcCode, getGeneratorUc } from "@/lib/utility";
+import { brasiliaIsoDaysAgo } from "@/lib/dates";
 
 const NOMINAL_CAPACITY_KW = 16.0;
 const TZ = "America/Sao_Paulo";
@@ -15,15 +17,6 @@ const TZ = "America/Sao_Paulo";
 /** "DD/MM/YYYY HH:mm:ss" -> ["DD", "MM", "YYYY"] */
 function splitCoopDate(raw: string | undefined): string[] {
   return (raw || "").split(" ")[0].split("/");
-}
-
-/** Data ISO (YYYY-MM-DD) do instante informado no fuso de Brasília. */
-function toBrasiliaIsoDate(date: Date): string {
-  return date
-    .toLocaleDateString("pt-BR", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
-    .split("/")
-    .reverse()
-    .join("-");
 }
 
 /**
@@ -215,99 +208,97 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
   }
 }
 
-export interface TelemetryDailyRow {
-  recorded_at: string;
-  total_today_kwh: number | string | null;
+export interface DailyGenerationRow {
+  date: string; // YYYY-MM-DD (Brasília)
+  kwh: number | string | null;
 }
 
 export interface InverterDailyHistoryRow {
   date: string;
   kwh: number | string | null;
   inverter_id: string;
+  is_estimated?: boolean | null;
+}
+
+export interface DailyGenerationEntry {
+  kwh: number;
+  /** false quando o valor vem de um fechamento estimado (ex.: calibrado pela irradiação) */
+  isReal: boolean;
 }
 
 /**
  * Consolida a geração diária (kWh por dia, chave YYYY-MM-DD no fuso de Brasília).
- * 1. Usa o maior `total_today_kwh` de cada dia da telemetria coletada a cada 10 min.
+ * 1. Usa a geração medida pela telemetria (view daily_generation).
  * 2. Sobrescreve com o histórico fechado quando existir, priorizando `plant_total`,
- *    depois `goodwe_combined + inv_1`, depois cada um isoladamente.
+ *    depois `goodwe_combined + inv_1`, depois cada um isoladamente; o dia só é real
+ *    se as linhas usadas no valor forem medidas.
  */
-export function mergeDailyTelemetry(
-  telemetryRows: TelemetryDailyRow[],
+export function mergeDailyGeneration(
+  generationRows: DailyGenerationRow[],
   historyRows: InverterDailyHistoryRow[],
-): Record<string, number> {
-  const byDay: Record<string, number> = {};
+): Record<string, DailyGenerationEntry> {
+  const byDay: Record<string, DailyGenerationEntry> = {};
 
-  for (const r of telemetryRows) {
-    const dayIso = toBrasiliaIsoDate(new Date(r.recorded_at));
-    const val = Number(r.total_today_kwh) || 0;
-    if (!byDay[dayIso] || val > byDay[dayIso]) {
-      byDay[dayIso] = Number(val.toFixed(1));
-    }
+  for (const r of generationRows) {
+    byDay[r.date] = { kwh: Number((Number(r.kwh) || 0).toFixed(1)), isReal: true };
   }
 
-  const grouped: Record<string, Record<string, number>> = {};
+  const grouped: Record<string, Record<string, { kwh: number; estimated: boolean }>> = {};
   for (const r of historyRows) {
     if (!grouped[r.date]) grouped[r.date] = {};
-    grouped[r.date][r.inverter_id] = Number(r.kwh) || 0;
+    grouped[r.date][r.inverter_id] = { kwh: Number(r.kwh) || 0, estimated: Boolean(r.is_estimated) };
   }
 
   for (const [date, invs] of Object.entries(grouped)) {
     const { plant_total, goodwe_combined, inv_1 } = invs;
-    if (plant_total !== undefined) {
-      byDay[date] = Number(plant_total.toFixed(1));
-    } else if (goodwe_combined !== undefined && inv_1 !== undefined) {
-      byDay[date] = Number((goodwe_combined + inv_1).toFixed(1));
-    } else if (goodwe_combined !== undefined) {
-      byDay[date] = Number(goodwe_combined.toFixed(1));
-    } else if (inv_1 !== undefined) {
-      byDay[date] = Number(inv_1.toFixed(1));
-    }
+    const used = plant_total
+      ? [plant_total]
+      : [goodwe_combined, inv_1].filter((v): v is { kwh: number; estimated: boolean } => v !== undefined);
+    if (used.length === 0) continue;
+
+    const kwh = used.reduce((acc, v) => acc + v.kwh, 0);
+    byDay[date] = { kwh: Number(kwh.toFixed(1)), isReal: used.every((v) => !v.estimated) };
   }
 
   return byDay;
 }
 
-export async function getTelemetryByDay(daysBack: number = 90): Promise<Record<string, number>> {
+/** Geração diária dos últimos `daysBack` dias, indicando se cada valor é medido ou estimado. */
+export async function getGenerationByDay(daysBack: number = 90): Promise<Record<string, DailyGenerationEntry>> {
   try {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysBack);
-    startDate.setHours(0, 0, 0, 0);
-    const startIso = startDate.toISOString().split("T")[0];
-
-    // Busca tanto o histórico consolidado quanto as telemetrias em paralelo
+    const startIso = brasiliaIsoDaysAgo(daysBack);
     const supabase = await createClient();
-    const [histRes, teleRes] = await Promise.all([
+    const [histRes, genRes] = await Promise.all([
       supabase
         .from("inverter_daily_history")
-        .select("date, kwh, inverter_id")
+        .select("date, kwh, inverter_id, is_estimated")
         .gte("date", startIso)
-        .in("inverter_id", ["plant_total", "goodwe_combined", "inv_1"])
-        .order("date", { ascending: true }),
-      supabase
-        .from("solar_telemetry")
-        .select("recorded_at, total_today_kwh")
-        .gte("recorded_at", startDate.toISOString())
-        .order("recorded_at", { ascending: true }),
+        .in("inverter_id", ["plant_total", "goodwe_combined", "inv_1"]),
+      supabase.from("daily_generation").select("date, kwh").gte("date", startIso),
     ]);
 
-    return mergeDailyTelemetry(teleRes.data ?? [], histRes.data ?? []);
+    if (histRes.error) console.error("Erro ao buscar inverter_daily_history:", histRes.error);
+    if (genRes.error) console.error("Erro ao buscar daily_generation:", genRes.error);
+
+    return mergeDailyGeneration(genRes.data ?? [], histRes.data ?? []);
   } catch (err) {
-    console.error("Erro ao buscar histórico diário de telemetria:", err);
+    console.error("Erro ao buscar geração diária:", err);
     return {};
   }
 }
 
 export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
   try {
-    const byDay = await getTelemetryByDay(31);
-    return Object.entries(byDay).map(([iso, kwh]) => {
-      const parts = iso.split("-");
-      return {
-        label: `${parts[2]}/${parts[1]}`,
-        kwh: Number(kwh.toFixed(1)),
-      };
-    });
+    const byDay = await getGenerationByDay(31);
+    return Object.entries(byDay)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([iso, { kwh }]) => {
+        const parts = iso.split("-");
+        return {
+          label: `${parts[2]}/${parts[1]}`,
+          kwh,
+        };
+      });
   } catch (err) {
     console.error("Erro ao calcular geração mensal:", err);
     return [];
@@ -404,4 +395,36 @@ export async function getMultiYearHistory(): Promise<MultiYearHistory> {
 export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
   const multi = await getMultiYearHistory();
   return multi.last12Months;
+}
+
+/** Clima diário armazenado a partir de `startIso` (inclusive), em ordem cronológica. */
+export async function getStoredDailyWeather(startIso: string): Promise<DailyWeatherRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("daily_weather")
+    .select(
+      "date, weather_code, temperature_max_c, temperature_min_c, sunshine_duration_s, shortwave_radiation_mj, precipitation_mm, source",
+    )
+    .gte("date", startIso)
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao ler daily_weather:", error);
+    return [];
+  }
+  return (data ?? []) as DailyWeatherRow[];
+}
+
+/** Grava (upsert por data) dias de clima vindos da Open-Meteo. */
+export async function saveDailyWeather(rows: DailyWeatherRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("daily_weather")
+    .upsert(
+      rows.map((r) => ({ ...r, updated_at: now })),
+      { onConflict: "date" },
+    );
+  if (error) console.error("Erro ao salvar daily_weather:", error);
 }
