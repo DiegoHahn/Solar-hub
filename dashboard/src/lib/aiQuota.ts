@@ -117,21 +117,38 @@ export async function getQuotaState(): Promise<QuotaState> {
 
 /** Registra uma chamada bem-sucedida ao Gemini e retorna a cota atualizada. */
 export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
-  const current = await getQuotaState();
+  const date = getBrasiliaDate();
   const primaryModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-  const next: QuotaState = {
-    date: current.date,
-    total_calls: current.total_calls + 1,
-    primary_count: current.primary_count + (isPrimaryModel(modelUsed, primaryModel) ? 1 : 0),
-  };
+  const isPrimary = isPrimaryModel(modelUsed, primaryModel);
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from(TABLE)
-    .upsert({ ...next, last_call_at: new Date().toISOString() }, { onConflict: "date" });
-  if (error) console.error("Erro ao salvar cota do Consultor IA:", error);
+  const { data, error } = await supabase
+    .rpc("increment_ai_quota", {
+      p_date: date,
+      p_is_primary: isPrimary,
+    })
+    .maybeSingle();
 
-  return next;
+  if (error) {
+    console.error("Erro ao incrementar cota via RPC, aplicando fallback:", error);
+    const current = await getQuotaState();
+    const next: QuotaState = {
+      date,
+      total_calls: current.total_calls + 1,
+      primary_count: current.primary_count + (isPrimary ? 1 : 0),
+    };
+    await supabase
+      .from(TABLE)
+      .upsert({ ...next, last_call_at: new Date().toISOString() }, { onConflict: "date" });
+    return next;
+  }
+
+  const row = data as { primary_count: number; total_calls: number } | null;
+  return {
+    date,
+    primary_count: row?.primary_count ?? 1,
+    total_calls: row?.total_calls ?? 1,
+  };
 }
 
 /** Lê a análise gerada hoje, se houver. */
