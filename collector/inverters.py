@@ -391,7 +391,7 @@ def push_to_supabase(plant_summary):
             print(f" ☁️ [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})")
             flush_offline_queue(supabase_url, headers)
         else:
-            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar ({resp.status_code}): {resp.text[:100]}")
+            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar (Status {resp.status_code})")
             queue_offline_telemetry(payload)
     except Exception as e:
         print(f" ⚠️ [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local...")
@@ -502,21 +502,11 @@ class SolarApiHandler(BaseHTTPRequestHandler):
             body = json.dumps(data, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "*")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
         except (ConnectionResetError, BrokenPipeError):
             pass
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "*")
-        self.end_headers()
 
     def do_GET(self):
         if self.path == "/api/latest":
@@ -545,36 +535,32 @@ class SolarApiHandler(BaseHTTPRequestHandler):
             else:
                 self._send_json([])
 
-        elif self.path == "/api/trigger":
-            summary = run_collection_cycle()
-            self._send_json({"status": "success", "summary": summary})
-            
         elif self.path == "/api/health":
             self._send_json({"status": "ok", "time": datetime.now().isoformat()})
             
         else:
-            self._send_json({"error": "Rota nao encontrada", "rotas_disponiveis": ["/api/latest", "/api/history", "/api/trigger", "/api/health"]}, 404)
+            self._send_json({"error": "Rota nao encontrada", "rotas_disponiveis": ["/api/latest", "/api/history", "/api/health"]}, 404)
 
     def log_message(self, format, *args):
         pass
 
-def start_http_server(port=5000):
+def start_http_server(host="127.0.0.1", port=5000):
     server = None
     selected_port = port
     for p in [port, port + 1, port + 2]:
         try:
-            server = ThreadingHTTPServer(("0.0.0.0", p), SolarApiHandler)
+            server = ThreadingHTTPServer((host, p), SolarApiHandler)
             selected_port = p
             break
         except OSError as e:
             if getattr(e, "errno", None) == 10048 or "Address already in use" in str(e):
                 continue
             else:
-                print(f" [!] Aviso ao iniciar servidor HTTP na porta {p}: {e}")
+                print(f" [!] Aviso ao iniciar servidor HTTP em {host}:{p}: {e}")
                 return
 
     if server:
-        print(f" [*] API REST Local iniciada em: http://localhost:{selected_port}/api/latest")
+        print(f" [*] API REST Local iniciada em: http://{host}:{selected_port}/api/latest")
         try:
             server.serve_forever()
         except Exception:
@@ -583,14 +569,21 @@ def start_http_server(port=5000):
         print(f" [!] Aviso: Portas {port} a {port+2} estao ocupadas. Coletor continuara rodando normalmente.")
 
 def main():
-    api_port = config.get("api_port", 5000)
+    api_cfg = config.get("api", {})
+    if isinstance(api_cfg, dict):
+        api_host = api_cfg.get("host", "127.0.0.1")
+        api_port = api_cfg.get("port", config.get("api_port", 5000))
+    else:
+        api_host = "127.0.0.1"
+        api_port = config.get("api_port", 5000)
+
     poll_sec = config.get("poll_interval_seconds", 600)
     
     if "--once" in sys.argv:
         run_collection_cycle()
         return
 
-    server_thread = Thread(target=start_http_server, args=(api_port,), daemon=True)
+    server_thread = Thread(target=start_http_server, args=(api_host, api_port), daemon=True)
     server_thread.start()
     print(f"[*] Intervalo de coleta configurado: {poll_sec} segundos ({poll_sec/60:.1f} min)")
 

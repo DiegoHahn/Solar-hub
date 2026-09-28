@@ -4,7 +4,10 @@
   "poll_interval_seconds": 600,
   "data_dir": "data",
   "history_max_records": 1000,
-  "api_port": 5000,
+  "api": {
+    "host": "127.0.0.1",
+    "port": 5000
+  },
   "inverters": [
     {
       "id": "inv_1",
