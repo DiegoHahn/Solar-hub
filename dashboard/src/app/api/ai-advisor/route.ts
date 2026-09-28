@@ -14,6 +14,7 @@ import {
 } from "@/lib/queries";
 import { getIcaraWeatherData } from "@/lib/weatherData";
 import { getGeneratorUc } from "@/lib/utility";
+import { brasiliaClock } from "@/lib/dates";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
@@ -100,6 +101,9 @@ async function handleGenerate() {
     const geracaoHojeKwh = telemetry?.total_today_kwh ?? 0;
     const economiaHojeReais = geracaoHojeKwh * tarifaKwh;
 
+    const { time: brasiliaTimeStr, isDaytime } = brasiliaClock();
+    const currentPowerKw = telemetry?.total_power_kw ?? 0;
+
     const peakPoint = sunCurve.reduce(
       (max, p) => (p.power_kw > max.power_kw ? p : max),
       sunCurve[0] || { power_kw: telemetry?.total_power_kw ?? 0, time: "—" }
@@ -138,16 +142,25 @@ DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
 1. NÃO SEJA UM MERO LEITOR DE NÚMEROS:
    - Evite frases redundantes como "A geração de hoje foi X, o pico foi Y, a economia foi Z".
    - Conecte as causas e efeitos: analise como o CLIMA DE HOJE (horas de sol, irradiação HSP, nuvens ou chuva) determinou o comportamento da geração e o rendimento por hora de sol.
-   - Compare a geração do dia com o potencial pleno da usina de 16 kWp: contextualize se o resultado reflete um dia de céu fechado/chuvoso ou dia de sol pleno, explicando por que a produção foi mais contida ou mais vigorosa.
    - Dê clareza sobre o momento ideal para uso de cargas na casa em função do clima e da curva de produção.
-2. IDIOMA E TOM:
+2. CONTEXTO TEMPORAL E GERAÇÃO EM ANDAMENTO (MUITO IMPORTANTE):
+   - Horário atual da análise: ${brasiliaTimeStr} (Horário de Brasília).
+   ${
+     isDaytime
+       ? `- O DIA AINDA ESTÁ EM ANDAMENTO (período diurno). A usina está operando e gerando ${currentPowerKw.toFixed(1)} kW neste instante.
+   - O valor de ${geracaoHojeKwh.toFixed(1)} kWh é uma medição PARCIAL acumulada até as ${brasiliaTimeStr}, e NÃO o total definitivo do dia. O sol ainda não se pôs e a usina continuará gerando até o entardecer.
+   - NUNCA escreva como se o dia já tivesse terminado (evite frases como "restringiu a produção a X kWh hoje", "resultou em apenas X kWh hoje" ou "o dia fechou com"). Use termos como "produção acumulada até as ${brasiliaTimeStr}", "ritmo observado ao longo desta manhã/tarde", etc.
+   - NUNCA compare a geração parcial de um dia em andamento com a média total de um dia ensolarado inteiro (${avgRecentProduction} kWh) como se fosse a safra final encerrada. O dia ainda tem horas de sol pela frente.`
+       : `- PERÍODO NOTURNO (geração diurna encerrada): São ${brasiliaTimeStr} e o sol já se pôs. O valor de ${geracaoHojeKwh.toFixed(1)} kWh representa o fechamento consolidado e definitivo da produção de hoje.`
+   }
+3. IDIOMA E TOM:
    - Português do Brasil (PT-BR) correto, elegante, sóbrio e profissional.
    - Trate o leitor como um adulto inteligente, lúcido e consciente do seu investimento patrimonial.
    - NÃO use linguagem infantil nem informalidade forçada (evite "lar de vocês", "colocou no bolso", etc.).
-3. SEM JARGÕES BUROCRÁTICOS OU EM INGLÊS:
+4. SEM JARGÕES BUROCRÁTICOS OU EM INGLÊS:
    - NÃO use siglas de leis como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26". Explique simplesmente que os créditos contam com isenção integral na compensação da conta.
    - NÃO use termos em inglês como "performance ratio", "edge-of-cloud", "payback", "strings". Explique tudo em português claro (ex: "irradiação solar", "potência instantânea", "horas de sol pleno").
-4. TRANSPARÊNCIA SOBRE CONSUMO:
+5. TRANSPARÊNCIA SOBRE CONSUMO:
    - A casa não possui Smart Meter no quadro geral. O consumo instantâneo não é medido em tempo real. Não invente números de consumo da casa para hoje.
 
 DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
@@ -155,15 +168,17 @@ DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
 - Concessionária: Cooperaliança (UC ${utilityData?.generator_uc ?? "—"}). Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
 
 MEDIDAS DE HOJE:
-- Produção registrada nos inversores até o momento: ${geracaoHojeKwh.toFixed(1)} kWh (Economia acumulada: R$ ${economiaHojeReais.toFixed(2)})
-- Pico de potência: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `às ${peakTime}` : ""} (de uma capacidade instalada de 16 kWp)
+- Horário da análise: ${brasiliaTimeStr} (Horário de Brasília)
+- Estado operacional da usina: ${isDaytime ? `Em operação diurna ativa (gerando ${currentPowerKw.toFixed(1)} kW neste instante)` : "Operação diurna encerrada (período noturno)"}
+- Produção acumulada até as ${brasiliaTimeStr}: ${geracaoHojeKwh.toFixed(1)} kWh ${isDaytime ? "(parcial em andamento até este horário)" : "(total consolidado do dia)"} (Economia acumulada: R$ ${economiaHojeReais.toFixed(2)})
+- Pico de potência registrado hoje: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `às ${peakTime}` : ""} (de uma capacidade instalada de 16 kWp)
 - Condições climáticas medidas em Içara hoje:
   * Tempo: ${climaHojeCondicao}
   * Horas de sol pleno efetivo: ${climaHojeHorasSol} horas
   * Irradiação solar (HSP): ${climaHojeHsp} kWh/m²
   * Chuva acumulada: ${climaHojeChuva} mm
   * Temperatura máxima: ${climaHojeTempMax}°C
-- Parâmetro comparativo da usina: Em dias ensolarados recentes, a média diária gerada foi de aproximadamente ${avgRecentProduction} kWh.
+- Parâmetro comparativo da usina: Em dias ensolarados típicos (dia completo encerrado de 24h), a produção diária média fecha em aproximadamente ${avgRecentProduction} kWh.
 
 HISTÓRICO E RESERVA NA COOPERALIANÇA:
 - Saldo total de créditos acumulados na cooperativa: ${saldoCreditosKwh.toLocaleString("pt-BR")} kWh (reserva estimada em R$ ${reservaTotalReais.toLocaleString("pt-BR")}).
@@ -176,7 +191,7 @@ HISTÓRICO E RESERVA NA COOPERALIANÇA:
 Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdown \`\`\`json):
 {
   "daily": {
-    "summary": "Texto analítico executivo (3 a 4 linhas) interpretando o desempenho de hoje frente às condições meteorológicas reais de Içara (horas de sol, chuva e irradiação). Explique o rendimento em relação à capacidade da usina e forneça uma leitura perspicaz que o usuário não veria apenas olhando para os números brutos.",
+    "summary": "Texto analítico executivo (3 a 4 linhas) interpretando o desempenho de hoje frente às condições meteorológicas reais de Içara (horas de sol, chuva e irradiação). ${isDaytime ? `Atenção: são ${brasiliaTimeStr} e o dia ainda está em andamento (geração parcial até agora, usina ativa gerando ${currentPowerKw.toFixed(1)} kW). Interprete o ritmo de geração até o momento sem tratá-lo como safra final encerrada.` : 'Como a geração solar diurna já encerrou, faça o balanço consolidado final do dia.'} Forneça uma leitura perspicaz que o usuário não veria apenas olhando para os números brutos.",
     "recommendations": [
       {
         "title": "Título conciso da recomendação prática",

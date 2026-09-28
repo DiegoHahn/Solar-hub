@@ -21,6 +21,7 @@ import {
 import { getIcaraWeatherData } from "@/lib/weatherData";
 import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
 import { getGeneratorUc } from "@/lib/utility";
+import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
 import type { BadgeProps } from "@/components/Badge";
 
@@ -59,16 +60,7 @@ export default async function Home() {
   const isPeakOverload = capacityPct > 100;
   const isGenerating = currentPowerKw > 0.05;
 
-  // Verifica se é período diurno (entre 06:00 e 19:00 em Brasília)
-  const brasiliaHour = parseInt(
-    new Intl.DateTimeFormat("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      hour: "numeric",
-      hour12: false,
-    }).format(new Date()),
-    10
-  );
-  const isDaytime = brasiliaHour >= 6 && brasiliaHour < 19;
+  const { isDaytime } = brasiliaClock();
 
   const geradoHojeKwh = telemetry?.total_today_kwh ?? 0.0;
   const economiaHojeReais = (geradoHojeKwh * tarifaKwh).toLocaleString("pt-BR", {
