@@ -15,7 +15,7 @@ import {
 
 const CALLBACK_ERRORS: Record<string, string> = {
   unauthorized_email:
-    "Acesso não autorizado: Esta conta Google não possui permissão para acessar o Solar Hub.",
+    "Acesso não autorizado: Esta conta não possui permissão para acessar o Solar Hub.",
   auth_callback_failed: "Falha na autenticação com o Google. Tente novamente.",
 };
 

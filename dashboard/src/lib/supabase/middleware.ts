@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isEmailAllowed, maskEmail } from "@/lib/auth";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -38,15 +39,42 @@ export async function updateSession(request: NextRequest) {
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
 
-  // Se o usuário não estiver autenticado e tentar acessar qualquer página protegida:
-  if (!user && !isLoginPage && !isAuthCallback && !isApiRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+  // Usuário não autenticado
+  if (!user) {
+    if (isApiRoute) {
+      return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    }
+    if (!isLoginPage && !isAuthCallback) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
-  // Se o usuário já estiver logado e tentar abrir a tela de login:
-  if (user && isLoginPage) {
+  // Usuário autenticado, mas com e-mail fora da allowlist
+  if (!isAuthCallback && !isEmailAllowed(user.email)) {
+    console.warn(
+      `[Auth] Acesso negado para o e-mail: ${maskEmail(user.email)}. Não autorizado.`
+    );
+    await supabase.auth.signOut();
+
+    if (isApiRoute) {
+      return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "?error=unauthorized_email";
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
+  }
+
+  // Usuário autenticado e autorizado tentando acessar a página de login
+  if (isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

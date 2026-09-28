@@ -15,6 +15,7 @@ import {
 import { getIcaraWeatherData } from "@/lib/weatherData";
 import { getGeneratorUc } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
+import { requireUser } from "@/lib/authServer";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
@@ -34,10 +35,20 @@ async function respondFromCache(): Promise<NextResponse | null> {
 }
 
 export async function GET() {
+  const user = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
   return (await respondFromCache()) ?? handleGenerate();
 }
 
 export async function POST(req: Request) {
+  const user = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const force = body.force === true;
 
