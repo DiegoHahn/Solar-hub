@@ -6,13 +6,14 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
     },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    exclude: ["src/**/*.integration.test.{ts,tsx}", "node_modules/**"],
     // Datas são formatadas em America/Sao_Paulo; fixa o fuso para testes determinísticos em qualquer máquina/CI
     env: { TZ: "America/Sao_Paulo" },
     coverage: {
