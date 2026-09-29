@@ -111,18 +111,9 @@ def safe_api_get(url, headers, timeout=12, default=None):
     return default
 
 
-def sync_cooperalianca(cpf=None, senha=None):
-    cpf = cpf or ENV.get("COOPERALIANCA_CPF")
-    senha = senha or ENV.get("COOPERALIANCA_SENHA")
-
-    if not cpf or not senha:
-        print(" ❌ [COOPERALIANCA] CPF ou Senha não configurados no arquivo .env.")
-        return None
-    if not UCS:
-        print(" ❌ [COOPERALIANCA] COOPERALIANCA_UCS não configurado no arquivo .env.")
-        return None
-
-    headers = {
+def portal_headers():
+    """Cabeçalhos exigidos pela API Useall do portal da Cooperaliança."""
+    return {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
         "Content-Type": "application/json",
         "Accept": "application/json, text/plain, */*",
@@ -131,13 +122,9 @@ def sync_cooperalianca(cpf=None, senha=None):
         "Referer": "https://portal.cooperalianca.com.br/agenciavirtual/",
     }
 
-    print("\n=======================================================")
-    print(
-        f"[{datetime.now().strftime('%H:%M:%S')}] [COOPERALIANCA] INICIANDO SINCRONIZACAO (USEALL API)"
-    )
-    print("=======================================================")
 
-    # 1. Login
+def login_cooperalianca(cpf, senha, headers):
+    """Autentica no portal e retorna o conteúdo da resposta (com `Token` e `Nome`), ou None."""
     payload = {
         "EmailInscricao": cpf.replace(".", "").replace("-", ""),
         "Senha": senha,
@@ -159,17 +146,41 @@ def sync_cooperalianca(cpf=None, senha=None):
         print(f" ❌ [COOPERALIANCA] Falha ao autenticar (Status {resp.status_code})")
         return None
 
-    auth_data = resp.json()
-    token = auth_data.get("Content", {}).get("Token")
-    if not token:
+    content = resp.json().get("Content", {})
+    if not content.get("Token"):
         print(" ❌ [COOPERALIANCA] Token JWT nao retornado na resposta da autenticacao.")
         return None
+    return content
 
-    headers["Authorization"] = f"Bearer {token}"
-    titular_nome = auth_data.get("Content", {}).get("Nome", "")
+
+def sync_cooperalianca(cpf=None, senha=None):
+    cpf = cpf or ENV.get("COOPERALIANCA_CPF")
+    senha = senha or ENV.get("COOPERALIANCA_SENHA")
+
+    if not cpf or not senha:
+        print(" ❌ [COOPERALIANCA] CPF ou Senha não configurados no arquivo .env.")
+        return None
+    if not UCS:
+        print(" ❌ [COOPERALIANCA] COOPERALIANCA_UCS não configurado no arquivo .env.")
+        return None
+
+    headers = portal_headers()
+
+    print("\n=======================================================")
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] [COOPERALIANCA] INICIANDO SINCRONIZACAO (USEALL API)"
+    )
+    print("=======================================================")
+
+    auth = login_cooperalianca(cpf, senha, headers)
+    if not auth:
+        return None
+
+    headers["Authorization"] = f"Bearer {auth['Token']}"
+    titular_nome = auth.get("Nome", "")
     print(f" -> Autenticacao efetuada com sucesso! Titular: {titular_nome}")
 
-    # 2. Perfil do Usuario
+    # Perfil do usuário
     perfil_usuario = safe_api_get(
         API_BASE + f"PerfilUsuario/BuscarPerfilUsuario?codigoUc={UCS[0]}",
         headers=headers,

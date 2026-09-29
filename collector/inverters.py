@@ -178,19 +178,25 @@ def get_last_known_energies():
     return {}
 
 
-def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
-    """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html e Modbus Solarman V5."""
-    url = f"http://{ip}/status.html"
-    raw_vars = {}
+STATUS_VAR_PATTERN = re.compile(r'var\s+([a-zA-Z0-9_]+)\s*=\s*["\']([^"\']*)["\'];')
+
+
+def parse_status_vars(html):
+    """Variáveis JavaScript (`var nome = "valor";`) do status.html do logger."""
+    return dict(STATUS_VAR_PATTERN.findall(html)) if html else {}
+
+
+def resolve_logger_serial(logger_sn, status_vars):
+    """Serial numérico do logger: o do config ou, na falta dele, o `cover_mid` do status.html."""
     try:
-        auth = base64.b64encode(auth_str.encode("ascii")).decode("ascii")
-        req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            html = response.read().decode("utf-8", errors="ignore")
-        var_pattern = re.compile(r'var\s+([a-zA-Z0-9_]+)\s*=\s*["\']([^"\']*)["\'];')
-        raw_vars = dict(var_pattern.findall(html))
-    except Exception:
-        pass
+        return int(str(logger_sn or status_vars.get("cover_mid", "")).strip())
+    except ValueError:
+        return None
+
+
+def parse_solis_status(html, regs=None, logger_sn=None):
+    """Extrai métricas puras do HTML de status do logger Solis LSW-3 e dos registradores Modbus."""
+    raw_vars = parse_status_vars(html)
 
     def parse_float(val, default=0.0):
         try:
@@ -201,15 +207,7 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
     now_p = parse_float(raw_vars.get("webdata_now_p", "0"))
     today_e = parse_float(raw_vars.get("webdata_today_e", "0"))
     total_e = parse_float(raw_vars.get("webdata_total_e", "0"))
-
-    # Serial Number do Logger (definido no config ou obtido de cover_mid)
-    sn_cand = logger_sn or raw_vars.get("cover_mid", "").strip()
-    sn_int = None
-    if sn_cand:
-        try:
-            sn_int = int(str(sn_cand).strip())
-        except ValueError:
-            sn_int = None
+    sn_int = resolve_logger_serial(logger_sn, raw_vars)
 
     temp_c = None
     vgrid = None
@@ -218,50 +216,39 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
     pv1_data = None
     pv2_data = None
 
-    # Consulta Modbus Solarman V5 na porta 8899 para métricas aprofundadas (holding registers 0..39)
-    if PySolarmanV5 and sn_int:
-        try:
-            m = PySolarmanV5(
-                ip, sn_int, port=8899, mb_slave_id=1, socket_timeout=timeout, verbose=False
-            )
-            regs = m.read_holding_registers(0, 40)
-            m.disconnect()
+    # Processa métricas dos registradores Modbus Solarman V5 se disponíveis (holding registers 0..39)
+    if regs and len(regs) >= 37:
+        # PV1
+        pv1_v = round(regs[6] * 0.1, 1)
+        pv1_i = round(regs[7] * 0.01, 2)
+        pv1_w = round(pv1_v * pv1_i, 1)
+        pv1_data = {"v": pv1_v, "i": pv1_i, "w": pv1_w}
 
-            if len(regs) >= 37:
-                # PV1
-                pv1_v = round(regs[6] * 0.1, 1)
-                pv1_i = round(regs[7] * 0.01, 2)
-                pv1_w = round(pv1_v * pv1_i, 1)
-                pv1_data = {"v": pv1_v, "i": pv1_i, "w": pv1_w}
+        # PV2
+        pv2_v = round(regs[8] * 0.1, 1)
+        pv2_i = round(regs[9] * 0.01, 2)
+        pv2_w = round(pv2_v * pv2_i, 1)
+        pv2_data = {"v": pv2_v, "i": pv2_i, "w": pv2_w}
 
-                # PV2
-                pv2_v = round(regs[8] * 0.1, 1)
-                pv2_i = round(regs[9] * 0.01, 2)
-                pv2_w = round(pv2_v * pv2_i, 1)
-                pv2_data = {"v": pv2_v, "i": pv2_i, "w": pv2_w}
+        # Rede CA
+        fgrid = round(regs[14] * 0.01, 2)
+        vgrid = round(regs[15] * 0.1, 1)
+        igrid = round(regs[16] * 0.01, 2)
 
-                # Rede CA
-                fgrid = round(regs[14] * 0.01, 2)
-                vgrid = round(regs[15] * 0.1, 1)
-                igrid = round(regs[16] * 0.01, 2)
+        # Potência Ativa Instantânea
+        if regs[12] > 0:
+            now_p = round(regs[12] * 10.0, 1)
+        elif vgrid and igrid:
+            now_p = round(vgrid * igrid, 1)
 
-                # Potência Ativa Instantânea
-                if regs[12] > 0:
-                    now_p = round(regs[12] * 10.0, 1)
-                elif vgrid and igrid:
-                    now_p = round(vgrid * igrid, 1)
+        # Energia
+        if regs[25] > 0:
+            today_e = round(regs[25] * 0.01, 2)
+        if regs[22] > 0:
+            total_e = float(regs[22])
 
-                # Energia
-                if regs[25] > 0:
-                    today_e = round(regs[25] * 0.01, 2)
-                if regs[22] > 0:
-                    total_e = float(regs[22])
-
-                # Temperatura interna (°C)
-                temp_c = round(regs[36] * 0.1, 1)
-        except Exception:
-            # Fallback gracioso mantendo os dados coletados via HTTP status.html
-            pass
+        # Temperatura interna (°C)
+        temp_c = round(regs[36] * 0.1, 1)
 
     return {
         "status": "online",
@@ -285,19 +272,35 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
     }
 
 
-async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
-    """Consulta inversor GoodWe via Modbus TCP (porta 502) ou fallback UDP (porta 8899)."""
-    if goodwe is None:
-        raise ImportError("Biblioteca goodwe nao disponivel.")
-
-    inv = None
+def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
+    """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html e Modbus Solarman V5."""
+    url = f"http://{ip}/status.html"
+    html = ""
     try:
-        inv = await goodwe.connect(ip, port=port, family=family, timeout=timeout, retries=retries)
+        auth = base64.b64encode(auth_str.encode("ascii")).decode("ascii")
+        req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            html = response.read().decode("utf-8", errors="ignore")
     except Exception:
-        # Fallback para UDP porta 8899 caso Modbus TCP não esteja disponível
-        inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
+        pass
 
-    runtime_data = await inv.read_runtime_data()
+    sn_int = resolve_logger_serial(logger_sn, parse_status_vars(html))
+    regs = None
+    if PySolarmanV5 and sn_int:
+        try:
+            m = PySolarmanV5(
+                ip, sn_int, port=8899, mb_slave_id=1, socket_timeout=timeout, verbose=False
+            )
+            regs = m.read_holding_registers(0, 40)
+            m.disconnect()
+        except Exception:
+            pass
+
+    return parse_solis_status(html, regs=regs, logger_sn=logger_sn)
+
+
+def normalize_goodwe_runtime(runtime_data, model_name="", serial_number="", firmware=""):
+    """Normaliza as métricas puras retornadas pelo inversor GoodWe em formato padronizado."""
 
     def parse_f(k, default=0.0):
         val = runtime_data.get(k)
@@ -338,15 +341,36 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
         "pv1": {"v": round(vpv1, 1), "i": round(ipv1, 2), "w": round(ppv1, 1)},
         "pv2": {"v": round(vpv2, 1), "i": round(ipv2, 2), "w": round(ppv2, 1)},
         "work_mode": str(runtime_data.get("work_mode_label", "Normal")),
-        "model": inv.model_name,
-        "serial": inv.serial_number,
-        "firmware": inv.firmware,
+        "model": model_name,
+        "serial": serial_number,
+        "firmware": firmware,
         "sensors_count": len(runtime_data),
         "raw_sensors": {
             k: (str(v) if not isinstance(v, (int, float, bool)) else v)
             for k, v in runtime_data.items()
         },
     }
+
+
+async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
+    """Consulta inversor GoodWe via Modbus TCP (porta 502) ou fallback UDP (porta 8899)."""
+    if goodwe is None:
+        raise ImportError("Biblioteca goodwe nao disponivel.")
+
+    inv = None
+    try:
+        inv = await goodwe.connect(ip, port=port, family=family, timeout=timeout, retries=retries)
+    except Exception:
+        # Fallback para UDP porta 8899 caso Modbus TCP não esteja disponível
+        inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
+
+    runtime_data = await inv.read_runtime_data()
+    return normalize_goodwe_runtime(
+        runtime_data,
+        model_name=getattr(inv, "model_name", "") or "",
+        serial_number=getattr(inv, "serial_number", "") or "",
+        firmware=getattr(inv, "firmware", "") or "",
+    )
 
 
 def collect_inverter(inv_cfg):
