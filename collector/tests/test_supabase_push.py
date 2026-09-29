@@ -110,7 +110,7 @@ def test_push_utility_to_supabase(httpserver, monkeypatch):
     }
     monkeypatch.setattr(utility, "ENV", fake_env)
 
-    doc_key = f"{'c'}{'p'}{'f'}"
+    doc_key = "cpf"
 
     def handler(request):
         assert request.args.get("on_conflict") == doc_key
@@ -132,3 +132,104 @@ def test_push_utility_to_supabase(httpserver, monkeypatch):
 
     utility.push_utility_to_supabase(sample_result)
     httpserver.check_assertions()
+
+
+def test_push_to_supabase_missing_env(monkeypatch):
+    monkeypatch.setattr(inverters, "ENV", {})
+    assert inverters.push_to_supabase({}) is None
+
+    monkeypatch.setattr(inverters, "ENV", {"SUPABASE_URL": "https://SEU_PROJECT_REF.supabase.co"})
+    assert inverters.push_to_supabase({}) is None
+
+
+def test_push_to_supabase_network_exception(monkeypatch, tmp_path):
+    queue_file = str(tmp_path / "offline_queue.json")
+    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
+    monkeypatch.setattr(
+        inverters,
+        "ENV",
+        {"SUPABASE_URL": "http://127.0.0.1:9999", "SUPABASE_SERVICE_ROLE_KEY": "key"},
+    )
+    import requests
+
+    monkeypatch.setattr(
+        inverters.requests,
+        "post",
+        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Rede indisponível")),
+    )
+
+    inverters.push_to_supabase({"timestamp": "2026-09-29T12:00:00Z", "total_power_w": 100})
+    assert os.path.exists(queue_file)
+
+
+def test_flush_offline_queue_partial_failure(httpserver, monkeypatch, tmp_path):
+    queue_file = str(tmp_path / "offline_queue.json")
+    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
+
+    pending_items = [
+        {"recorded_at": "2026-09-29T11:00:00Z", "total_power_w": 3000.0},
+        {"recorded_at": "2026-09-29T11:10:00Z", "total_power_w": 3500.0},
+    ]
+    inverters.atomic_write_json(queue_file, pending_items)
+
+    call_count = 0
+
+    def handler(request):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return Response(status=201, response='{"status":"ok"}', mimetype="application/json")
+        return Response(status=500, response="Server Error")
+
+    httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(
+        handler
+    )
+
+    headers = {"apikey": "fake-key", "Authorization": "Bearer fake-key"}
+    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+
+    assert os.path.exists(queue_file)
+    with open(queue_file, "r", encoding="utf-8") as f:
+        remaining = json.load(f)
+    assert len(remaining) == 1
+    assert remaining[0]["total_power_w"] == 3500.0
+
+
+def test_flush_offline_queue_corrupted(monkeypatch, tmp_path):
+    queue_file = str(tmp_path / "offline_queue.json")
+    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
+
+    with open(queue_file, "w", encoding="utf-8") as f:
+        f.write("corrupted json")
+
+    inverters.flush_offline_queue("http://fake", {})
+
+
+def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
+    monkeypatch.setattr(utility, "ENV", {})
+    assert utility.push_utility_to_supabase({}) is None
+
+    monkeypatch.setattr(
+        utility,
+        "ENV",
+        {"SUPABASE_URL": httpserver.url_for(""), "SUPABASE_SERVICE_ROLE_KEY": "fake-key"},
+    )
+    httpserver.expect_request("/rest/v1/utility_data", method="POST").respond_with_data(
+        "Erro", status=500
+    )
+    sample_result = {
+        "timestamp": "2026-09-29T10:00:00Z",
+        "distribuidora": "Cooperaliança",
+        "titular": "Titular",
+        "cpf": "00000000000",
+    }
+    utility.push_utility_to_supabase(sample_result)
+
+    import requests
+
+    monkeypatch.setattr(
+        utility.requests,
+        "post",
+        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Rede")),
+    )
+    utility.push_utility_to_supabase(sample_result)

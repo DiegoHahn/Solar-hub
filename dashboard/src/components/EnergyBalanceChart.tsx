@@ -31,7 +31,7 @@ interface CustomTooltipProps {
   onActivePoint?: (point: BalancoEnergeticoMes) => void;
 }
 
-function CustomTooltip({ active, payload, onActivePoint }: CustomTooltipProps) {
+export function EnergyBalanceTooltip({ active, payload, onActivePoint }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload as BalancoEnergeticoMes | undefined;
@@ -279,7 +279,7 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
                 tick={{ fontSize: 10, fill: "#f59e0b" }}
                 tickFormatter={(v) => `${v / 1000}k`}
               />
-              <Tooltip content={<CustomTooltip onActivePoint={setInspectedMonth} />} />
+              <Tooltip content={<EnergyBalanceTooltip onActivePoint={setInspectedMonth} />} />
               <Legend
                 verticalAlign="bottom"
                 height={28}
@@ -338,7 +338,7 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
                 tickFormatter={(v) => `${v}`}
               />
               <ReferenceLine y={0} stroke="#64748b" strokeWidth={1} />
-              <Tooltip content={<CustomTooltip onActivePoint={setInspectedMonth} />} />
+              <Tooltip content={<EnergyBalanceTooltip onActivePoint={setInspectedMonth} />} />
               <Bar dataKey="liquido_kwh" name="Balanço Líquido (kWh)" radius={[3, 3, 0, 0]}>
                 {data.map((entry, index) => (
                   <Cell

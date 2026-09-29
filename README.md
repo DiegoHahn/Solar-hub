@@ -279,9 +279,9 @@ Os comandos do dashboard rodam em `dashboard/` e os do coletor em `collector/`.
 
 **Dados de produção nos testes.** A integração usa um usuário dedicado, sujeito ao mesmo RLS do dashboard, e só lê dados — a única escrita é na data sentinela `1999-01-01` das tabelas de cache, removida ao final. As fixtures são geradas por `dashboard/scripts/capture-fixtures.ts`, que substitui documentos, nomes, endereços, códigos de UC e de fatura, seriais, MACs, SSIDs e IPs por valores fictícios.
 
-**CI.** O workflow `.github/workflows/ci.yml` roda lint, typecheck, testes com cobertura mínima e build do dashboard; ruff e pytest do coletor; e análise de segurança com Trivy (dependências, segredos e configuração) e Semgrep (código). A integração e o E2E rodam no `main` e diariamente, com as credenciais do usuário de testes em GitHub Secrets.
+**CI e cobertura.** O workflow `.github/workflows/ci.yml` roda lint, typecheck, testes com cobertura mínima de 80% no dashboard e no coletor, e build do dashboard; ruff e pytest do coletor; e análise de segurança com Trivy (dependências, segredos e configuração) e Semgrep (código). A integração e o E2E rodam no `main` e diariamente, com as credenciais do usuário de testes em GitHub Secrets.
 
-Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example` para `dashboard/.env.test.local` e preencha as credenciais do usuário de testes.
+Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example` para `dashboard/.env.test.local` e preencha as credenciais do usuário de testes. Para validar testes e travas de cobertura automaticamente antes de cada push local, ative o hook com `git config core.hooksPath .githooks`.
 
 ---
 

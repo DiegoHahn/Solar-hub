@@ -19,13 +19,17 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/lib/**", "src/components/**"],
-      exclude: ["src/lib/supabase/**", "src/lib/supabase.ts"],
+      exclude: [
+        "src/lib/supabase/**",
+        "src/lib/supabase.ts",
+        "src/lib/types.ts",
+      ],
       reporter: ["text", "html", "lcov"],
       thresholds: {
-        lines: 60,
-        functions: 55,
-        branches: 50,
-        statements: 60,
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80,
       },
     },
   },

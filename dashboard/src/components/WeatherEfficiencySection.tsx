@@ -34,7 +34,7 @@ interface CustomWeatherTooltipProps {
   renderIcon: (icon: DailyWeather["icon"], className?: string) => React.ReactNode;
 }
 
-function CustomWeatherTooltip({ active, payload, onActivePoint, renderIcon }: CustomWeatherTooltipProps) {
+export function WeatherTooltip({ active, payload, onActivePoint, renderIcon }: CustomWeatherTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const p = payload[0]?.payload;
@@ -322,7 +322,7 @@ export function WeatherEfficiencySection({
             />
             <Tooltip
               content={
-                <CustomWeatherTooltip
+                <WeatherTooltip
                   onActivePoint={setActivePoint}
                   renderIcon={renderWeatherIcon}
                 />

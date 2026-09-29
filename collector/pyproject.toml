@@ -12,4 +12,7 @@ pythonpath = ["."]
 markers = [
     "live: testes que conectam de verdade nos inversores locais ou Cooperaliança (apenas no Pi)",
 ]
-addopts = "-m 'not live'"
+addopts = "-m 'not live' --cov=. --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+omit = ["tests/*", "scripts/*"]

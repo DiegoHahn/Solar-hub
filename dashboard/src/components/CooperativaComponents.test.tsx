@@ -118,6 +118,55 @@ describe("Componentes de Cooperativa", () => {
 
       expect(screen.getByText(/Nenhum lançamento encontrado/i)).toBeInTheDocument();
     });
+
+    const PAGE_SIZE = 15;
+    const renderedEntries = () => screen.queryAllByText(/^Energia (injetada|compensada)$/).length;
+
+    it("mostra nos chips de GD I e GD II a quantidade de lançamentos de cada grupo e filtra por eles", () => {
+      render(<GdExtractList entries={entries} />);
+
+      for (const [grupo, label] of [[1, /GD I ·/], [2, /GD II ·/]] as const) {
+        const total = entries.filter((e) => e.grupo === grupo).length;
+        const chip = screen.getByRole("button", { name: label });
+        expect(chip).toHaveTextContent(`(${total})`);
+
+        fireEvent.click(chip);
+        expect(renderedEntries()).toBe(Math.min(total, PAGE_SIZE));
+      }
+
+      fireEvent.click(screen.getByRole("button", { name: /Todos/i }));
+      expect(renderedEntries()).toBeGreaterThan(0);
+    });
+
+    it("limpa a busca pelo botão ao lado do campo", () => {
+      render(<GdExtractList entries={entries} />);
+      const searchInput = screen.getByPlaceholderText(/Filtrar por mês/i);
+
+      fireEvent.change(searchInput, { target: { value: "InexistenteMes999" } });
+      fireEvent.click(searchInput.parentElement!.querySelector("button")!);
+
+      expect(searchInput).toHaveValue("");
+      expect(renderedEntries()).toBeGreaterThan(0);
+    });
+
+    it("carrega mais lançamentos pelo botão e pela rolagem da lista", () => {
+      const { container } = render(<GdExtractList entries={entries} />);
+      const initial = renderedEntries();
+      expect(initial).toBeLessThan(entries.length);
+
+      fireEvent.click(screen.getByRole("button", { name: /Carregar mais lançamentos/ }));
+      const afterClick = renderedEntries();
+      expect(afterClick).toBe(Math.min(initial + PAGE_SIZE, entries.length));
+
+      const list = container.querySelector<HTMLElement>("[class*='overflow-y']")!;
+      Object.defineProperties(list, {
+        scrollTop: { value: 1000, configurable: true },
+        scrollHeight: { value: 1050, configurable: true },
+        clientHeight: { value: 40, configurable: true },
+      });
+      fireEvent.scroll(list);
+      expect(renderedEntries()).toBeGreaterThanOrEqual(afterClick);
+    });
   });
 
   describe("ConsumptionHistoryChart", () => {

@@ -87,3 +87,46 @@ def test_get_last_known_energies(monkeypatch, tmp_path):
     assert "inv_1" in last_known
     assert last_known["inv_1"]["energy_today_kwh"] == 5.4
     assert last_known["inv_2"]["energy_today_kwh"] == 4.1
+
+
+def test_atomic_write_json_error(tmp_path):
+    import pytest
+
+    target_file = str(tmp_path / "fail.json")
+    with pytest.raises(TypeError):
+        inverters.atomic_write_json(target_file, {"invalid": object()})
+    assert not os.path.exists(target_file)
+
+
+def test_queue_offline_telemetry_corrupted_and_trim(monkeypatch, tmp_path):
+    queue_file = str(tmp_path / "offline_queue.json")
+    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
+
+    with open(queue_file, "w", encoding="utf-8") as f:
+        f.write("{invalid json")
+
+    inverters.queue_offline_telemetry({"power_w": 100})
+    with open(queue_file, "r", encoding="utf-8") as f:
+        queue = json.load(f)
+    assert len(queue) == 1
+
+    huge_queue = [{"power_w": i} for i in range(550)]
+    with open(queue_file, "w", encoding="utf-8") as f:
+        json.dump(huge_queue, f)
+
+    inverters.queue_offline_telemetry({"power_w": 999})
+    with open(queue_file, "r", encoding="utf-8") as f:
+        queue = json.load(f)
+    assert len(queue) == 500
+    assert queue[-1]["power_w"] == 999
+
+
+def test_get_last_known_energies_corrupted(monkeypatch, tmp_path):
+    latest_file = str(tmp_path / "latest.json")
+    monkeypatch.setattr(inverters, "LATEST_FILE", latest_file)
+    monkeypatch.setattr(inverters, "_LATEST_IN_MEMORY", None)
+
+    with open(latest_file, "w", encoding="utf-8") as f:
+        f.write("corrupted")
+
+    assert inverters.get_last_known_energies() == {}

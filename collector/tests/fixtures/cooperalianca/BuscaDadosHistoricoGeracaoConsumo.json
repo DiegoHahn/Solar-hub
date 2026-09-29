@@ -1,0 +1,372 @@
+{
+  "RetornoDadosHistoricoGeracaoConsumoPonta": [
+    {
+      "AnoMes": "01/10/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/11/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/12/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/01/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/02/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/03/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/04/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/05/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/06/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/07/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/08/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/09/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    }
+  ],
+  "RetornoDadosHistoricoGeracaoConsumoForaPonta": [
+    {
+      "AnoMes": "01/10/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/11/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/12/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/01/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/02/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/03/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/04/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/05/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/06/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/07/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/08/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/09/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    }
+  ],
+  "RetornoDadosHistoricoGeracaoConsumoIrrigante": [
+    {
+      "AnoMes": "01/10/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/11/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/12/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/01/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/02/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/03/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/04/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/05/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/06/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/07/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/08/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/09/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    }
+  ],
+  "RetornoDadosHistoricoGeracaoConsumoIntermediario": [
+    {
+      "AnoMes": "01/10/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/11/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/12/2025 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/01/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/02/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/03/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/04/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/05/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/06/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/07/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/08/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/09/2026 00:00:00",
+      "KwhGerado": 0,
+      "kwhCreditado": 0,
+      "Saldo": 0
+    }
+  ],
+  "RetornoDadosHistoricoGeracaoConsumoKwhNormal": [
+    {
+      "AnoMes": "01/10/2025 00:00:00",
+      "KwhGerado": 1056,
+      "kwhCreditado": 2566,
+      "Saldo": 2237
+    },
+    {
+      "AnoMes": "01/11/2025 00:00:00",
+      "KwhGerado": 1199,
+      "kwhCreditado": 2900,
+      "Saldo": 536
+    },
+    {
+      "AnoMes": "01/12/2025 00:00:00",
+      "KwhGerado": 1456,
+      "kwhCreditado": 1992,
+      "Saldo": 0
+    },
+    {
+      "AnoMes": "01/01/2026 00:00:00",
+      "KwhGerado": 2300,
+      "kwhCreditado": 956,
+      "Saldo": 1344
+    },
+    {
+      "AnoMes": "01/02/2026 00:00:00",
+      "KwhGerado": 2128,
+      "kwhCreditado": 729,
+      "Saldo": 2743
+    },
+    {
+      "AnoMes": "01/03/2026 00:00:00",
+      "KwhGerado": 2093,
+      "kwhCreditado": 785,
+      "Saldo": 4051
+    },
+    {
+      "AnoMes": "01/04/2026 00:00:00",
+      "KwhGerado": 2242,
+      "kwhCreditado": 789,
+      "Saldo": 5504
+    },
+    {
+      "AnoMes": "01/05/2026 00:00:00",
+      "KwhGerado": 1766,
+      "kwhCreditado": 555,
+      "Saldo": 6715
+    },
+    {
+      "AnoMes": "01/06/2026 00:00:00",
+      "KwhGerado": 1339,
+      "kwhCreditado": 530,
+      "Saldo": 7524
+    },
+    {
+      "AnoMes": "01/07/2026 00:00:00",
+      "KwhGerado": 1233,
+      "kwhCreditado": 440,
+      "Saldo": 8317
+    },
+    {
+      "AnoMes": "01/08/2026 00:00:00",
+      "KwhGerado": 1426,
+      "kwhCreditado": 677,
+      "Saldo": 9066
+    },
+    {
+      "AnoMes": "01/09/2026 00:00:00",
+      "KwhGerado": 1426,
+      "kwhCreditado": 592,
+      "Saldo": 9900
+    }
+  ]
+}

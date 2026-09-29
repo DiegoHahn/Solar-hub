@@ -92,7 +92,7 @@ jobs:
 
       - name: Executar Testes de Integração com Supabase Real
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
-        run: npm run test:integration
+        run: npm run test:integration -- --coverage --coverage.reporter=text-summary
 
       - name: Instalar Navegador Chromium para Playwright
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}

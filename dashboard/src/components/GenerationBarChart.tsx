@@ -15,7 +15,7 @@ interface CustomTooltipProps {
   onActivePoint?: (point: GenerationPoint) => void;
 }
 
-function CustomTooltip({ active, payload, unitLabel, onActivePoint }: CustomTooltipProps) {
+export function GenerationTooltip({ active, payload, unitLabel, onActivePoint }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload;
@@ -155,7 +155,7 @@ export function GenerationBarChart({
               />
               <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <Tooltip
-                content={<CustomTooltip unitLabel={unitLabel} onActivePoint={setInspectedPoint} />}
+                content={<GenerationTooltip unitLabel={unitLabel} onActivePoint={setInspectedPoint} />}
                 cursor={{ fill: "rgba(245,158,11,0.08)" }}
               />
               <Bar dataKey="kwh" fill={color} radius={[3, 3, 0, 0]} />

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "[pre-push] Verificando testes e cobertura do Dashboard..."
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    # shellcheck source=/dev/null
+    . "$HOME/.nvm/nvm.sh"
+fi
+
+(
+    cd "$REPO_ROOT/dashboard"
+    npm run -s test:coverage
+)
+
+echo "[pre-push] Verificando testes e cobertura do Coletor Python..."
+(
+    cd "$REPO_ROOT/collector"
+    if [ -x ".venv/bin/pytest" ]; then
+        .venv/bin/pytest -q
+    elif [ -x ".venv/bin/python" ]; then
+        .venv/bin/python -m pytest -q
+    else
+        python3 -m pytest -q
+    fi
+)
+
+echo "[pre-push] Todas as verificações e travas de cobertura passaram!"

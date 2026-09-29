@@ -29,7 +29,7 @@ interface CustomTooltipProps {
   onActivePoint?: (point: SunCurvePoint) => void;
 }
 
-function CustomTooltip({ active, payload, label, onActivePoint }: CustomTooltipProps) {
+export function InverterCurveTooltip({ active, payload, label, onActivePoint }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload;
@@ -206,7 +206,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 tickFormatter={(val) => `${val} kW`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
-              <Tooltip content={<CustomTooltip onActivePoint={setInspectedPoint} />} />
+              <Tooltip content={<InverterCurveTooltip onActivePoint={setInspectedPoint} />} />
               <Legend
                 wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
                 formatter={(value) => SERIES.find((s) => s.key === value)?.label ?? value}

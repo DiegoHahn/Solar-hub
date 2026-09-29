@@ -1,0 +1,49 @@
+{
+  "CodigoConsumidor": 90001,
+  "NomeUsuario": "Titular Teste",
+  "Nome": "Titular Teste",
+  "Email": "teste1@solarhub.local",
+  "Inscricao": "00000000000",
+  "DataNascimento": "01/01/1970 00:00:00",
+  "RetPerfilUsuarioUcCarrosselDto": [
+    {
+      "CodigoUc": 90002,
+      "Icone": 1,
+      "Apelido": " ",
+      "Endereco": "Rua Teste, 100",
+      "MicroGeracao": "N",
+      "AutoLeitura": "N",
+      "CodigoGrupoFat": 0,
+      "Titularidade": 1,
+      "Ligado": true,
+      "CodigoMotivoDeslig": 0,
+      "CodigoUcAnt": 90001
+    },
+    {
+      "CodigoUc": 90003,
+      "Icone": 1,
+      "Apelido": " ",
+      "Endereco": "Rua Teste, 100",
+      "MicroGeracao": "N",
+      "AutoLeitura": "N",
+      "CodigoGrupoFat": 0,
+      "Titularidade": 1,
+      "Ligado": true,
+      "CodigoMotivoDeslig": 0,
+      "CodigoUcAnt": 90004
+    },
+    {
+      "CodigoUc": 90005,
+      "Icone": 1,
+      "Apelido": " ",
+      "Endereco": "Rua Teste, 200",
+      "MicroGeracao": "S",
+      "AutoLeitura": "N",
+      "CodigoGrupoFat": 0,
+      "Titularidade": 1,
+      "Ligado": true,
+      "CodigoMotivoDeslig": 0,
+      "CodigoUcAnt": 90006
+    }
+  ]
+}

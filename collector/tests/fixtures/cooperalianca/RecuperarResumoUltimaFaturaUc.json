@@ -1,0 +1,39 @@
+{
+  "AnoMes": "01/09/2026 00:00:00",
+  "DataPagto": "14/09/2026 00:00:00",
+  "CodigoFatura": 90001,
+  "DiasConsumo": 30,
+  "ValorFatura": 175.31,
+  "AberturaTributos": 119.13,
+  "AberturaTransmissao": 63.1,
+  "AberturaDistribuicao": 68.99,
+  "AberturaEncargos": 76.62,
+  "AberturaEnergia": 70.38,
+  "AberturaPerdas": 0.0,
+  "AberturaOutros": -222.91,
+  "DataLProxima": "13/10/2026 00:00:00",
+  "DataLAtual": "11/09/2026 00:00:00",
+  "DateLAnterior": "12/08/2026 00:00:00",
+  "ConstanteKwh": 1.0,
+  "QkwhIrrigacao": 0,
+  "KwhReal": 684,
+  "KwhFaturado": 684,
+  "KwhRealConvencional": 684,
+  "KwhRealBrancaFp": 0,
+  "KwhRealBrancaInt": 0,
+  "KwhRealBrancaNp": 0,
+  "AgrupamentoItensFatura": [
+    {
+      "ValorItensAgrupados": 619.13,
+      "Nome": "Energia"
+    },
+    {
+      "ValorItensAgrupados": 49.52,
+      "Nome": "Convênios"
+    },
+    {
+      "ValorItensAgrupados": 51.52,
+      "Nome": "ICMS"
+    }
+  ]
+}

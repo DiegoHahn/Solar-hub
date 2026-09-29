@@ -1,5 +1,23 @@
-import { describe, expect, it } from "vitest";
-import { getBrasiliaDate, isPrimaryModel } from "./aiQuota";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import {
+  getBrasiliaDate,
+  isPrimaryModel,
+  getQuotaState,
+  incrementQuota,
+  getAdvisorCache,
+  saveAdvisorCache,
+  fallbackAdvisorAnalysis,
+} from "./aiQuota";
+
+const mockFrom = vi.fn();
+const mockRpc = vi.fn();
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(async () => ({
+    from: mockFrom,
+    rpc: mockRpc,
+  })),
+}));
 
 describe("getBrasiliaDate", () => {
   it("converte data UTC para o dia correto no fuso de Brasília", () => {
@@ -40,5 +58,80 @@ describe("isPrimaryModel", () => {
     expect(isPrimaryModel("gemini-1.5-flash", PRIMARY)).toBe(false);
     expect(isPrimaryModel("gemini-3.8-pro", PRIMARY)).toBe(false);
     expect(isPrimaryModel("gpt-4o", PRIMARY)).toBe(false);
+  });
+});
+
+describe("falhas de acesso ao banco", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("retorna zeros quando a consulta de cota falha ou não tem dados", async () => {
+    const mockSelect = vi.fn().mockReturnThis();
+    const mockEq = vi.fn().mockReturnThis();
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error("Falha no banco"),
+    });
+
+    mockFrom.mockReturnValue({
+      select: mockSelect,
+      eq: mockEq,
+      maybeSingle: mockMaybeSingle,
+    });
+
+    const state = await getQuotaState();
+    expect(state.primary_count).toBe(0);
+    expect(state.total_calls).toBe(0);
+  });
+
+  it("aplica fallback quando RPC falha ao incrementar cota", async () => {
+    mockRpc.mockReturnValue({
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: null,
+        error: new Error("RPC indisponível"),
+      }),
+    });
+
+    const mockSelect = vi.fn().mockReturnThis();
+    const mockEq = vi.fn().mockReturnThis();
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: { primary_count: 1, total_calls: 1 },
+      error: null,
+    });
+    const mockUpsert = vi.fn().mockResolvedValue({ error: null });
+
+    mockFrom.mockReturnValue({
+      select: mockSelect,
+      eq: mockEq,
+      maybeSingle: mockMaybeSingle,
+      upsert: mockUpsert,
+    });
+
+    const state = await incrementQuota("gemini-3.8-flash");
+    expect(state.total_calls).toBe(2);
+    expect(state.primary_count).toBe(2);
+    expect(mockUpsert).toHaveBeenCalled();
+  });
+
+  it("trata o cache da análise como ausente quando a leitura falha", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Falha no banco") }),
+    });
+
+    await expect(getAdvisorCache()).resolves.toBeNull();
+  });
+
+  it("não interrompe a geração da análise quando salvar o cache falha", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFrom.mockReturnValue({
+      upsert: vi.fn().mockResolvedValue({ error: new Error("Falha no banco") }),
+    });
+
+    await expect(saveAdvisorCache(fallbackAdvisorAnalysis, "gemini-3.8-flash")).resolves.toBeUndefined();
+    expect(consoleError).toHaveBeenCalled();
   });
 });

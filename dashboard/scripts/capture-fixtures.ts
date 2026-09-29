@@ -12,7 +12,9 @@ function ensureFixturesDir() {
 
 /** Campos identificáveis e o valor fictício que substitui cada ocorrência distinta. */
 const SENSITIVE_FIELDS: Array<[RegExp, (index: number) => string]> = [
-  [/^(cpf|cpfcnpj)$/i, () => "000.000.000-00"],
+  [/^(cpf|cpfcnpj|inscricao|documento)$/i, () => "000.000.000-00"],
+  [/(^|_)(datanascimento|nascimento)$/i, () => "01/01/1970 00:00:00"],
+  [/(telefone|celular|fone)$/i, () => "(00) 00000-0000"],
   [/^(titular|nometitular|nomeusuario)$/i, () => "Titular Teste"],
   [/^(endereco|logradouro)$/i, (i) => `Rua Teste, ${(i + 1) * 100}`],
   [/^email$/i, (i) => `teste${i + 1}@solarhub.local`],
@@ -45,7 +47,10 @@ function collectSensitiveValues(node: unknown, found: Map<string, string>, count
     if (ruleIndex >= 0) {
       const placeholder = SENSITIVE_FIELDS[ruleIndex][1](counters[ruleIndex]++);
       const unaccented = text.normalize("NFD").replace(/[̀-ͯ]/g, "");
-      for (const variant of [text, text.toUpperCase(), unaccented, unaccented.toUpperCase()]) {
+      const digits = text.replace(/\D/g, "");
+      const variants = [text, text.toUpperCase(), unaccented, unaccented.toUpperCase()];
+      if (digits.length >= 11) variants.push(digits);
+      for (const variant of variants) {
         if (!found.has(variant)) found.set(variant, placeholder);
       }
     }
@@ -72,6 +77,7 @@ function anonymize(data: unknown, source: unknown): string {
   }
   return json
     .replace(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, "000.000.000-00")
+    .replace(/(?<![\d.])\d{11}(?![\d.])/g, "00000000000")
     .replace(/\b192\.168\.\d+\.\d+\b/g, "10.0.0.1");
 }
 

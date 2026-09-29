@@ -31,7 +31,7 @@ interface CustomTooltipProps {
   canUpdate?: boolean;
 }
 
-function CustomTooltip({ active, payload, label, nominalCapKw, onActivePoint, canUpdate = true }: CustomTooltipProps) {
+export function SunCurveTooltip({ active, payload, label, nominalCapKw, onActivePoint, canUpdate = true }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint && canUpdate) {
       const point = payload[0]?.payload as SunCurvePoint | undefined;
@@ -239,7 +239,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
 
               <Tooltip
                 content={
-                  <CustomTooltip
+                  <SunCurveTooltip
                     nominalCapKw={nominalCapKw}
                     onActivePoint={(p) => {
                       if (!isResettingRef.current) {

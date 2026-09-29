@@ -40,3 +40,6 @@ data/
 # Caches de ferramentas Python
 .pytest_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
