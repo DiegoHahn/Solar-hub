@@ -37,3 +37,6 @@ collector/config.json
 
 # Local runtime data / dumps
 data/
+# Caches de ferramentas Python
+.pytest_cache/
+.ruff_cache/
