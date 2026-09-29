@@ -7,28 +7,28 @@ export interface InverterReading {
   power_w: number;
   energy_today_kwh: number;
   energy_total_kwh: number;
-  nominal_kw?: number;
-  temperature_c?: number;
-  vgrid?: number;
-  igrid?: number;
-  fgrid?: number;
-  pv1?: { v: number; i: number; w: number };
-  pv2?: { v: number; i: number; w: number };
-  wifi_rssi?: string;
-  wifi_ssid?: string;
-  logger_sn?: string;
-  logger_ver?: string;
-  inverter_sn?: string;
-  inverter_type?: string;
-  model?: string;
-  serial?: string;
-  firmware?: string;
-  work_mode?: string;
+  nominal_kw?: number | null;
+  temperature_c?: number | null;
+  vgrid?: number | null;
+  igrid?: number | null;
+  fgrid?: number | null;
+  pv1?: { v: number; i: number; w: number } | null;
+  pv2?: { v: number; i: number; w: number } | null;
+  wifi_rssi?: string | null;
+  wifi_ssid?: string | null;
+  logger_sn?: string | null;
+  logger_ver?: string | null;
+  inverter_sn?: string | null;
+  inverter_type?: string | null;
+  model?: string | null;
+  serial?: string | null;
+  firmware?: string | null;
+  work_mode?: string | null;
   /** Sensores GoodWe crus (o coletor converte valores não numéricos para string) */
-  raw_sensors?: Record<string, number | string | boolean>;
+  raw_sensors?: Record<string, number | string | boolean> | null;
   /** Variáveis do status.html do logger Solarman (Solis) */
-  raw_variables?: Record<string, string>;
-  error?: string;
+  raw_variables?: Record<string, string> | null;
+  error?: string | null;
 }
 
 export interface SunCurvePoint {

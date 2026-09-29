@@ -20,7 +20,7 @@ const DAILY_FIELDS =
 
 const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-interface OpenMeteoDaily {
+export interface OpenMeteoDaily {
   time: string[];
   weather_code: (number | null)[];
   temperature_2m_max: (number | null)[];
@@ -62,7 +62,7 @@ async function fetchDaily(url: string): Promise<OpenMeteoDaily | null> {
 }
 
 /** Converte a resposta da Open-Meteo em linhas; dias com qualquer valor nulo são descartados. */
-function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["source"]): DailyWeatherRow[] {
+export function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["source"]): DailyWeatherRow[] {
   const rows: DailyWeatherRow[] = [];
   daily.time.forEach((date, i) => {
     const code = daily.weather_code[i];
@@ -89,7 +89,7 @@ function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["source"])
 }
 
 /** Datas ISO de `startIso` (inclusive) até `endIso` (exclusive). */
-function isoDateRange(startIso: string, endIso: string): string[] {
+export function isoDateRange(startIso: string, endIso: string): string[] {
   const dates: string[] = [];
   const cursor = new Date(`${startIso}T00:00:00Z`);
   const end = new Date(`${endIso}T00:00:00Z`);
@@ -140,7 +140,7 @@ async function fetchWeatherUpdates(
   return rows;
 }
 
-function sameWeather(a: DailyWeatherRow | undefined, b: DailyWeatherRow): boolean {
+export function sameWeather(a: DailyWeatherRow | undefined, b: DailyWeatherRow): boolean {
   return (
     a !== undefined &&
     a.source === b.source &&
@@ -153,7 +153,7 @@ function sameWeather(a: DailyWeatherRow | undefined, b: DailyWeatherRow): boolea
   );
 }
 
-function toDailyWeather(
+export function toDailyWeather(
   row: DailyWeatherRow,
   todayIso: string,
   generation: DailyGenerationEntry | undefined,
