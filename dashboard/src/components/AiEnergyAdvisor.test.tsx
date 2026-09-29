@@ -1,0 +1,116 @@
+import { describe, expect, it, beforeAll, afterAll, afterEach } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { AiEnergyAdvisor } from "./AiEnergyAdvisor";
+
+const mockSuccessData = {
+  daily: {
+    summary: "Geração prevista de 62 kWh para hoje com sol pleno.",
+    recommendations: [
+      { title: "Manter limpo", description: "Placas limpas garantem 98% de rendimento.", icon: "tools" },
+      { title: "Horário de pico", description: "Consumo ideal entre 11h e 14h.", icon: "flashlight" },
+    ],
+  },
+  monthly: {
+    summary: "Previsão mensal de 1.850 kWh, superando a média.",
+    recommendations: [
+      { title: "Meta mensal", description: "Balanço positivo esperado na cooperativa.", icon: "dollar" },
+    ],
+  },
+  modelUsed: "gemini-2.5-flash",
+  quotaCount: 2,
+  maxPrimaryQuota: 4,
+  isCached: true,
+};
+
+let lastPostPayload: unknown = null;
+
+const server = setupServer(
+  http.get("/api/ai-advisor", () => {
+    return HttpResponse.json(mockSuccessData);
+  }),
+  http.post("/api/ai-advisor", async ({ request }) => {
+    lastPostPayload = await request.json();
+    return HttpResponse.json({
+      ...mockSuccessData,
+      daily: {
+        ...mockSuccessData.daily,
+        summary: "Análise atualizada via Gemini com dados ao vivo.",
+      },
+      isCached: false,
+      quotaCount: 3,
+    });
+  }),
+);
+
+beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+afterEach(() => {
+  server.resetHandlers();
+  lastPostPayload = null;
+});
+afterAll(() => server.close());
+
+describe("AiEnergyAdvisor", () => {
+  it("carrega e exibe a análise em cache e recomendações", async () => {
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+
+    expect(screen.getByRole("button", { name: /Consultando|Regerar/ })).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Manter limpo")).toBeInTheDocument();
+    expect(screen.getByText("Horário de pico")).toBeInTheDocument();
+
+    expect(screen.getByText(/Gemini 2.5 Flash · 2\/4/)).toBeInTheDocument();
+  });
+
+  it("permite alternar entre visão Diária e Mensal", async () => {
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Mensal/ }));
+
+    expect(screen.getByText("Previsão mensal de 1.850 kWh, superando a média.")).toBeInTheDocument();
+    expect(screen.getByText("Meta mensal")).toBeInTheDocument();
+  });
+
+  it("exibe mensagem de erro se a requisição falhar", async () => {
+    server.use(
+      http.get("/api/ai-advisor", () => {
+        return HttpResponse.json({ error: "Cota diária esgotada" }, { status: 429 });
+      }),
+    );
+
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Cota diária esgotada/)).toBeInTheDocument();
+    });
+  });
+
+  it("ao clicar em Regerar, envia POST com force: true e atualiza os dados", async () => {
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+    });
+
+    const refreshButton = screen.getByRole("button", { name: /Regerar/ });
+    fireEvent.click(refreshButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Análise atualizada via Gemini com dados ao vivo.")).toBeInTheDocument();
+    });
+
+    expect(lastPostPayload).toEqual({
+      force: true,
+      nominalKwp: 16,
+    });
+  });
+});
