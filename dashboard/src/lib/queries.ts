@@ -176,7 +176,7 @@ export function buildSunCurveGrid(
   const currentSlot = new Date(startSlot);
   while (currentSlot <= endSlot) {
     const slotTimeMs = currentSlot.getTime();
-    const isFuture = slotTimeMs > nowMs + (SLOT_MINUTES * 60 * 1000) / 2;
+    const isFuture = slotTimeMs > nowMs;
 
     if (isFuture) {
       grid.push({

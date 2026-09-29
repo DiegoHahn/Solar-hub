@@ -84,6 +84,15 @@ describe("buildSunCurveGrid", () => {
     expect(future.every((p) => p.power_kw === null)).toBe(true);
   });
 
+  it("só preenche um slot depois que o horário dele chega", () => {
+    const beforeFive = new Date(`${targetDate}T16:53:00-03:00`);
+    const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, beforeFive);
+    const slot = (time: string) => grid.find((p) => p.time === time)!;
+
+    expect(slot("16:30").power_kw).not.toBeNull();
+    expect(slot("17:00").power_kw).toBeNull();
+  });
+
   it("mantém todos os slots preenchidos quando now é posterior às 20:00", () => {
     const night = new Date(`${targetDate}T21:30:00-03:00`);
     const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, night);
