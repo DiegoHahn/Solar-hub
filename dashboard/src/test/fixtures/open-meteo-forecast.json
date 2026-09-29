@@ -1,0 +1,90 @@
+{
+  "latitude": -28.717049,
+  "longitude": -49.315063,
+  "generationtime_ms": 0.2319812774658203,
+  "utc_offset_seconds": -10800,
+  "timezone": "America/Sao_Paulo",
+  "timezone_abbreviation": "GMT-3",
+  "elevation": 38,
+  "daily_units": {
+    "time": "iso8601",
+    "weather_code": "wmo code",
+    "temperature_2m_max": "°C",
+    "temperature_2m_min": "°C",
+    "sunshine_duration": "s",
+    "shortwave_radiation_sum": "MJ/m²",
+    "precipitation_sum": "mm"
+  },
+  "daily": {
+    "time": [
+      "2026-09-22",
+      "2026-09-23",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-26",
+      "2026-09-27",
+      "2026-09-28",
+      "2026-09-29"
+    ],
+    "weather_code": [
+      80,
+      51,
+      3,
+      3,
+      3,
+      80,
+      80,
+      82
+    ],
+    "temperature_2m_max": [
+      17.5,
+      14.8,
+      24,
+      28.3,
+      30.6,
+      23.2,
+      23.3,
+      23
+    ],
+    "temperature_2m_min": [
+      12.3,
+      10.2,
+      9.1,
+      12.2,
+      15.1,
+      17.1,
+      18.3,
+      17.1
+    ],
+    "sunshine_duration": [
+      17945.64,
+      11933.39,
+      42505.08,
+      42782.51,
+      42855.19,
+      5371.88,
+      2905.42,
+      5629.75
+    ],
+    "shortwave_radiation_sum": [
+      11.9,
+      10.03,
+      22.63,
+      23.27,
+      21.83,
+      8.38,
+      6.42,
+      6.71
+    ],
+    "precipitation_sum": [
+      2.6,
+      0.8,
+      0,
+      0,
+      0,
+      4.1,
+      7,
+      31.1
+    ]
+  }
+}
