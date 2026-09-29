@@ -12,7 +12,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua)
+[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Fluxo de Desenvolvimento](#9-fluxo-de-desenvolvimento)
 
 </div>
 
@@ -282,6 +282,12 @@ Os comandos do dashboard rodam em `dashboard/` e os do coletor em `collector/`.
 **CI.** O workflow `.github/workflows/ci.yml` roda lint, typecheck, testes com cobertura mínima e build do dashboard; ruff e pytest do coletor; e análise de segurança com Trivy (dependências, segredos e configuração) e Semgrep (código). A integração e o E2E rodam no `main` e diariamente, com as credenciais do usuário de testes em GitHub Secrets.
 
 Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example` para `dashboard/.env.test.local` e preencha as credenciais do usuário de testes.
+
+---
+
+## 9. Fluxo de Desenvolvimento
+
+O repositório segue o GitHub Flow: toda mudança nasce em uma branch curta e entra no `main` por pull request, com CI obrigatório e squash merge; o `main` protegido é publicado automaticamente pela Vercel. Os commits seguem Conventional Commits, e o [release-please](https://github.com/googleapis/release-please) gera o `CHANGELOG.md`, as tags e as releases com versionamento semântico. Detalhes em [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ---
 
