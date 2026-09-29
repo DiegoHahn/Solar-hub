@@ -43,7 +43,7 @@ cd collector && ruff check . && ruff format --check . && pytest
 
 ## Releases
 
-As versões seguem o [Semantic Versioning](https://semver.org/lang/pt-BR/) e são geradas pelo [release-please](https://github.com/googleapis/release-please) a partir dos commits do `main`: ele mantém um PR de release com o `CHANGELOG.md` e a próxima versão (`fix` → patch, `feat` → minor, `!`/`BREAKING CHANGE` → major). Integrar esse PR cria a tag e a GitHub Release.
+As versões seguem o [Semantic Versioning](https://semver.org/lang/pt-BR/) e são geradas pelo [release-please](https://github.com/googleapis/release-please) a partir dos commits do `main`: ele mantém um PR de release com o `CHANGELOG.md` e a próxima versão (`fix` e `perf` → patch, `feat` → minor, `!`/`BREAKING CHANGE` → major). Os demais tipos (`refactor`, `test`, `docs`, `ci`, `chore`, `style`) ficam no histórico do git, mas não geram versão. O PR de release acumula as mudanças até ser integrado, o que cria a tag e a GitHub Release.
 
 ## Deploy
 
