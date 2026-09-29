@@ -1,15 +1,17 @@
+import json
 import os
 import sys
-import json
 import time
-import requests
 from datetime import datetime
+
+import requests
 
 # Garante suporte a UTF-8 no terminal Windows
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
+
 
 def load_env():
     env_vars = {}
@@ -22,6 +24,7 @@ def load_env():
                     env_vars[k.strip()] = v.strip().strip('"').strip("'")
     return env_vars
 
+
 ENV = load_env()
 
 API_BASE = "https://portal.cooperalianca.com.br/agenciavirtual3bff/api/"
@@ -30,6 +33,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Unidades consumidoras do titular; a primeira é a UC geradora (onde a usina está instalada)
 UCS = [uc.strip() for uc in ENV.get("COOPERALIANCA_UCS", "").split(",") if uc.strip()]
+
 
 def push_utility_to_supabase(result):
     """Envia o snapshot da Cooperaliança para o Supabase (Nuvem)."""
@@ -45,30 +49,38 @@ def push_utility_to_supabase(result):
         "cpf": result["cpf"],
         "perfil_usuario": result.get("perfil_usuario", {}),
         "tarifa_referencia": result.get("tarifa_referencia", {}),
-        "unidades_consumidoras": result.get("unidades_consumidoras", {})
+        "unidades_consumidoras": result.get("unidades_consumidoras", {}),
     }
-    
+
     headers = {
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
         "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates"
+        "Prefer": "resolution=merge-duplicates",
     }
 
     try:
-        resp = requests.post(f"{supabase_url}/rest/v1/utility_data?on_conflict=cpf", headers=headers, json=payload, timeout=12)
+        resp = requests.post(
+            f"{supabase_url}/rest/v1/utility_data?on_conflict=cpf",
+            headers=headers,
+            json=payload,
+            timeout=12,
+        )
         if resp.status_code in [200, 201]:
-            print(f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})")
+            print(
+                f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})"
+            )
         else:
             print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
     except Exception as e:
         print(f" ⚠️ [SUPABASE] Erro de rede ao sincronizar concessionária: {e}")
 
+
 def atomic_write_json(filepath, data):
     """Grava JSON de forma atômica usando arquivo temporário para evitar corrupção."""
     dir_name = os.path.dirname(filepath)
     os.makedirs(dir_name, exist_ok=True)
-    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time()*1000)}"
+    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time() * 1000)}"
     try:
         with open(temp_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -83,6 +95,7 @@ def atomic_write_json(filepath, data):
                 pass
         raise e
 
+
 def safe_api_get(url, headers, timeout=12, default=None):
     """Executa requisição GET protegida contra falhas individuais de endpoint."""
     try:
@@ -90,12 +103,13 @@ def safe_api_get(url, headers, timeout=12, default=None):
         if r.status_code == 200:
             return r.json().get("Content", default)
         else:
-            endpoint_name = url.split('?')[0].split('/')[-1]
+            endpoint_name = url.split("?")[0].split("/")[-1]
             print(f"    ⚠️ Endpoint {endpoint_name} retornou status {r.status_code}")
     except Exception as e:
-        endpoint_name = url.split('?')[0].split('/')[-1]
+        endpoint_name = url.split("?")[0].split("/")[-1]
         print(f"    ⚠️ Falha de rede ao consultar {endpoint_name}: {e}")
     return default
+
 
 def sync_cooperalianca(cpf=None, senha=None):
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
@@ -114,18 +128,20 @@ def sync_cooperalianca(cpf=None, senha=None):
         "Accept": "application/json, text/plain, */*",
         "use-token-externo": TOKEN_EXTERNO,
         "Origin": "https://portal.cooperalianca.com.br",
-        "Referer": "https://portal.cooperalianca.com.br/agenciavirtual/"
+        "Referer": "https://portal.cooperalianca.com.br/agenciavirtual/",
     }
 
-    print(f"\n=======================================================")
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] [COOPERALIANCA] INICIANDO SINCRONIZACAO (USEALL API)")
-    print(f"=======================================================")
+    print("\n=======================================================")
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] [COOPERALIANCA] INICIANDO SINCRONIZACAO (USEALL API)"
+    )
+    print("=======================================================")
 
     # 1. Login
     payload = {
         "EmailInscricao": cpf.replace(".", "").replace("-", ""),
         "Senha": senha,
-        "CorTema": "#003b6d"
+        "CorTema": "#003b6d",
     }
 
     try:
@@ -135,7 +151,9 @@ def sync_cooperalianca(cpf=None, senha=None):
         return None
 
     if resp.status_code in [401, 403]:
-        print(f" ❌ [COOPERALIANCA] Falha de autenticacao ({resp.status_code}). Verifique se o COOPERALIANCA_TOKEN_EXTERNO no .env expirou.")
+        print(
+            f" ❌ [COOPERALIANCA] Falha de autenticacao ({resp.status_code}). Verifique se o COOPERALIANCA_TOKEN_EXTERNO no .env expirou."
+        )
         return None
     elif resp.status_code != 200:
         print(f" ❌ [COOPERALIANCA] Falha ao autenticar (Status {resp.status_code})")
@@ -152,7 +170,11 @@ def sync_cooperalianca(cpf=None, senha=None):
     print(f" -> Autenticacao efetuada com sucesso! Titular: {titular_nome}")
 
     # 2. Perfil do Usuario
-    perfil_usuario = safe_api_get(API_BASE + f"PerfilUsuario/BuscarPerfilUsuario?codigoUc={UCS[0]}", headers=headers, default={})
+    perfil_usuario = safe_api_get(
+        API_BASE + f"PerfilUsuario/BuscarPerfilUsuario?codigoUc={UCS[0]}",
+        headers=headers,
+        default={},
+    )
 
     result = {
         "timestamp": datetime.now().isoformat(),
@@ -168,47 +190,57 @@ def sync_cooperalianca(cpf=None, senha=None):
             "tarifa_kwh": 0.77658,
             "tusd_kwh": 0.49944,
             "te_kwh": 0.27714,
-            "icms_aliquota": 17.0
+            "icms_aliquota": 17.0,
         },
-        "unidades_consumidoras": {}
+        "unidades_consumidoras": {},
     }
 
     for uc in UCS:
         uc_data = {"codigo_uc": uc}
-        
+
         # A. Historico de 60 meses de faturas e consumo
         uc_data["historico_faturas_60_meses"] = safe_api_get(
-            API_BASE + f"Fatura/RecuperarHistoricoFaturaConsumo60Meses?codigoUc={uc}", headers, default=[]
+            API_BASE + f"Fatura/RecuperarHistoricoFaturaConsumo60Meses?codigoUc={uc}",
+            headers,
+            default=[],
         )
 
         # B. Resumo da ultima fatura
         uc_data["resumo_ultima_fatura"] = safe_api_get(
-            API_BASE + f"ImprimirFaturas/RecuperarResumoUltimaFaturaUc?codigoUc={uc}", headers, default={}
+            API_BASE + f"ImprimirFaturas/RecuperarResumoUltimaFaturaUc?codigoUc={uc}",
+            headers,
+            default={},
         )
 
         # C. Dados Gerais de Geracao Distribuida
         uc_data["geracao_distribuida"] = safe_api_get(
-            API_BASE + f"GeracaoDistribuida/RecuperarDadosGeracaoDistribuida?codigoUc={uc}", headers, default={}
+            API_BASE + f"GeracaoDistribuida/RecuperarDadosGeracaoDistribuida?codigoUc={uc}",
+            headers,
+            default={},
         )
 
         # D. Extrato completo de GD (Creditos / Compensacoes)
         uc_data["extrato_historico_gd"] = safe_api_get(
-            API_BASE + f"GeracaoDistribuida/RecuperarDadosHistoricoGeracao?codigoUc={uc}", headers, default={}
+            API_BASE + f"GeracaoDistribuida/RecuperarDadosHistoricoGeracao?codigoUc={uc}",
+            headers,
+            default={},
         )
 
         # E. Grafico de 12 meses de Injecao x Consumo x Saldo
         uc_data["grafico_historico_12_meses"] = safe_api_get(
-            API_BASE + f"GeracaoDistribuida/BuscaDadosHistoricoGeracaoConsumo?codigoUc={uc}", headers, default={}
+            API_BASE + f"GeracaoDistribuida/BuscaDadosHistoricoGeracaoConsumo?codigoUc={uc}",
+            headers,
+            default={},
         )
-            
+
         result["unidades_consumidoras"][uc] = uc_data
-        
+
         # Log detalhado de cada UC
         gd_info = uc_data.get("geracao_distribuida") or {}
         saldo = gd_info.get("ValorProximoSaldoVencer", 0.0) or 0.0
         pot = gd_info.get("PotenciaInstalada", 0.0) or 0.0
         faturas_count = len(uc_data.get("historico_faturas_60_meses") or [])
-        
+
         gd_tag = f" | Usina: {pot:.0f} kW | Saldo GD: {saldo:,.0f} kWh" if pot > 0 else ""
         print(f" -> UC {uc}: {faturas_count} faturas no historico{gd_tag}")
 
@@ -217,9 +249,9 @@ def sync_cooperalianca(cpf=None, senha=None):
         out_path = os.path.join(DATA_DIR, "cooperalianca_latest.json")
         try:
             atomic_write_json(out_path, result)
-            print(f"-------------------------------------------------------")
+            print("-------------------------------------------------------")
             print(f" Dados salvos localmente em: {out_path}")
-            print(f"=======================================================")
+            print("=======================================================")
         except Exception as e:
             print(f" ⚠️ [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
 
@@ -228,7 +260,10 @@ def sync_cooperalianca(cpf=None, senha=None):
 
     return result
 
-def download_informativo_pdf(competencia=None, uc=None, cpf=None, senha=None, output_file=None, data_payload=None):
+
+def download_informativo_pdf(
+    competencia=None, uc=None, cpf=None, senha=None, output_file=None, data_payload=None
+):
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
     uc = uc or (UCS[0] if UCS else None)
@@ -266,10 +301,14 @@ def download_informativo_pdf(competencia=None, uc=None, cpf=None, senha=None, ou
         "Accept": "application/json, text/plain, */*",
         "use-token-externo": TOKEN_EXTERNO,
         "Origin": "https://portal.cooperalianca.com.br",
-        "Referer": "https://portal.cooperalianca.com.br/agenciavirtual/"
+        "Referer": "https://portal.cooperalianca.com.br/agenciavirtual/",
     }
-    payload = {"EmailInscricao": cpf.replace(".", "").replace("-", ""), "Senha": senha, "CorTema": "#003b6d"}
-    
+    payload = {
+        "EmailInscricao": cpf.replace(".", "").replace("-", ""),
+        "Senha": senha,
+        "CorTema": "#003b6d",
+    }
+
     try:
         resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=12)
         if resp.status_code != 200:
@@ -282,7 +321,12 @@ def download_informativo_pdf(competencia=None, uc=None, cpf=None, senha=None, ou
         headers["Authorization"] = f"Bearer {token}"
 
         pdf_payload = {"CodigoUc": int(uc), "AnoMes": competencia, "NovoInformativo": "S"}
-        r_pdf = requests.post(API_BASE + "GeracaoDistribuida/InformativoMicrogeracao", headers=headers, json=pdf_payload, timeout=15)
+        r_pdf = requests.post(
+            API_BASE + "GeracaoDistribuida/InformativoMicrogeracao",
+            headers=headers,
+            json=pdf_payload,
+            timeout=15,
+        )
         if r_pdf.status_code == 200:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
             with open(output_file, "wb") as f:
@@ -290,15 +334,18 @@ def download_informativo_pdf(competencia=None, uc=None, cpf=None, senha=None, ou
             print(f" PDF oficial da microgeracao ({competencia[:10]}) salvo em: {output_file}")
             return output_file
         else:
-            print(f" ⚠️ [PDF] Aviso ao baixar informativo de microgeracao ({r_pdf.status_code}): {r_pdf.text[:100]}")
+            print(
+                f" ⚠️ [PDF] Aviso ao baixar informativo de microgeracao ({r_pdf.status_code}): {r_pdf.text[:100]}"
+            )
             return None
     except Exception as e:
         print(f" ⚠️ [PDF] Erro de rede ao baixar PDF: {e}")
         return None
 
+
 def main():
     sync_result = sync_cooperalianca()
-    
+
     if "--pdf" in sys.argv:
         try:
             download_informativo_pdf(data_payload=sync_result)
@@ -306,7 +353,9 @@ def main():
             print(f" [!] Aviso ao processar PDF: {e}")
 
     if "--loop" in sys.argv:
-        print("\n[*] Sincronizador periodico iniciado (intervalo de 24 horas). Pressione Ctrl+C para sair.")
+        print(
+            "\n[*] Sincronizador periodico iniciado (intervalo de 24 horas). Pressione Ctrl+C para sair."
+        )
         try:
             while True:
                 time.sleep(86400)
@@ -317,6 +366,7 @@ def main():
         except KeyboardInterrupt:
             print("\n[*] Sincronizador encerrado pelo usuario (Ctrl+C).")
             sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

@@ -1,15 +1,16 @@
-import os
-import sys
-import json
-import time
-import base64
-import urllib.request
-import re
 import asyncio
-import requests
-from datetime import datetime, timezone
+import base64
+import json
+import os
+import re
+import sys
+import time
+import urllib.request
+from datetime import datetime
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
-from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
+
+import requests
 
 # Garante suporte a UTF-8 no terminal Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -28,6 +29,7 @@ except ImportError:
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
 
+
 def load_env():
     env_vars = {}
     if os.path.exists(ENV_FILE):
@@ -39,7 +41,9 @@ def load_env():
                     env_vars[k.strip()] = v.strip().strip('"').strip("'")
     return env_vars
 
+
 ENV = load_env()
+
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -50,8 +54,9 @@ def load_config():
         "data_dir": "data",
         "history_max_records": 1000,
         "api_port": 5000,
-        "inverters": []
+        "inverters": [],
     }
+
 
 config = load_config()
 DATA_DIR = os.path.join(os.path.dirname(__file__), config.get("data_dir", "data"))
@@ -61,11 +66,12 @@ LATEST_FILE = os.path.join(DATA_DIR, "latest.json")
 HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 OFFLINE_QUEUE_FILE = os.path.join(DATA_DIR, "offline_queue.json")
 
+
 def atomic_write_json(filepath, data):
     """Grava JSON de forma atômica usando arquivo temporário para evitar corrupção por leitura simultânea."""
     dir_name = os.path.dirname(filepath)
     os.makedirs(dir_name, exist_ok=True)
-    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time()*1000)}"
+    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time() * 1000)}"
     try:
         with open(temp_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -79,6 +85,7 @@ def atomic_write_json(filepath, data):
             except OSError:
                 pass
         raise e
+
 
 def queue_offline_telemetry(payload):
     """Guarda snapshot no buffer offline caso o Supabase esteja temporariamente inacessível."""
@@ -97,6 +104,7 @@ def queue_offline_telemetry(payload):
     except Exception as e:
         print(f" ⚠️ [BUFFER] Erro ao salvar na fila offline: {e}")
 
+
 def flush_offline_queue(supabase_url, headers):
     """Tenta enviar dados acumulados na fila offline para o Supabase quando a conexão voltar."""
     if not os.path.exists(OFFLINE_QUEUE_FILE):
@@ -109,11 +117,15 @@ def flush_offline_queue(supabase_url, headers):
     if not queue:
         return
 
-    print(f" 📦 [SUPABASE] Conexão ativa detectada! Enviando {len(queue)} registro(s) pendente(s) da fila offline...")
+    print(
+        f" 📦 [SUPABASE] Conexão ativa detectada! Enviando {len(queue)} registro(s) pendente(s) da fila offline..."
+    )
     remaining = []
     for idx, item in enumerate(queue):
         try:
-            resp = requests.post(f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=item, timeout=8)
+            resp = requests.post(
+                f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=item, timeout=8
+            )
             if resp.status_code not in [200, 201]:
                 remaining.extend(queue[idx:])
                 break
@@ -124,15 +136,20 @@ def flush_offline_queue(supabase_url, headers):
     if remaining:
         try:
             atomic_write_json(OFFLINE_QUEUE_FILE, remaining)
-            print(f" ⚠️ [SUPABASE] {len(remaining)} registro(s) mantido(s) na fila para o próximo ciclo.")
+            print(
+                f" ⚠️ [SUPABASE] {len(remaining)} registro(s) mantido(s) na fila para o próximo ciclo."
+            )
         except Exception:
             pass
     else:
         try:
             os.remove(OFFLINE_QUEUE_FILE)
-            print(" ✅ [SUPABASE] Todos os registros acumulados offline foram sincronizados com sucesso!")
+            print(
+                " ✅ [SUPABASE] Todos os registros acumulados offline foram sincronizados com sucesso!"
+            )
         except OSError:
             atomic_write_json(OFFLINE_QUEUE_FILE, [])
+
 
 def get_last_known_energies():
     """Recupera os últimos valores de energia diária de hoje caso algum inversor fique offline à noite ou em standby."""
@@ -153,12 +170,13 @@ def get_last_known_energies():
                 if inv_id:
                     last_known[inv_id] = {
                         "energy_today_kwh": inv.get("energy_today_kwh", 0.0),
-                        "energy_total_kwh": inv.get("energy_total_kwh", 0.0)
+                        "energy_total_kwh": inv.get("energy_total_kwh", 0.0),
                     }
             return last_known
     except Exception:
         pass
     return {}
+
 
 def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
     """Consulta inversor Solis via logger Solarman LSW-3 HTTP status.html e Modbus Solarman V5."""
@@ -173,13 +191,13 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
         raw_vars = dict(var_pattern.findall(html))
     except Exception:
         pass
-    
+
     def parse_float(val, default=0.0):
         try:
             return float(str(val).strip())
         except (ValueError, AttributeError):
             return default
-            
+
     now_p = parse_float(raw_vars.get("webdata_now_p", "0"))
     today_e = parse_float(raw_vars.get("webdata_today_e", "0"))
     total_e = parse_float(raw_vars.get("webdata_total_e", "0"))
@@ -203,7 +221,9 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
     # Consulta Modbus Solarman V5 na porta 8899 para métricas aprofundadas (holding registers 0..39)
     if PySolarmanV5 and sn_int:
         try:
-            m = PySolarmanV5(ip, sn_int, port=8899, mb_slave_id=1, socket_timeout=timeout, verbose=False)
+            m = PySolarmanV5(
+                ip, sn_int, port=8899, mb_slave_id=1, socket_timeout=timeout, verbose=False
+            )
             regs = m.read_holding_registers(0, 40)
             m.disconnect()
 
@@ -261,14 +281,15 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
         "logger_ver": raw_vars.get("cover_ver", "").strip(),
         "wifi_rssi": raw_vars.get("cover_sta_rssi", "N/A"),
         "wifi_ssid": raw_vars.get("cover_sta_ssid", "N/A"),
-        "raw_variables": raw_vars
+        "raw_variables": raw_vars,
     }
+
 
 async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
     """Consulta inversor GoodWe via Modbus TCP (porta 502) ou fallback UDP (porta 8899)."""
     if goodwe is None:
         raise ImportError("Biblioteca goodwe nao disponivel.")
-    
+
     inv = None
     try:
         inv = await goodwe.connect(ip, port=port, family=family, timeout=timeout, retries=retries)
@@ -277,7 +298,7 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
         inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
 
     runtime_data = await inv.read_runtime_data()
-    
+
     def parse_f(k, default=0.0):
         val = runtime_data.get(k)
         if val is None:
@@ -287,18 +308,20 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
         except (ValueError, TypeError):
             return default
 
-    power_w = parse_f("total_inverter_power", parse_f("active_power", parse_f("p_grid", parse_f("ppv", 0.0))))
+    power_w = parse_f(
+        "total_inverter_power", parse_f("active_power", parse_f("p_grid", parse_f("ppv", 0.0)))
+    )
     today_kwh = parse_f("e_day", parse_f("energy_today", 0.0))
     total_kwh = parse_f("e_total", parse_f("energy_total", 0.0))
     temp_c = parse_f("temperature", parse_f("inverter_temperature", 0.0))
     vgrid = parse_f("vgrid1", parse_f("v_grid", 0.0))
     igrid = parse_f("igrid1", parse_f("i_grid", 0.0))
     fgrid = parse_f("fgrid1", parse_f("f_grid", 0.0))
-    
+
     vpv1 = parse_f("vpv1", 0.0)
     ipv1 = parse_f("ipv1", 0.0)
     ppv1 = parse_f("ppv1", vpv1 * ipv1)
-    
+
     vpv2 = parse_f("vpv2", 0.0)
     ipv2 = parse_f("ipv2", 0.0)
     ppv2 = parse_f("ppv2", vpv2 * ipv2)
@@ -319,8 +342,12 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
         "serial": inv.serial_number,
         "firmware": inv.firmware,
         "sensors_count": len(runtime_data),
-        "raw_sensors": {k: (str(v) if not isinstance(v, (int, float, bool)) else v) for k, v in runtime_data.items()}
+        "raw_sensors": {
+            k: (str(v) if not isinstance(v, (int, float, bool)) else v)
+            for k, v in runtime_data.items()
+        },
     }
+
 
 def collect_inverter(inv_cfg):
     """Executa a coleta de um inversor individual."""
@@ -336,15 +363,17 @@ def collect_inverter(inv_cfg):
             logger_sn = inv_cfg.get("logger_sn")
             res = fetch_solis_lsw3(ip, logger_sn=logger_sn, auth_str=auth_str, timeout=4)
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
-            
+
         elif inv_type in ["goodwe_udp", "goodwe_tcp", "goodwe"]:
             port = inv_cfg.get("port", 502)
             family = inv_cfg.get("family", "DT")
             timeout = inv_cfg.get("timeout", 4)
             retries = inv_cfg.get("retries", 2)
-            res = asyncio.run(fetch_goodwe_async(ip, port=port, family=family, timeout=timeout, retries=retries))
+            res = asyncio.run(
+                fetch_goodwe_async(ip, port=port, family=family, timeout=timeout, retries=retries)
+            )
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
-            
+
     except Exception as e:
         err_msg = str(e)
         return {
@@ -356,8 +385,9 @@ def collect_inverter(inv_cfg):
             "power_w": 0.0,
             "energy_today_kwh": 0.0,
             "energy_total_kwh": 0.0,
-            "error": err_msg
+            "error": err_msg,
         }
+
 
 def push_to_supabase(plant_summary):
     """Envia o snapshot de telemetria para o Supabase com suporte a fila offline (Offline-First)."""
@@ -376,39 +406,46 @@ def push_to_supabase(plant_summary):
         "total_lifetime_kwh": plant_summary.get("total_lifetime_kwh", 0.0),
         "capacity_factor_pct": plant_summary.get("capacity_factor_pct", 0.0),
         "inverters_count": plant_summary.get("inverters_count", 3),
-        "inverters_data": plant_summary.get("inverters", [])
+        "inverters_data": plant_summary.get("inverters", []),
     }
-    
+
     headers = {
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     try:
-        resp = requests.post(f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=payload, timeout=8)
+        resp = requests.post(
+            f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=payload, timeout=8
+        )
         if resp.status_code in [200, 201]:
-            print(f" ☁️ [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})")
+            print(
+                f" ☁️ [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})"
+            )
             flush_offline_queue(supabase_url, headers)
         else:
             print(f" ⚠️ [SUPABASE] Aviso ao sincronizar (Status {resp.status_code})")
             queue_offline_telemetry(payload)
     except Exception as e:
-        print(f" ⚠️ [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local...")
+        print(
+            f" ⚠️ [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local..."
+        )
         queue_offline_telemetry(payload)
+
 
 def run_collection_cycle():
     """Executa um ciclo completo de leitura dos 3 inversores e consolida os dados."""
     timestamp = datetime.now().astimezone().isoformat()
     inverters_results = []
-    
+
     total_power_w = 0.0
     total_today_kwh = 0.0
     total_lifetime_kwh = 0.0
-    
-    print(f"\n=======================================================")
+
+    print("\n=======================================================")
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [TELEMETRIA SOLAR] INICIANDO CICLO DE LEITURA")
-    print(f"=======================================================")
+    print("=======================================================")
 
     last_known = get_last_known_energies()
 
@@ -424,19 +461,21 @@ def run_collection_cycle():
             res["energy_total_kwh"] = last_known[inv_id].get("energy_total_kwh", 0.0)
 
         inverters_results.append(res)
-        
+
         p_w = res.get("power_w", 0.0)
         e_today = res.get("energy_today_kwh", 0.0)
         e_tot = res.get("energy_total_kwh", 0.0)
-        
+
         total_power_w += p_w
         total_today_kwh += e_today
         total_lifetime_kwh += e_tot
-        
+
         status_tag = "[ONLINE]" if res.get("status") == "online" else "[OFFLINE]"
         temp_info = f" | {res['temperature_c']}°C" if res.get("temperature_c") else ""
         vgrid_info = f" | {int(res['vgrid'])}V" if res.get("vgrid") else ""
-        print(f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Hoje: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh{temp_info}{vgrid_info}")
+        print(
+            f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Hoje: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh{temp_info}{vgrid_info}"
+        )
 
     nominal_kw = config.get("nominal_capacity_kw", 16.0)
     plant_summary = {
@@ -449,13 +488,17 @@ def run_collection_cycle():
         "total_lifetime_kwh": round(total_lifetime_kwh, 1),
         "capacity_factor_pct": round((total_power_w / (nominal_kw * 1000.0)) * 100.0, 1),
         "inverters_count": len(inverters_results),
-        "inverters": inverters_results
+        "inverters": inverters_results,
     }
-    
-    print(f"-------------------------------------------------------")
-    print(f" TOTAL DA USINA : {total_power_w:7.1f} W ({total_power_w/1000.0:.2f} kW) | {plant_summary['capacity_factor_pct']}% da capacidade")
-    print(f" GERACAO HOJE   : {total_today_kwh:7.2f} kWh | TOTAL ACUMULADO: {total_lifetime_kwh:,.1f} kWh")
-    print(f"=======================================================")
+
+    print("-------------------------------------------------------")
+    print(
+        f" TOTAL DA USINA : {total_power_w:7.1f} W ({total_power_w / 1000.0:.2f} kW) | {plant_summary['capacity_factor_pct']}% da capacidade"
+    )
+    print(
+        f" GERACAO HOJE   : {total_today_kwh:7.2f} kWh | TOTAL ACUMULADO: {total_lifetime_kwh:,.1f} kWh"
+    )
+    print("=======================================================")
 
     # Mantém estado em memória para a API REST
     global _LATEST_IN_MEMORY, _HISTORY_IN_MEMORY
@@ -467,7 +510,7 @@ def run_collection_cycle():
         "today_kwh": plant_summary["total_today_kwh"],
         "inv_1_w": inverters_results[0].get("power_w", 0) if len(inverters_results) > 0 else 0,
         "inv_2_w": inverters_results[1].get("power_w", 0) if len(inverters_results) > 1 else 0,
-        "inv_3_w": inverters_results[2].get("power_w", 0) if len(inverters_results) > 2 else 0
+        "inv_3_w": inverters_results[2].get("power_w", 0) if len(inverters_results) > 2 else 0,
     }
     _HISTORY_IN_MEMORY.append(history_entry)
     max_records = config.get("history_max_records", 1000)
@@ -491,9 +534,11 @@ def run_collection_cycle():
 
     return plant_summary
 
+
 # Cache em memória para evitar desgaste de cartão SD no Pi
 _LATEST_IN_MEMORY = None
 _HISTORY_IN_MEMORY = []
+
 
 # REST API Embutida Thread-Safe
 class SolarApiHandler(BaseHTTPRequestHandler):
@@ -521,7 +566,7 @@ class SolarApiHandler(BaseHTTPRequestHandler):
                     self._send_json({"error": "Erro de leitura do arquivo de telemetria"}, 500)
             else:
                 self._send_json({"error": "Nenhum dado coletado ainda"}, 404)
-                
+
         elif self.path == "/api/history":
             if _HISTORY_IN_MEMORY:
                 self._send_json(_HISTORY_IN_MEMORY)
@@ -537,12 +582,19 @@ class SolarApiHandler(BaseHTTPRequestHandler):
 
         elif self.path == "/api/health":
             self._send_json({"status": "ok", "time": datetime.now().isoformat()})
-            
+
         else:
-            self._send_json({"error": "Rota nao encontrada", "rotas_disponiveis": ["/api/latest", "/api/history", "/api/health"]}, 404)
+            self._send_json(
+                {
+                    "error": "Rota nao encontrada",
+                    "rotas_disponiveis": ["/api/latest", "/api/history", "/api/health"],
+                },
+                404,
+            )
 
     def log_message(self, format, *args):
         pass
+
 
 def start_http_server(host="127.0.0.1", port=5000):
     server = None
@@ -566,7 +618,10 @@ def start_http_server(host="127.0.0.1", port=5000):
         except Exception:
             pass
     else:
-        print(f" [!] Aviso: Portas {port} a {port+2} estao ocupadas. Coletor continuara rodando normalmente.")
+        print(
+            f" [!] Aviso: Portas {port} a {port + 2} estao ocupadas. Coletor continuara rodando normalmente."
+        )
+
 
 def main():
     api_cfg = config.get("api", {})
@@ -578,14 +633,14 @@ def main():
         api_port = config.get("api_port", 5000)
 
     poll_sec = config.get("poll_interval_seconds", 600)
-    
+
     if "--once" in sys.argv:
         run_collection_cycle()
         return
 
     server_thread = Thread(target=start_http_server, args=(api_host, api_port), daemon=True)
     server_thread.start()
-    print(f"[*] Intervalo de coleta configurado: {poll_sec} segundos ({poll_sec/60:.1f} min)")
+    print(f"[*] Intervalo de coleta configurado: {poll_sec} segundos ({poll_sec / 60:.1f} min)")
 
     try:
         while True:
@@ -597,6 +652,7 @@ def main():
     except KeyboardInterrupt:
         print("\n[*] Coletor encerrado com sucesso pelo usuario (Ctrl+C).")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
