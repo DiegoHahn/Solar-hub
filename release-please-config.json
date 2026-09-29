@@ -1,7 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "simple",
-  "bootstrap-sha": "082069237d23682ee4f807d6351f43a411d0a147",
   "include-component-in-tag": false,
   "packages": {
     ".": {
@@ -13,8 +12,7 @@
           "path": "dashboard/package.json",
           "jsonpath": "$.version"
         }
-      ],
-      "release-as": "1.0.0"
+      ]
     }
   },
   "changelog-sections": [
