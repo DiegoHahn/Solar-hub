@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * *"
 
 permissions:
   contents: read
@@ -15,7 +17,7 @@ concurrency:
 
 jobs:
   dashboard:
-    name: Dashboard (lint, typecheck, testes, build)
+    name: Dashboard (lint, typecheck, testes unitários e componentes, build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -36,8 +38,73 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:coverage
       - run: npm run build
+
+  collector:
+    name: Collector Python (lint, formatação e pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: collector
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: |
+            collector/requirements.txt
+            collector/requirements-dev.txt
+
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pytest -m "not live"
+
+  integration:
+    name: Integração e E2E (Supabase Real, Open-Meteo, Playwright)
+    if: github.event_name == 'schedule' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
+      SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+
+      - uses: actions/setup-node@v7
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - run: npm ci
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+
+      - name: Executar Testes de Integração com Supabase Real
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        run: npm run test:integration
+
+      - name: Instalar Navegador Chromium para Playwright
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Build do Dashboard para E2E
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        run: npm run build
+
+      - name: Executar Testes E2E com Playwright
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        run: npm run e2e
 
   trivy:
     name: Trivy (dependências, segredos, configuração)

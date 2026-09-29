@@ -12,7 +12,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação)
+[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua)
 
 </div>
 
@@ -141,20 +141,25 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 │   ├── utility.py                      # Faturas, extrato de GD e créditos da concessionária
 │   ├── config.example.json             # Modelo de topologia: IPs, portas e seriais dos inversores
 │   ├── .env.example                    # Credenciais do Supabase (service_role) e da concessionária
-│   ├── requirements.txt
+│   ├── requirements.txt / requirements-dev.txt
+│   ├── tests/                          # pytest: parsers, fila offline, envio ao Supabase, API local e testes em hardware
 │   └── deploy/
 │       ├── solar-inverters@.service    # Unit systemd do coletor 24/7
 │       ├── solar-utility@.service      # Unit systemd da sincronização da concessionária
 │       ├── solar-utility@.timer        # Agendamento diário (21h)
 │       └── run_*.sh                    # Execução manual com watchdog
 ├── dashboard/                          # Web: Next.js 16 (App Router)
+│   ├── e2e/                            # Testes E2E (Playwright)
+│   ├── scripts/                        # Captura e anonimização das fixtures de teste
 │   └── src/
 │       ├── app/                        # Rotas: /, /placas, /combinada, /cooperativa, /login, /api/ai-advisor
 │       ├── components/                 # Cards, gráficos Recharts, navegação
-│       ├── lib/                        # Queries Supabase, clima, cota da IA, tipos
+│       ├── lib/                        # Queries Supabase, clima, cota da IA, autenticação, tipos
+│       ├── test/                       # Setup, fixtures e testes de integração
 │       └── proxy.ts                    # Proteção de rotas por sessão
-└── supabase/
-    └── migrations/                     # Schema, índices e políticas RLS (Supabase CLI)
+├── supabase/
+│   └── migrations/                     # Schema, índices, políticas RLS e funções (Supabase CLI)
+└── .github/                            # CI (testes, Trivy, Semgrep) e Dependabot
 ```
 
 ### Páginas do Dashboard
@@ -162,7 +167,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 | Rota | Conteúdo | Fonte dos dados |
 | :--- | :--- | :--- |
 | `/` Início | Potência instantânea e % da capacidade, geração e economia do dia, saldo de créditos, curva solar de hoje, resumo dos inversores e clima dos últimos 7 dias | `solar_telemetry`, `utility_data`, Open-Meteo |
-| `/placas` Placas | Geração por dia/mês/ano, cards detalhados de cada inversor (strings PV1/PV2, rede CA, sensores Modbus) e tabela comparativa de telemetria | `solar_telemetry`, `inverter_daily_history`, extrato de GD |
+| `/placas` Placas | Geração por dia/mês/ano, cards detalhados de cada inversor (strings PV1/PV2, rede CA, sensores Modbus) | `solar_telemetry`, `inverter_daily_history`, extrato de GD |
 | `/cooperativa` Cooperativa | Saldo de créditos GD, última fatura, balanço energético de 12 meses (injeção x compensação x saldo) e extrato GD com filtros | `utility_data` |
 | `/combinada` Análise | Consultor IA (análise diária e mensal), fluxo de energia usina → rede → créditos e eficiência frente à irradiação de até 90 dias | Gemini, `utility_data`, `solar_telemetry`, Open-Meteo |
 
@@ -216,7 +221,7 @@ Scripts de qualidade:
 ```bash
 npm run lint        # ESLint (next/core-web-vitals + typescript)
 npm run typecheck   # tsc --noEmit
-npm test            # Vitest
+npm test            # Vitest (detalhes na seção 8)
 ```
 
 ### Variáveis de Ambiente
@@ -227,7 +232,7 @@ npm test            # Vitest
 | :--- | :--- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública (publishable/anon); o acesso aos dados depende da sessão do usuário e do RLS |
-| `ALLOWED_EMAILS` | E-mails autorizados no login com Google, separados por vírgula |
+| `ALLOWED_EMAILS` | E-mails autorizados a acessar o dashboard (Google ou senha), separados por vírgula; lista vazia bloqueia todos |
 | `GEMINI_API_KEY` | Chave do Google AI Studio para o Consultor IA |
 | `GEMINI_MODEL` | Modelo primário do Consultor IA |
 | `GEMINI_MODEL_FALLBACKS` | Modelos de reserva, em ordem de prioridade, separados por vírgula |
@@ -255,6 +260,28 @@ A topologia dos inversores (IPs, portas, seriais, nome e capacidade da usina) fi
 * **Rotas protegidas por sessão:** `@supabase/ssr` + middleware do Next.js 16 redirecionam usuários não autenticados para `/login` e bloqueiam chamadas a `/api` com HTTP 401; o acesso (Google ou senha) é validado de forma fail-closed contra a lista `ALLOWED_EMAILS`.
 * **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. As tabelas de telemetria e concessionária são gravadas apenas pela chave `service_role` no dispositivo edge. As tabelas `ai_advisor_daily` e `daily_weather` permitem inserção/atualização por usuários autenticados para viabilizar cache da IA e histórico climático via serverless functions na Vercel sem expor a `service_role` na nuvem pública.
 * **Cadastro fechado:** o cadastro público do Supabase Auth permanece desativado, garantindo que apenas contas expressamente autorizadas obtenham sessão.
+
+---
+
+## 8. Testes e Integração Contínua
+
+A suíte prioriza dados e conexões reais: as regras de negócio são testadas com um snapshot anonimizado da produção, as consultas rodam contra o Supabase de verdade (com RLS) e o E2E navega no app compilado. Dublês ficam restritos ao que não pode ser chamado em teste — gravar telemetria em produção e gastar cota do Gemini.
+
+| Camada | Ferramenta | Comando | O que cobre |
+| :--- | :--- | :--- | :--- |
+| Unitários e componentes | Vitest + Testing Library | `npm test` | Cálculos de geração, fuso de Brasília, normalização dos dados da concessionária, cota da IA e componentes, com fixtures extraídas da produção |
+| Integração | Vitest | `npm run test:integration` | Supabase real (login, políticas RLS, consultas do dashboard, invariantes dos dados) e contrato da Open-Meteo |
+| E2E | Playwright | `npm run e2e` | App compilado: login, proteção de rotas e da API, bloqueio de open redirect, headers de segurança e carregamento das páginas |
+| Coletor | pytest + ruff | `pytest` | Parsers do Solis e do GoodWe com respostas reais dos equipamentos, fila offline, envio ao Supabase (contra um servidor HTTP local) e API local |
+| Hardware | pytest | `pytest -m live` | No dispositivo edge: leitura dos inversores dentro de faixas físicas e autenticação na concessionária |
+
+Os comandos do dashboard rodam em `dashboard/` e os do coletor em `collector/`.
+
+**Dados de produção nos testes.** A integração usa um usuário dedicado, sujeito ao mesmo RLS do dashboard, e só lê dados — a única escrita é na data sentinela `1999-01-01` das tabelas de cache, removida ao final. As fixtures são geradas por `dashboard/scripts/capture-fixtures.ts`, que substitui documentos, nomes, endereços, códigos de UC e de fatura, seriais, MACs, SSIDs e IPs por valores fictícios.
+
+**CI.** O workflow `.github/workflows/ci.yml` roda lint, typecheck, testes com cobertura mínima e build do dashboard; ruff e pytest do coletor; e análise de segurança com Trivy (dependências, segredos e configuração) e Semgrep (código). A integração e o E2E rodam no `main` e diariamente, com as credenciais do usuário de testes em GitHub Secrets.
+
+Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example` para `dashboard/.env.test.local` e preencha as credenciais do usuário de testes.
 
 ---
 

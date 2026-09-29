@@ -21,6 +21,12 @@ export default defineConfig({
       include: ["src/lib/**", "src/components/**"],
       exclude: ["src/lib/supabase/**", "src/lib/supabase.ts"],
       reporter: ["text", "html", "lcov"],
+      thresholds: {
+        lines: 60,
+        functions: 55,
+        branches: 50,
+        statements: 60,
+      },
     },
   },
 });
