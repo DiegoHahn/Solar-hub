@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.0...v1.0.1) (2026-09-29)
+
+
+### Correções
+
+* **dashboard:** curva solar só exibe o slot depois que o horário dele chega ([#10](https://github.com/DiegoHahn/Solar-hub/issues/10)) ([f579570](https://github.com/DiegoHahn/Solar-hub/commit/f579570c2b03a538222d389fe39625dd0753b4ef))
+
 ## [1.0.0](https://github.com/DiegoHahn/Solar-hub/compare/v0.1.0...v1.0.0) (2026-09-29)
 
 
