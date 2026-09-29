@@ -11,6 +11,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Majors atualizados manualmente: eslint e typescript acompanham o suporte do
+    # eslint-config-next; @types/node acompanha a versão do Node em produção.
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "pip"
     directory: "/collector"
