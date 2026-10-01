@@ -1,7 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 const testEmail = process.env.SUPABASE_TEST_EMAIL;
 const testPassword = process.env.SUPABASE_TEST_PASSWORD;
+
+async function getTodayCachedAnalysis(): Promise<{ daily: { summary: string } } | null> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+  await supabase.auth.signInWithPassword({ email: testEmail!, password: testPassword! });
+  const { data } = await supabase
+    .from("ai_advisor_daily")
+    .select("analysis")
+    .eq("date", new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date()))
+    .maybeSingle();
+  return data?.analysis ?? null;
+}
 
 test.describe("Fluxos Autenticados com Dados Reais", () => {
   test.skip(!testEmail || !testPassword, "Credenciais de teste não configuradas no .env.test.local");
@@ -46,13 +62,16 @@ test.describe("Fluxos Autenticados com Dados Reais", () => {
     await expect(page).toHaveURL("/", { timeout: 10000 });
   });
 
-  test("consulta GET /api/ai-advisor autenticado e recebe análise em cache (status 200)", async ({ page }) => {
+  test("consulta GET /api/ai-advisor autenticado e recebe a análise em cache do dia", async ({ page }) => {
+    const cached = await getTodayCachedAnalysis();
+    // Sem cache a rota chamaria o Gemini; o teste não consome cota nem grava análise fictícia na produção.
+    test.skip(!cached, "Ainda não há análise em cache para hoje.");
+
     const response = await page.request.get("/api/ai-advisor");
     expect(response.status()).toBe(200);
 
     const body = await response.json();
-    expect(body).toHaveProperty("daily");
-    expect(body.daily).toHaveProperty("summary");
-    expect(typeof body.daily.summary).toBe("string");
+    expect(body.isCached).toBe(true);
+    expect(body.daily.summary).toBe(cached!.daily.summary);
   });
 });
