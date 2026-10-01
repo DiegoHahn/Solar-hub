@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.1...v1.0.2) (2026-10-01)
+
+
+### Correções
+
+* **dashboard:** mascara a UC e o titular na interface e exibe o eixo da curva em kW ([#15](https://github.com/DiegoHahn/Solar-hub/issues/15)) ([dd1a40b](https://github.com/DiegoHahn/Solar-hub/commit/dd1a40b586917118a4af27936c311cdbf4c5cfbe))
+
 ## [1.0.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.0...v1.0.1) (2026-09-29)
 
 
