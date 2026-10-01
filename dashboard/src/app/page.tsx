@@ -20,7 +20,7 @@ import {
 } from "@/lib/queries";
 import { getIcaraWeatherData } from "@/lib/weatherData";
 import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
-import { getGeneratorUc } from "@/lib/utility";
+import { getGeneratorUc, maskUcCode } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
 import type { BadgeProps } from "@/components/Badge";
@@ -98,7 +98,7 @@ export default async function Home() {
             </span>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {utilityData?.distribuidora ?? "Cooperaliança"} · UC {utilityData?.generator_uc ?? "—"}
+            {utilityData?.distribuidora ?? "Cooperaliança"} · UC {maskUcCode(utilityData?.generator_uc)}
           </p>
         </div>
 

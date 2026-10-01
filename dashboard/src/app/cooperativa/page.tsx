@@ -5,7 +5,7 @@ import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
 import { getLatestUtilityData } from "@/lib/queries";
-import { getGeneratorUc } from "@/lib/utility";
+import { getGeneratorUc, maskUcCode, holderFirstName } from "@/lib/utility";
 import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +58,7 @@ export default async function CooperativaPage() {
             Cooperativa
           </h1>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {utilityData.distribuidora} · UC {utilityData.generator_uc} · {utilityData.titular}
+            {utilityData.distribuidora} · UC {maskUcCode(utilityData.generator_uc)} · {holderFirstName(utilityData.titular)}
           </p>
         </div>
         <div className="flex items-center gap-2">

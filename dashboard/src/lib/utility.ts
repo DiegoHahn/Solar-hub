@@ -23,3 +23,15 @@ export function getGeneratorUc(utilityData: UtilityDataRow | null | undefined): 
   const code = utilityData?.generator_uc;
   return code ? utilityData.unidades_consumidoras[code] : undefined;
 }
+
+/** Código da UC com apenas os 4 últimos dígitos visíveis (ex.: "••••1234"). */
+export function maskUcCode(code: string | null | undefined): string {
+  if (!code) return "—";
+  return code.length > 4 ? `••••${code.slice(-4)}` : code;
+}
+
+/** Primeiro nome do titular, para exibição na interface. */
+export function holderFirstName(name: string | null | undefined): string {
+  const first = (name ?? "").trim().split(/\s+/)[0] ?? "";
+  return first ? first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() : "";
+}

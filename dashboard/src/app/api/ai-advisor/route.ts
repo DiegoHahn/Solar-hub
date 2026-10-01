@@ -176,7 +176,7 @@ DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
 
 DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
 - Usina Solar: 16 kWp (${telemetry?.inverters_count ?? 3} inversores instalados) em Içara/SC.
-- Concessionária: Cooperaliança (UC ${utilityData?.generator_uc ?? "—"}). Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
+- Concessionária: Cooperaliança. Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
 
 MEDIDAS DE HOJE:
 - Horário da análise: ${brasiliaTimeStr} (Horário de Brasília)

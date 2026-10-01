@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UnidadeConsumidora, UtilityDataRow } from "./types";
-import { findGeneratorUcCode, getGeneratorUc } from "./utility";
+import { findGeneratorUcCode, getGeneratorUc, holderFirstName, maskUcCode } from "./utility";
 
 const createMockUc = (overrides: Partial<UnidadeConsumidora> = {}): UnidadeConsumidora => ({
   codigo_uc: "UC-101",
@@ -119,5 +119,28 @@ describe("getGeneratorUc", () => {
       },
     });
     expect(getGeneratorUc(rowSemGenerator)).toBeUndefined();
+  });
+});
+
+describe("maskUcCode", () => {
+  it("mantém visíveis só os 4 últimos dígitos", () => {
+    expect(maskUcCode("9876543210")).toBe("••••3210");
+  });
+
+  it("exibe travessão sem código e não mascara códigos curtos", () => {
+    expect(maskUcCode(null)).toBe("—");
+    expect(maskUcCode("")).toBe("—");
+    expect(maskUcCode("123")).toBe("123");
+  });
+});
+
+describe("holderFirstName", () => {
+  it("exibe só o primeiro nome, capitalizado", () => {
+    expect(holderFirstName("MARIA DA SILVA SANTOS")).toBe("Maria");
+    expect(holderFirstName("  joão pereira ")).toBe("João");
+  });
+
+  it("retorna vazio sem nome", () => {
+    expect(holderFirstName(undefined)).toBe("");
   });
 });

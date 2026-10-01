@@ -10,7 +10,7 @@ import {
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import type { SolarTelemetryRow, UtilityDataRow } from "@/lib/types";
-import { getGeneratorUc } from "@/lib/utility";
+import { getGeneratorUc, maskUcCode } from "@/lib/utility";
 
 interface EnergyFlowSectionProps {
   telemetry: SolarTelemetryRow | null;
@@ -202,7 +202,7 @@ export function EnergyFlowSection({
                 </div>
               </div>
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                UC {utilityData?.generator_uc}
+                UC {maskUcCode(utilityData?.generator_uc)}
               </span>
             </div>
 

@@ -233,7 +233,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 tickLine={false}
                 axisLine={false}
                 domain={[0, (dataMax: number) => Math.max(nominalCapKw + 1.5, Math.ceil(dataMax + 0.5))]}
-                tickFormatter={(val) => `${val}k`}
+                tickFormatter={(val) => `${val} kW`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
 
