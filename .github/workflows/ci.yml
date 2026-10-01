@@ -95,9 +95,23 @@ jobs:
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: npm run test:integration -- --coverage --coverage.reporter=text-summary
 
+      - name: Versão do Playwright
+        id: playwright
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache do Chromium do Playwright
+        if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # A imagem ubuntu-latest já traz as bibliotecas de sistema do Chromium; o --with-deps só
+      # acrescentaria fontes de outros alfabetos, que os testes não usam.
       - name: Instalar Navegador Chromium para Playwright
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Build do Dashboard para E2E
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
