@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useIsClient } from "@/lib/useIsClient";
 import { getActiveDatum } from "@/lib/chartUtils";
 import {
@@ -23,6 +23,7 @@ import type { BalancoEnergeticoMes } from "@/lib/types";
 
 interface EnergyBalanceChartProps {
   data: BalancoEnergeticoMes[];
+  saldoAtual?: number;
 }
 
 interface CustomTooltipProps {
@@ -93,10 +94,25 @@ export function EnergyBalanceTooltip({ active, payload, onActivePoint }: CustomT
   );
 }
 
-export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
+export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceChartProps) {
   const isMounted = useIsClient();
   const [viewMode, setViewMode] = useState<"comparison" | "net">("comparison");
   const [inspectedMonth, setInspectedMonth] = useState<BalancoEnergeticoMes | null>(null);
+
+  // Remove do final eventuais meses não faturados/em aberto com tudo zerado
+  const data = useMemo(() => {
+    if (!rawData || rawData.length === 0) return [];
+    const copy = [...rawData];
+    while (
+      copy.length > 1 &&
+      copy[copy.length - 1].injetado_kwh === 0 &&
+      copy[copy.length - 1].compensado_kwh === 0 &&
+      copy[copy.length - 1].saldo_kwh === 0
+    ) {
+      copy.pop();
+    }
+    return copy;
+  }, [rawData]);
 
   if (!data || data.length === 0) return null;
 
@@ -104,7 +120,7 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
   const totalInjetado = data.reduce((acc, d) => acc + d.injetado_kwh, 0);
   const totalCompensado = data.reduce((acc, d) => acc + d.compensado_kwh, 0);
   const saldoLiquidoAno = totalInjetado - totalCompensado;
-  const ultimoSaldo = data[data.length - 1]?.saldo_kwh ?? 0;
+  const ultimoSaldo = saldoAtual !== undefined ? saldoAtual : (data[data.length - 1]?.saldo_kwh ?? 0);
 
   return (
     <Card className="p-4 md:p-6 space-y-4">
