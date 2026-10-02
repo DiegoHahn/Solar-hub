@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.0...v1.1.1) (2026-10-02)
+
+
+### Correções
+
+* **dashboard:** ignora meses não faturados com saldo zerado no balanço energético ([#3](https://github.com/DiegoHahn/Solar-hub/issues/3)) ([cfe6467](https://github.com/DiegoHahn/Solar-hub/commit/cfe64676610916abf57bbc49f745124c3144115f))
+
 ## [1.1.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.2...v1.1.0) (2026-10-02)
 
 
