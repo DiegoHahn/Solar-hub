@@ -130,7 +130,7 @@ def test_push_utility_to_supabase(httpserver, monkeypatch):
         "unidades_consumidoras": {},
     }
 
-    utility.push_utility_to_supabase(sample_result)
+    assert utility.push_utility_to_supabase(sample_result) is True
     httpserver.check_assertions()
 
 
@@ -207,7 +207,7 @@ def test_flush_offline_queue_corrupted(monkeypatch, tmp_path):
 
 def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
     monkeypatch.setattr(utility, "ENV", {})
-    assert utility.push_utility_to_supabase({}) is None
+    assert utility.push_utility_to_supabase({}) is True
 
     monkeypatch.setattr(
         utility,
@@ -223,7 +223,7 @@ def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
         "titular": "Titular",
         "cpf": "00000000000",
     }
-    utility.push_utility_to_supabase(sample_result)
+    assert utility.push_utility_to_supabase(sample_result) is False
 
     import requests
 
@@ -232,4 +232,4 @@ def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
         "post",
         lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Rede")),
     )
-    utility.push_utility_to_supabase(sample_result)
+    assert utility.push_utility_to_supabase(sample_result) is False

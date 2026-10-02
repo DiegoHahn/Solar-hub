@@ -47,7 +47,7 @@ flowchart TB
         INV3["☀️ Inversor 3 (GoodWe 5 kW)\nModbus TCP / UDP (Porta 502/8899)"]
 
         COLLECTOR["🤖 collector/inverters.py\n(Ciclo 10m · Daemon Systemd · In-Memory)"]
-        UTILITY["🏢 collector/utility.py\n(Timer Systemd 21h · JWT Concessionária)"]
+        UTILITY["🏢 collector/utility.py\n(Timer Systemd 3x ao dia · JWT Concessionária)"]
         RETRY_QUEUE[("📦 Fila Offline\n(Buffer Transitório)")]
 
         INV1 -->|Holding Regs 0..39| COLLECTOR
@@ -150,7 +150,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 │   └── deploy/
 │       ├── solar-inverters@.service    # Unit systemd do coletor 24/7
 │       ├── solar-utility@.service      # Unit systemd da sincronização da concessionária
-│       ├── solar-utility@.timer        # Agendamento diário (21h)
+│       ├── solar-utility@.timer        # Agendamento: 7h, 13h e 19h
 │       └── run_*.sh                    # Execução manual com watchdog
 ├── dashboard/                          # Web: Next.js 16 (App Router)
 │   ├── e2e/                            # Testes E2E (Playwright)

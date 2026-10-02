@@ -34,13 +34,16 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 # Unidades consumidoras do titular; a primeira é a UC geradora (onde a usina está instalada)
 UCS = [uc.strip() for uc in ENV.get("COOPERALIANCA_UCS", "").split(",") if uc.strip()]
 
+# Esperas (segundos) antes de cada nova tentativa de login no portal
+LOGIN_RETRY_DELAYS = (60, 300)
+
 
 def push_utility_to_supabase(result):
-    """Envia o snapshot da Cooperaliança para o Supabase (Nuvem)."""
+    """Envia o snapshot da Cooperaliança para o Supabase; retorna False se o envio falhar."""
     supabase_url = ENV.get("SUPABASE_URL")
     service_key = ENV.get("SUPABASE_SERVICE_ROLE_KEY")
     if not supabase_url or not service_key or "SEU_PROJECT_REF" in supabase_url:
-        return
+        return True
 
     payload = {
         "updated_at": result.get("timestamp"),
@@ -70,10 +73,11 @@ def push_utility_to_supabase(result):
             print(
                 f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})"
             )
-        else:
-            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
+            return True
+        print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
     except Exception as e:
         print(f" ⚠️ [SUPABASE] Erro de rede ao sincronizar concessionária: {e}")
+    return False
 
 
 def atomic_write_json(filepath, data):
@@ -123,19 +127,31 @@ def portal_headers():
     }
 
 
-def login_cooperalianca(cpf, senha, headers):
-    """Autentica no portal e retorna o conteúdo da resposta (com `Token` e `Nome`), ou None."""
+def login_cooperalianca(cpf, senha, headers, retry_delays=LOGIN_RETRY_DELAYS):
+    """Autentica no portal e retorna o conteúdo da resposta (com `Token` e `Nome`), ou None.
+
+    Falhas de rede e respostas 5xx são repetidas após cada intervalo de `retry_delays` (segundos):
+    o portal fica instável em alguns horários e costuma voltar em poucos minutos.
+    """
     payload = {
         "EmailInscricao": cpf.replace(".", "").replace("-", ""),
         "Senha": senha,
         "CorTema": "#003b6d",
     }
 
-    try:
-        resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=14)
-    except Exception as e:
-        print(f" ❌ [COOPERALIANCA] Erro de conexao com o servidor da Cooperalianca: {e}")
-        return None
+    for attempt, delay in enumerate((*retry_delays, None), start=1):
+        try:
+            resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=30)
+            if resp.status_code < 500:
+                break
+            print(
+                f" ❌ [COOPERALIANCA] Portal indisponivel (Status {resp.status_code}, tentativa {attempt})"
+            )
+        except requests.RequestException as e:
+            print(f" ❌ [COOPERALIANCA] Erro de conexao com o portal (tentativa {attempt}): {e}")
+        if delay is None:
+            return None
+        time.sleep(delay)
 
     if resp.status_code in [401, 403]:
         print(
@@ -178,7 +194,7 @@ def sync_cooperalianca(cpf=None, senha=None):
 
     headers["Authorization"] = f"Bearer {auth['Token']}"
     titular_nome = auth.get("Nome", "")
-    print(f" -> Autenticacao efetuada com sucesso! Titular: {titular_nome}")
+    print(" -> Autenticacao efetuada com sucesso!")
 
     # Perfil do usuário
     perfil_usuario = safe_api_get(
@@ -253,7 +269,7 @@ def sync_cooperalianca(cpf=None, senha=None):
         faturas_count = len(uc_data.get("historico_faturas_60_meses") or [])
 
         gd_tag = f" | Usina: {pot:.0f} kW | Saldo GD: {saldo:,.0f} kWh" if pot > 0 else ""
-        print(f" -> UC {uc}: {faturas_count} faturas no historico{gd_tag}")
+        print(f" -> UC ••••{uc[-4:]}: {faturas_count} faturas no historico{gd_tag}")
 
     # Salva no disco apenas se explicitamente solicitado via --save-local
     if "--save-local" in sys.argv:
@@ -266,8 +282,8 @@ def sync_cooperalianca(cpf=None, senha=None):
         except Exception as e:
             print(f" ⚠️ [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
 
-    # Envia automaticamente para a nuvem no Supabase
-    push_utility_to_supabase(result)
+    if not push_utility_to_supabase(result):
+        return None
 
     return result
 
@@ -356,6 +372,10 @@ def download_informativo_pdf(
 
 def main():
     sync_result = sync_cooperalianca()
+
+    # Código de saída 1 marca a execução como falha no systemd (visível em `systemctl --failed`)
+    if sync_result is None and "--loop" not in sys.argv:
+        sys.exit(1)
 
     if "--pdf" in sys.argv:
         try:
