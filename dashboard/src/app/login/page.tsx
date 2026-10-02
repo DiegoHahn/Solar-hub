@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { clearDemoCookie } from "./actions";
 import {
   RiLockPasswordLine,
   RiMailLine,
@@ -47,6 +48,7 @@ function LoginForm() {
 
       if (error) throw error;
 
+      await clearDemoCookie();
       router.push("/");
       router.refresh();
     } catch (err) {

@@ -18,6 +18,8 @@
 
 ---
 
+**Demonstração ao vivo:** [solar-hub-diego-2112.vercel.app/demo](https://solar-hub-diego-2112.vercel.app/demo) — dados fictícios, sem login.
+
 ## 1. Visão Geral
 
 O **Solar Hub** é uma plataforma de telemetria fotovoltaica e inteligência energética projetada para unificar usinas solares multimarcas (**Solis** + **GoodWe**) e concessionárias de energia em um dashboard analítico unificado em tempo real.
@@ -260,6 +262,7 @@ A topologia dos inversores (IPs, portas, seriais, nome e capacidade da usina) fi
 * **Rotas protegidas por sessão:** `@supabase/ssr` + middleware do Next.js 16 redirecionam usuários não autenticados para `/login` e bloqueiam chamadas a `/api` com HTTP 401; o acesso (Google ou senha) é validado de forma fail-closed contra a lista `ALLOWED_EMAILS`.
 * **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. As tabelas de telemetria e concessionária são gravadas apenas pela chave `service_role` no dispositivo edge. As tabelas `ai_advisor_daily` e `daily_weather` permitem inserção/atualização por usuários autenticados para viabilizar cache da IA e histórico climático via serverless functions na Vercel sem expor a `service_role` na nuvem pública.
 * **Cadastro fechado:** o cadastro público do Supabase Auth permanece desativado, garantindo que apenas contas expressamente autorizadas obtenham sessão.
+* **Modo demonstração estritamente isolado:** a navegação via `/demo` opera exclusivamente sobre fixtures estáticas em memória, sem instanciar conexões com o banco de dados Supabase e sem consumir cotas da API do Google Gemini.
 
 ---
 

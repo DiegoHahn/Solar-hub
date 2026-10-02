@@ -2,8 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { Nav } from "@/components/Nav";
+import { DemoBanner } from "@/components/DemoBanner";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  isDemo = false,
+}: {
+  children: React.ReactNode;
+  isDemo?: boolean;
+}) {
   const pathname = usePathname();
   const isAuth = pathname.startsWith("/login") || pathname.startsWith("/auth");
 
@@ -13,8 +20,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Nav />
-      <div className="pb-16 md:pb-0 md:pl-56">{children}</div>
+      <Nav isDemo={isDemo} />
+      <div className="pb-16 md:pb-0 md:pl-56">
+        {isDemo && <DemoBanner />}
+        {children}
+      </div>
     </>
   );
 }

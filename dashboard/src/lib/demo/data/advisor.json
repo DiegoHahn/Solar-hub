@@ -1,0 +1,42 @@
+{
+  "daily": {
+    "summary": "A geração da usina em Içara/SC apresentou curva de potência limpa ao longo do dia, com aproveitamento elevado nas horas de pico solar. A sincronização entre os inversores Solis e GoodWe garantiu o fornecimento contínuo à residência e a injeção do excedente na rede da Cooperaliança, consolidando crédito energético.",
+    "recommendations": [
+      {
+        "title": "Janela Ótima de Consumo",
+        "description": "Programe cargas pesadas (lavadora, climatização e bombas) entre 10h e 14h, aproveitando o pico de irradiação solar e reduzindo a dependência da rede noturna.",
+        "icon": "flashlight"
+      },
+      {
+        "title": "Equilíbrio de Tensão e Rede",
+        "description": "A tensão média dos inversores manteve-se estável em 220V CA, sem desarmes por sobretensão na rede da distribuidora.",
+        "icon": "shield"
+      },
+      {
+        "title": "Balanço Energético Diário",
+        "description": "Com o saldo gerado hoje, a autossuficiência líquida foi preservada com margem de segurança para o consumo do período noturno.",
+        "icon": "dollar"
+      }
+    ]
+  },
+  "monthly": {
+    "summary": "O desempenho acumulado do mês atinge mais de 95% da meta sazonal estimada para a usina de 16 kWp no Sul de Santa Catarina. O saldo acumulado de créditos na Cooperaliança mantém cobertura integral do consumo da unidade geradora e compensação das unidades dependentes.",
+    "recommendations": [
+      {
+        "title": "Gestão de Créditos GD",
+        "description": "O saldo de energia injetada na UC principal garante compensação nas unidades remotas vinculadas no sistema de compensação da Cooperaliança.",
+        "icon": "dollar"
+      },
+      {
+        "title": "Inspeção e Manutenção Preventiva",
+        "description": "Os inversores operam com eficiência térmica controlada e histórico de alarmes zerado. Recomenda-se lavagem dos módulos a cada 6 meses caso haja estiagem prolongada.",
+        "icon": "tools"
+      },
+      {
+        "title": "Fator de Capacidade Mensal",
+        "description": "A proporção entre energia gerada e potência instalada permaneceu em linha com o histórico dos anos anteriores para o mesmo período.",
+        "icon": "compass"
+      }
+    ]
+  }
+}

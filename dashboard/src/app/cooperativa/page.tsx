@@ -4,7 +4,7 @@ import { Badge } from "@/components/Badge";
 import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
-import { getLatestUtilityData } from "@/lib/queries";
+import { getDataSource } from "@/lib/dataSource";
 import { getGeneratorUc, maskUcCode, holderFirstName } from "@/lib/utility";
 import type { BadgeProps } from "@/components/Badge";
 
@@ -25,7 +25,8 @@ function formatDateOnly(val: string | undefined | null): string {
 }
 
 export default async function CooperativaPage() {
-  const utilityData = await getLatestUtilityData();
+  const ds = await getDataSource();
+  const utilityData = await ds.getLatestUtilityData();
   const uc = getGeneratorUc(utilityData);
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente;
 

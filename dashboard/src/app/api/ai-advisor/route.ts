@@ -17,7 +17,22 @@ import { getGeneratorUc } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
 
+import demoAdvisor from "@/lib/demo/data/advisor.json";
+import { isDemoMode } from "@/lib/dataSource";
+
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
+
+function respondFromDemo(): NextResponse {
+  return NextResponse.json({
+    ...demoAdvisor,
+    modelUsed: "demonstração",
+    quotaCount: 1,
+    maxPrimaryQuota: getMaxPrimaryQuota(),
+    isCached: true,
+    isDemo: true,
+    updatedAt: new Date().toISOString(),
+  });
+}
 
 /** Responde com a análise do dia já gerada, se existir. */
 async function respondFromCache(): Promise<NextResponse | null> {
@@ -35,6 +50,10 @@ async function respondFromCache(): Promise<NextResponse | null> {
 }
 
 export async function GET() {
+  if (await isDemoMode()) {
+    return respondFromDemo();
+  }
+
   const user = await requireUser();
   if (!user) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -44,6 +63,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (await isDemoMode()) {
+    return respondFromDemo();
+  }
+
   const user = await requireUser();
   if (!user) {
     return NextResponse.json({ error: "Não autenticado." }, { status: 401 });

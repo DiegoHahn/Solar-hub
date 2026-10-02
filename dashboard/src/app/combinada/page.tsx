@@ -1,8 +1,7 @@
 import { AiEnergyAdvisor } from "@/components/AiEnergyAdvisor";
 import { EnergyFlowSection } from "@/components/EnergyFlowSection";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
-import { getIcaraWeatherData } from "@/lib/weatherData";
-import { getLatestTelemetry, getLatestUtilityData } from "@/lib/queries";
+import { getDataSource } from "@/lib/dataSource";
 
 export const dynamic = "force-dynamic";
 
@@ -12,10 +11,11 @@ export const metadata = {
 };
 
 export default async function CombinadaPage() {
+  const ds = await getDataSource();
   const [telemetry, utilityData, weatherData] = await Promise.all([
-    getLatestTelemetry(),
-    getLatestUtilityData(),
-    getIcaraWeatherData(),
+    ds.getLatestTelemetry(),
+    ds.getLatestUtilityData(),
+    ds.getIcaraWeatherData(),
   ]);
 
   return (

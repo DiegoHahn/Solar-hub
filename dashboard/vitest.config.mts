@@ -24,6 +24,7 @@ export default defineConfig({
         "src/lib/supabase.ts",
         "src/lib/types.ts",
         "src/lib/database.types.ts",
+        "src/lib/demo/data/**",
       ],
       reporter: ["text", "html", "lcov"],
       thresholds: {

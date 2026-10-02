@@ -13,12 +13,7 @@ import { Badge } from "@/components/Badge";
 import { InvertersGroupCard } from "@/components/InvertersGroupCard";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { SunCurveChart } from "@/components/SunCurveChart";
-import {
-  getLatestTelemetry,
-  getLatestUtilityData,
-  getTodaySunCurve,
-} from "@/lib/queries";
-import { getIcaraWeatherData } from "@/lib/weatherData";
+import { getDataSource } from "@/lib/dataSource";
 import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
 import { getGeneratorUc, maskUcCode } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
@@ -39,11 +34,12 @@ function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
 }
 
 export default async function Home() {
+  const ds = await getDataSource();
   const [telemetry, utilityData, sunCurve, weatherData] = await Promise.all([
-    getLatestTelemetry(),
-    getLatestUtilityData(),
-    getTodaySunCurve(),
-    getIcaraWeatherData(),
+    ds.getLatestTelemetry(),
+    ds.getLatestUtilityData(),
+    ds.getTodaySunCurve(),
+    ds.getIcaraWeatherData(),
   ]);
 
   const saldoCreditos = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;

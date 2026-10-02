@@ -36,7 +36,7 @@ const navItems = [
   },
 ];
 
-export function Nav() {
+export function Nav({ isDemo = false }: { isDemo?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -46,17 +46,25 @@ export function Nav() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) {
         setUserEmail(user.email);
+      } else if (isDemo) {
+        setUserEmail("Visitante (Demo)");
       }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(session?.user?.email ?? null);
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      } else if (isDemo) {
+        setUserEmail("Visitante (Demo)");
+      } else {
+        setUserEmail(null);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, [supabase, isDemo]);
 
   // Não renderiza navegação na tela de login ou callback de autenticação
   if (pathname.startsWith("/login") || pathname.startsWith("/auth")) {
@@ -64,6 +72,10 @@ export function Nav() {
   }
 
   const handleLogout = async () => {
+    if (isDemo) {
+      router.push("/demo/sair");
+      return;
+    }
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();

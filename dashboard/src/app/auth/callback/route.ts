@@ -21,7 +21,12 @@ export async function GET(request: Request) {
       }
 
       const safeNext = getSafeRedirectUrl(next);
-      return NextResponse.redirect(`${origin}${safeNext}`);
+      const response = NextResponse.redirect(`${origin}${safeNext}`);
+      response.cookies.set("solarhub_demo", "", {
+        path: "/",
+        maxAge: 0,
+      });
+      return response;
     }
   }
 

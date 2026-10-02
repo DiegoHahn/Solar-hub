@@ -8,21 +8,17 @@ import {
   RiPulseLine,
 } from "@remixicon/react";
 import { readNumericSensor } from "@/lib/inverter";
-import {
-  getLatestTelemetry,
-  getTodaySunCurve,
-  getMonthlyGeneration,
-  getMultiYearHistory,
-} from "@/lib/queries";
+import { getDataSource } from "@/lib/dataSource";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlacasPage() {
+  const ds = await getDataSource();
   const [telemetry, sunCurve, monthlyGeneration, multiYearHistory] = await Promise.all([
-    getLatestTelemetry(),
-    getTodaySunCurve(),
-    getMonthlyGeneration(),
-    getMultiYearHistory(),
+    ds.getLatestTelemetry(),
+    ds.getTodaySunCurve(),
+    ds.getMonthlyGeneration(),
+    ds.getMultiYearHistory(),
   ]);
 
   const inverters = telemetry?.inverters_data ?? [];

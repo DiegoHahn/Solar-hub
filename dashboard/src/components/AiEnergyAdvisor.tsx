@@ -35,6 +35,7 @@ interface UnifiedAdvisorData {
   quotaCount?: number;
   maxPrimaryQuota?: number;
   isCached?: boolean;
+  isDemo?: boolean;
   updatedAt?: string;
   warning?: string;
 }
@@ -53,7 +54,6 @@ export function AiEnergyAdvisor({
   const [error, setError] = useState<string | null>(null);
   const mounted = useIsClient();
 
-  // Carrega a análise ao montar (aproveita o cache de hoje se existir, gastando 0 requisições)
   useEffect(() => {
     let isMounted = true;
     async function loadInitial() {
@@ -85,8 +85,9 @@ export function AiEnergyAdvisor({
     };
   }, []);
 
-  // Botão Regerar: força uma nova análise na API do Gemini
+  // Botão Regerar: força uma nova análise na API do Gemini (desativado no modo demo)
   const handleRefresh = async () => {
+    if (data?.isDemo) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -220,7 +221,8 @@ export function AiEnergyAdvisor({
           <button
             type="button"
             onClick={handleRefresh}
-            disabled={!mounted ? false : isLoading}
+            disabled={!mounted ? false : isLoading || Boolean(data?.isDemo)}
+            title={data?.isDemo ? "A geração de novas análises está desativada no modo demonstração." : undefined}
             suppressHydrationWarning
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 active:scale-95 disabled:opacity-60 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >

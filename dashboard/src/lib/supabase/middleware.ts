@@ -38,9 +38,22 @@ export async function updateSession(request: NextRequest) {
   const isLoginPage = request.nextUrl.pathname.startsWith("/login");
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth");
   const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+  const isDemoRoute = request.nextUrl.pathname.startsWith("/demo");
+  const isAiAdvisorRoute = request.nextUrl.pathname === "/api/ai-advisor";
+  const isDemo = request.cookies.get("solarhub_demo")?.value === "1";
 
-  // Usuário não autenticado
+  if (isDemoRoute) {
+    return supabaseResponse;
+  }
+
   if (!user) {
+    if (isDemo) {
+      if (isApiRoute && !isAiAdvisorRoute) {
+        return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+      }
+      return supabaseResponse;
+    }
+
     if (isApiRoute) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
@@ -73,11 +86,25 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
+  if (isDemo) {
+    supabaseResponse.cookies.set("solarhub_demo", "", {
+      path: "/",
+      maxAge: 0,
+    });
+  }
+
   // Usuário autenticado e autorizado tentando acessar a página de login
   if (isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    if (isDemo) {
+      redirectResponse.cookies.set("solarhub_demo", "", {
+        path: "/",
+        maxAge: 0,
+      });
+    }
+    return redirectResponse;
   }
 
   return supabaseResponse;
