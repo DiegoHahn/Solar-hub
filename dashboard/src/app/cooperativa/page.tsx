@@ -129,7 +129,12 @@ export default async function CooperativaPage() {
       </div>
 
       {/* BALANÇO ENERGÉTICO (Injeção vs Compensação vs Saldo) */}
-      {uc.balanco_energetico && <EnergyBalanceChart data={uc.balanco_energetico} />}
+      {uc.balanco_energetico && (
+        <EnergyBalanceChart
+          data={uc.balanco_energetico}
+          saldoAtual={gd?.ValorProximoSaldoVencer}
+        />
+      )}
 
       {/* EXTRATO GD COM SCROLL INTERNO E FILTROS */}
       {uc.extrato_gd && <GdExtractList entries={uc.extrato_gd} />}

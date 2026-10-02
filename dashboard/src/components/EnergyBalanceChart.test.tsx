@@ -39,4 +39,22 @@ describe("EnergyBalanceChart", () => {
     fireEvent.click(comparisonTab);
     expect(comparisonTab).toHaveClass("bg-white");
   });
+
+  it("exibe o saldoAtual informado no cabeçalho e rodapé prioritariamente", () => {
+    render(<EnergyBalanceChart data={balanco} saldoAtual={9900} />);
+    expect(screen.getByText("9.900")).toBeInTheDocument();
+    expect(screen.getByText("Saldo atual: 9.900 kWh")).toBeInTheDocument();
+  });
+
+  it("remove mês não faturado zerado do final do array de dados", () => {
+    const dataWithTrailingZero = [
+      { mes: "08/2026", injetado_kwh: 1400, compensado_kwh: 600, liquido_kwh: 800, saldo_kwh: 9000 },
+      { mes: "09/2026", injetado_kwh: 1450, compensado_kwh: 550, liquido_kwh: 900, saldo_kwh: 9900 },
+      { mes: "10/2026", injetado_kwh: 0, compensado_kwh: 0, liquido_kwh: 0, saldo_kwh: 0 },
+    ];
+    render(<EnergyBalanceChart data={dataWithTrailingZero} />);
+    // O último saldo exibido deve ser o de 09/2026 (9.900) e não 0
+    expect(screen.getByText("9.900")).toBeInTheDocument();
+    expect(screen.getByText("Saldo atual: 9.900 kWh")).toBeInTheDocument();
+  });
 });

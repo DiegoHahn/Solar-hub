@@ -58,6 +58,24 @@ describe("normalizeUnidadeConsumidora", () => {
     expect(res.balanco_energetico).toEqual(baseUc.balanco_energetico);
     expect(res.extrato_gd).toEqual(baseUc.extrato_gd);
   });
+
+  it("remove meses futuros/não faturados do final do array que vêm zerados da concessionária", () => {
+    const ucWithTrailingZeros: UnidadeConsumidora = {
+      codigo_uc: "UC-101",
+      grafico_historico_12_meses: {
+        RetornoDadosHistoricoGeracaoConsumoKwhNormal: [
+          { AnoMes: "01/08/2026 00:00:00", KwhGerado: 1400, kwhCreditado: 600, Saldo: 9000 },
+          { AnoMes: "01/09/2026 00:00:00", KwhGerado: 1450, kwhCreditado: 550, Saldo: 9900 },
+          { AnoMes: "01/10/2026 00:00:00", KwhGerado: 0, kwhCreditado: 0, Saldo: 0 },
+        ],
+      },
+    };
+
+    const res = normalizeUnidadeConsumidora(ucWithTrailingZeros);
+    expect(res.balanco_energetico).toHaveLength(2);
+    expect(res.balanco_energetico![1].mes).toBe("09/2026");
+    expect(res.balanco_energetico![1].saldo_kwh).toBe(9900);
+  });
 });
 
 describe("buildSunCurveGrid", () => {

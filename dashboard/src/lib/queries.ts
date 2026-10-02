@@ -30,7 +30,7 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
   const extrato = uc.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal;
 
   if (!uc.balanco_energetico && hist12) {
-    uc.balanco_energetico = hist12.map((i) => {
+    const rawBalanco = hist12.map((i) => {
       const parts = splitCoopDate(i.AnoMes);
       return {
         mes: `${parts[1]}/${parts[2]}`,
@@ -40,6 +40,18 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
         saldo_kwh: i.Saldo,
       };
     });
+
+    // Remove do final do histórico meses não faturados/em aberto que a Cooperaliança envia zerados
+    while (
+      rawBalanco.length > 1 &&
+      rawBalanco[rawBalanco.length - 1].injetado_kwh === 0 &&
+      rawBalanco[rawBalanco.length - 1].compensado_kwh === 0 &&
+      rawBalanco[rawBalanco.length - 1].saldo_kwh === 0
+    ) {
+      rawBalanco.pop();
+    }
+
+    uc.balanco_energetico = rawBalanco;
   }
 
   if (!uc.extrato_gd && extrato) {
