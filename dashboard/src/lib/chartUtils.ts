@@ -136,3 +136,42 @@ export function hasOnlyOneValueForKey(
 
   return true
 }
+
+/**
+ * Configuração de domínio e ticks para o eixo Y da curva de geração solar diária.
+ * Mantém múltiplos inteiros limpos com passo de 5 kW e folga para a capacidade nominal,
+ * eliminando truncamento de dígitos e sobreposição de rótulos.
+ */
+export function getSunCurveYAxisConfig(nominalCapKw: number = 16, dataMax: number = 0) {
+  const peak = Math.max(nominalCapKw * 1.1, dataMax);
+  const max = Math.max(20, Math.ceil(peak / 5) * 5);
+  const step = 5;
+  const ticks: number[] = [];
+  for (let i = 0; i <= max; i += step) {
+    ticks.push(i);
+  }
+  return {
+    domain: [0, max] as [number, number],
+    ticks,
+  };
+}
+
+/**
+ * Configuração de domínio e ticks para o eixo Y da curva de inversores individuais.
+ * Garante múltiplos inteiros (passo de 2 kW) e folga acima do teto de 6 kW,
+ * evitando cortes no topo do gráfico.
+ */
+export function getInverterCurveYAxisConfig(dataMax: number = 0) {
+  const peak = Math.max(6, dataMax);
+  const max = Math.max(8, Math.ceil((peak + 0.5) / 2) * 2);
+  const step = 2;
+  const ticks: number[] = [];
+  for (let i = 0; i <= max; i += step) {
+    ticks.push(i);
+  }
+  return {
+    domain: [0, max] as [number, number],
+    ticks,
+  };
+}
+

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useIsClient } from "@/lib/useIsClient";
-import { getActiveDatum } from "@/lib/chartUtils";
+import { getActiveDatum, getInverterCurveYAxisConfig } from "@/lib/chartUtils";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -77,6 +77,16 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
   const isResettingRef = useRef(false);
+
+  const dataMax = useMemo(() => {
+    return (data || []).reduce((acc, d) => {
+      return Math.max(acc, d.goodwe1_kw ?? 0, d.goodwe2_kw ?? 0, d.solis_kw ?? 0);
+    }, 0);
+  }, [data]);
+
+  const yAxisConfig = useMemo(() => {
+    return getInverterCurveYAxisConfig(dataMax);
+  }, [dataMax]);
 
   const handleReset = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -169,7 +179,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
             <AreaChart
               key={chartKey}
               data={data}
-              margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
+              margin={{ top: 16, right: 8, left: -4, bottom: 0 }}
               onClick={(state) => {
                 if (isResettingRef.current) return;
                 const point = getActiveDatum(state, data);
@@ -202,7 +212,9 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                domain={[0, (dataMax: number) => Math.max(6.5, Math.ceil(dataMax + 0.5))]}
+                width={56}
+                domain={yAxisConfig.domain}
+                ticks={yAxisConfig.ticks}
                 tickFormatter={(val) => `${val} kW`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />

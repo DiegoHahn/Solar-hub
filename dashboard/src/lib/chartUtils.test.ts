@@ -4,6 +4,8 @@ import {
   constructCategoryColors,
   getActiveDatum,
   getColorClassName,
+  getInverterCurveYAxisConfig,
+  getSunCurveYAxisConfig,
   getYAxisDomain,
   hasOnlyOneValueForKey,
 } from "./chartUtils";
@@ -75,5 +77,45 @@ describe("hasOnlyOneValueForKey", () => {
 
   it("é falso quando a chave aparece mais de uma vez", () => {
     expect(hasOnlyOneValueForKey([{ a: 1 }, { a: 2 }], "a")).toBe(false);
+  });
+});
+
+describe("getSunCurveYAxisConfig", () => {
+  it("calcula domínio mínimo de [0, 20] com ticks de 5 em 5 para usina de 16 kWp sem geração", () => {
+    const config = getSunCurveYAxisConfig(16, 0);
+    expect(config.domain).toEqual([0, 20]);
+    expect(config.ticks).toEqual([0, 5, 10, 15, 20]);
+  });
+
+  it("mantém domínio de 20 kW para picos dentro da capacidade nominal", () => {
+    const config = getSunCurveYAxisConfig(16, 16.8);
+    expect(config.domain).toEqual([0, 20]);
+    expect(config.ticks).toEqual([0, 5, 10, 15, 20]);
+  });
+
+  it("expande o domínio em múltiplos de 5 quando a potência ultrapassa 20 kW", () => {
+    const config = getSunCurveYAxisConfig(16, 21.5);
+    expect(config.domain).toEqual([0, 25]);
+    expect(config.ticks).toEqual([0, 5, 10, 15, 20, 25]);
+  });
+});
+
+describe("getInverterCurveYAxisConfig", () => {
+  it("calcula domínio padrão de [0, 8] com ticks de 2 em 2 para inversores normais (até 6 kW)", () => {
+    const config = getInverterCurveYAxisConfig(0);
+    expect(config.domain).toEqual([0, 8]);
+    expect(config.ticks).toEqual([0, 2, 4, 6, 8]);
+  });
+
+  it("mantém domínio de 8 kW para inversores em geração máxima (5.8 kW)", () => {
+    const config = getInverterCurveYAxisConfig(5.8);
+    expect(config.domain).toEqual([0, 8]);
+    expect(config.ticks).toEqual([0, 2, 4, 6, 8]);
+  });
+
+  it("expande em múltiplos de 2 caso um inversor ultrapasse 8 kW", () => {
+    const config = getInverterCurveYAxisConfig(8.5);
+    expect(config.domain).toEqual([0, 10]);
+    expect(config.ticks).toEqual([0, 2, 4, 6, 8, 10]);
   });
 });
