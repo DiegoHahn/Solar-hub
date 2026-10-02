@@ -122,13 +122,13 @@ export function EnergyFlowSection({
 
             <div className="mt-4 space-y-2 border-t border-amber-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>⚡ Potência atual:</span>
+                <span>Potência atual:</span>
                 <strong className="text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {telemetry ? `${telemetry.total_power_kw.toFixed(1)} kW` : "—"}
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>💰 Valor gerado:</span>
+                <span>Valor gerado:</span>
                 <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   R$ {(isHoje ? economiaHojeReais : economiaMesReais).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
@@ -173,13 +173,13 @@ export function EnergyFlowSection({
 
             <div className="mt-4 space-y-2 border-t border-blue-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>🔄 Compensado:</span>
+                <span>Compensado:</span>
                 <strong className="text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {mesCompensadoKwh.toLocaleString("pt-BR")} kWh
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>📈 Superávit líquido:</span>
+                <span>Superávit líquido:</span>
                 <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   +{mesSaldoLiquidoKwh.toLocaleString("pt-BR")} kWh
                 </strong>
@@ -218,13 +218,13 @@ export function EnergyFlowSection({
 
             <div className="mt-4 space-y-2 border-t border-emerald-500/20 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>💵 Valor da reserva:</span>
+                <span>Valor da reserva:</span>
                 <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   R$ {reservaTotalReais.toLocaleString("pt-BR")}
                 </strong>
               </div>
               <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
-                <span>📅 Vencimento próx:</span>
+                <span>Vencimento próx:</span>
                 <strong className="text-gray-900 dark:text-gray-100 whitespace-nowrap">
                   {gd?.ProximoSaldoVencer ?? "Próx. ciclo"}
                 </strong>

@@ -353,7 +353,7 @@ export function EnergyBalanceChart({ data }: EnergyBalanceChartProps) {
       </div>
 
       <div className="hidden sm:flex flex-wrap items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-900 text-[11px] text-gray-500 dark:text-gray-400">
-        <span>💡 Injeção &gt; Consumo = Créditos solares gerados para o saldo acumulado</span>
+        <span>Injeção &gt; Consumo = Créditos solares gerados para o saldo acumulado</span>
         <span className="font-medium text-amber-500">Saldo atual: {ultimoSaldo.toLocaleString("pt-BR")} kWh</span>
       </div>
     </Card>

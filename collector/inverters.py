@@ -102,7 +102,7 @@ def queue_offline_telemetry(payload):
     try:
         atomic_write_json(OFFLINE_QUEUE_FILE, queue)
     except Exception as e:
-        print(f" ⚠️ [BUFFER] Erro ao salvar na fila offline: {e}")
+        print(f" [BUFFER] Erro ao salvar na fila offline: {e}")
 
 
 def flush_offline_queue(supabase_url, headers):
@@ -118,7 +118,7 @@ def flush_offline_queue(supabase_url, headers):
         return
 
     print(
-        f" 📦 [SUPABASE] Conexão ativa detectada! Enviando {len(queue)} registro(s) pendente(s) da fila offline..."
+        f" [SUPABASE] Conexão ativa detectada! Enviando {len(queue)} registro(s) pendente(s) da fila offline..."
     )
     remaining = []
     for idx, item in enumerate(queue):
@@ -137,7 +137,7 @@ def flush_offline_queue(supabase_url, headers):
         try:
             atomic_write_json(OFFLINE_QUEUE_FILE, remaining)
             print(
-                f" ⚠️ [SUPABASE] {len(remaining)} registro(s) mantido(s) na fila para o próximo ciclo."
+                f" [SUPABASE] {len(remaining)} registro(s) mantido(s) na fila para o próximo ciclo."
             )
         except Exception:
             pass
@@ -145,7 +145,7 @@ def flush_offline_queue(supabase_url, headers):
         try:
             os.remove(OFFLINE_QUEUE_FILE)
             print(
-                " ✅ [SUPABASE] Todos os registros acumulados offline foram sincronizados com sucesso!"
+                " [SUPABASE] Todos os registros acumulados offline foram sincronizados com sucesso!"
             )
         except OSError:
             atomic_write_json(OFFLINE_QUEUE_FILE, [])
@@ -445,15 +445,15 @@ def push_to_supabase(plant_summary):
         )
         if resp.status_code in [200, 201]:
             print(
-                f" ☁️ [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})"
+                f" [SUPABASE] Telemetria sincronizada na nuvem com sucesso! (Status {resp.status_code})"
             )
             flush_offline_queue(supabase_url, headers)
         else:
-            print(f" ⚠️ [SUPABASE] Aviso ao sincronizar (Status {resp.status_code})")
+            print(f" [SUPABASE] Aviso ao sincronizar (Status {resp.status_code})")
             queue_offline_telemetry(payload)
     except Exception as e:
         print(
-            f" ⚠️ [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local..."
+            f" [SUPABASE] Sem conexao com a nuvem ({type(e).__name__}). Gravando snapshot na fila offline local..."
         )
         queue_offline_telemetry(payload)
 
@@ -546,12 +546,12 @@ def run_collection_cycle():
         try:
             atomic_write_json(LATEST_FILE, plant_summary)
         except Exception as e:
-            print(f" ⚠️ [DISCO] Erro ao gravar latest.json: {e}")
+            print(f" [DISCO] Erro ao gravar latest.json: {e}")
 
         try:
             atomic_write_json(HISTORY_FILE, _HISTORY_IN_MEMORY)
         except Exception as e:
-            print(f" ⚠️ [DISCO] Erro ao gravar history.json: {e}")
+            print(f" [DISCO] Erro ao gravar history.json: {e}")
 
     # Sincroniza automaticamente com o Supabase (Nuvem)
     push_to_supabase(plant_summary)

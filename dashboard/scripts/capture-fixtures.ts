@@ -85,7 +85,7 @@ function saveJson(filename: string, data: unknown, source: unknown = data) {
   const filePath = path.join(FIXTURES_DIR, filename);
   const cleanStr = anonymize(data, source);
   fs.writeFileSync(filePath, cleanStr + "\n", "utf-8");
-  console.log(`✓ Salvo e anonimizado: ${filename}`);
+  console.log(`Salvo e anonimizado: ${filename}`);
 }
 
 async function captureOpenMeteo() {
@@ -134,22 +134,22 @@ async function captureSupabase() {
   const password = process.env.SUPABASE_TEST_PASSWORD || localEnv.SUPABASE_TEST_PASSWORD;
 
   if (!supabaseUrl || !anonKey) {
-    console.warn("⚠️ URL ou Chave do Supabase ausentes. Pulando captura do Supabase.");
+    console.warn("URL ou Chave do Supabase ausentes. Pulando captura do Supabase.");
     return;
   }
 
   if (!email || !password) {
-    console.warn("⚠️ SUPABASE_TEST_EMAIL ou SUPABASE_TEST_PASSWORD ausentes em .env.test.local. Pulando captura do Supabase.");
+    console.warn("SUPABASE_TEST_EMAIL ou SUPABASE_TEST_PASSWORD ausentes em .env.test.local. Pulando captura do Supabase.");
     return;
   }
 
   const supabase = createClient(supabaseUrl, anonKey);
   const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
   if (authError) {
-    console.error("❌ Erro de login no Supabase com usuário de teste:", authError.message);
+    console.error("Erro de login no Supabase com usuário de teste:", authError.message);
     return;
   }
-  console.log("✓ Login com usuário de testes bem-sucedido.");
+  console.log("Login com usuário de testes bem-sucedido.");
 
   console.log("Buscando solar_telemetry...");
   const { data: telemetryRows, error: telError } = await supabase
@@ -263,7 +263,7 @@ async function main() {
   ensureFixturesDir();
   await captureOpenMeteo();
   await captureSupabase();
-  console.log("\n✨ Processo de captura de fixtures concluído!");
+  console.log("\nProcesso de captura de fixtures concluído!");
 }
 
 main().catch((err) => {

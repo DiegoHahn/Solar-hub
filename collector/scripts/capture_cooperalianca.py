@@ -113,7 +113,7 @@ def save_fixture(filename, data):
     out_path = FIXTURES_DIR / filename
     clean_json = anonymize(data)
     out_path.write_text(clean_json + "\n", encoding="utf-8")
-    print(f"  ✓ Salvo e anonimizado: {out_path.relative_to(Path.cwd())}")
+    print(f"  Salvo e anonimizado: {out_path.relative_to(Path.cwd())}")
 
 
 def main():
@@ -121,14 +121,14 @@ def main():
     senha = ENV.get("COOPERALIANCA_SENHA")
 
     if not cpf or not senha or not UCS:
-        print("❌ COOPERALIANCA_CPF, COOPERALIANCA_SENHA ou COOPERALIANCA_UCS ausentes no .env")
+        print("COOPERALIANCA_CPF, COOPERALIANCA_SENHA ou COOPERALIANCA_UCS ausentes no .env")
         sys.exit(1)
 
     headers = portal_headers()
     print("Conectando ao portal da Cooperaliança...")
     auth = login_cooperalianca(cpf, senha, headers)
     if not auth:
-        print("❌ Falha na autenticação.")
+        print("Falha na autenticação.")
         sys.exit(1)
 
     headers["Authorization"] = f"Bearer {auth['Token']}"
@@ -177,7 +177,7 @@ def main():
     )
     save_fixture("BuscaDadosHistoricoGeracaoConsumo.json", consumo_gd)
 
-    print("\n✅ Todas as respostas foram capturadas e anonimizadas com sucesso!")
+    print("\nTodas as respostas foram capturadas e anonimizadas com sucesso!")
 
 
 if __name__ == "__main__":

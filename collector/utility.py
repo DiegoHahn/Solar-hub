@@ -71,12 +71,12 @@ def push_utility_to_supabase(result):
         )
         if resp.status_code in [200, 201]:
             print(
-                f" ☁️ [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})"
+                f" [SUPABASE] Dados da Cooperaliança sincronizados na nuvem com sucesso! (Status {resp.status_code})"
             )
             return True
-        print(f" ⚠️ [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
+        print(f" [SUPABASE] Aviso ao sincronizar concessionária (Status {resp.status_code})")
     except Exception as e:
-        print(f" ⚠️ [SUPABASE] Erro de rede ao sincronizar concessionária: {e}")
+        print(f" [SUPABASE] Erro de rede ao sincronizar concessionária: {e}")
     return False
 
 
@@ -108,10 +108,10 @@ def safe_api_get(url, headers, timeout=12, default=None):
             return r.json().get("Content", default)
         else:
             endpoint_name = url.split("?")[0].split("/")[-1]
-            print(f"    ⚠️ Endpoint {endpoint_name} retornou status {r.status_code}")
+            print(f"    Endpoint {endpoint_name} retornou status {r.status_code}")
     except Exception as e:
         endpoint_name = url.split("?")[0].split("/")[-1]
-        print(f"    ⚠️ Falha de rede ao consultar {endpoint_name}: {e}")
+        print(f"    Falha de rede ao consultar {endpoint_name}: {e}")
     return default
 
 
@@ -145,26 +145,26 @@ def login_cooperalianca(cpf, senha, headers, retry_delays=LOGIN_RETRY_DELAYS):
             if resp.status_code < 500:
                 break
             print(
-                f" ❌ [COOPERALIANCA] Portal indisponivel (Status {resp.status_code}, tentativa {attempt})"
+                f" [COOPERALIANCA] Portal indisponivel (Status {resp.status_code}, tentativa {attempt})"
             )
         except requests.RequestException as e:
-            print(f" ❌ [COOPERALIANCA] Erro de conexao com o portal (tentativa {attempt}): {e}")
+            print(f" [COOPERALIANCA] Erro de conexao com o portal (tentativa {attempt}): {e}")
         if delay is None:
             return None
         time.sleep(delay)
 
     if resp.status_code in [401, 403]:
         print(
-            f" ❌ [COOPERALIANCA] Falha de autenticacao ({resp.status_code}). Verifique se o COOPERALIANCA_TOKEN_EXTERNO no .env expirou."
+            f" [COOPERALIANCA] Falha de autenticacao ({resp.status_code}). Verifique se o COOPERALIANCA_TOKEN_EXTERNO no .env expirou."
         )
         return None
     elif resp.status_code != 200:
-        print(f" ❌ [COOPERALIANCA] Falha ao autenticar (Status {resp.status_code})")
+        print(f" [COOPERALIANCA] Falha ao autenticar (Status {resp.status_code})")
         return None
 
     content = resp.json().get("Content", {})
     if not content.get("Token"):
-        print(" ❌ [COOPERALIANCA] Token JWT nao retornado na resposta da autenticacao.")
+        print(" [COOPERALIANCA] Token JWT nao retornado na resposta da autenticacao.")
         return None
     return content
 
@@ -174,10 +174,10 @@ def sync_cooperalianca(cpf=None, senha=None):
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
 
     if not cpf or not senha:
-        print(" ❌ [COOPERALIANCA] CPF ou Senha não configurados no arquivo .env.")
+        print(" [COOPERALIANCA] CPF ou Senha não configurados no arquivo .env.")
         return None
     if not UCS:
-        print(" ❌ [COOPERALIANCA] COOPERALIANCA_UCS não configurado no arquivo .env.")
+        print(" [COOPERALIANCA] COOPERALIANCA_UCS não configurado no arquivo .env.")
         return None
 
     headers = portal_headers()
@@ -280,7 +280,7 @@ def sync_cooperalianca(cpf=None, senha=None):
             print(f" Dados salvos localmente em: {out_path}")
             print("=======================================================")
         except Exception as e:
-            print(f" ⚠️ [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
+            print(f" [DISCO] Erro ao salvar cooperalianca_latest.json: {e}")
 
     if not push_utility_to_supabase(result):
         return None
@@ -297,7 +297,7 @@ def download_informativo_pdf(
     output_file = output_file or os.path.join(DATA_DIR, "informativo_microgeracao.pdf")
 
     if not cpf or not senha or not uc:
-        print(" ❌ [PDF] CPF, Senha ou UC ausentes para download do informativo.")
+        print(" [PDF] CPF, Senha ou UC ausentes para download do informativo.")
         return None
 
     # Se a competência não for informada, busca a competência mais recente disponível no payload ou arquivo local
@@ -339,11 +339,11 @@ def download_informativo_pdf(
     try:
         resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=12)
         if resp.status_code != 200:
-            print(f" ⚠️ [PDF] Falha na autenticacao para download do PDF: {resp.status_code}")
+            print(f" [PDF] Falha na autenticacao para download do PDF: {resp.status_code}")
             return None
         token = resp.json().get("Content", {}).get("Token")
         if not token:
-            print(" ⚠️ [PDF] Token nao obtido para download do PDF.")
+            print(" [PDF] Token nao obtido para download do PDF.")
             return None
         headers["Authorization"] = f"Bearer {token}"
 
@@ -362,11 +362,11 @@ def download_informativo_pdf(
             return output_file
         else:
             print(
-                f" ⚠️ [PDF] Aviso ao baixar informativo de microgeracao ({r_pdf.status_code}): {r_pdf.text[:100]}"
+                f" [PDF] Aviso ao baixar informativo de microgeracao ({r_pdf.status_code}): {r_pdf.text[:100]}"
             )
             return None
     except Exception as e:
-        print(f" ⚠️ [PDF] Erro de rede ao baixar PDF: {e}")
+        print(f" [PDF] Erro de rede ao baixar PDF: {e}")
         return None
 
 

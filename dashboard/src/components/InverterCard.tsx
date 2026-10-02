@@ -135,7 +135,7 @@ export function InverterCard({
           <div className="text-right">
             {isOverload ? (
               <Badge variant="warning" className="animate-pulse text-[11px] font-semibold">
-                ⚡ {rawPct}% (Pico)
+                {rawPct}% (Pico)
               </Badge>
             ) : (
               <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400">

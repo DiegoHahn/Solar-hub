@@ -148,7 +148,7 @@ export default async function Home() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
                   <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
                 </span>
-                ⚡ Pico Solar Ativo ({capacityPct}%)
+                Pico Solar Ativo ({capacityPct}%)
               </span>
             ) : isGenerating ? (
               <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-500 dark:text-emerald-400">
