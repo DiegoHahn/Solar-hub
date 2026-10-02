@@ -12,7 +12,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Monitoramento](#9-monitoramento-da-telemetria) • [Fluxo de Desenvolvimento](#10-fluxo-de-desenvolvimento)
+[Visão Geral](#1-visão-geral) • [Demonstração](#demonstração) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Monitoramento](#9-monitoramento-da-telemetria) • [Fluxo de Desenvolvimento](#10-fluxo-de-desenvolvimento)
 
 </div>
 
@@ -33,6 +33,24 @@ O projeto resolve o problema de fragmentação de dados em usinas com múltiplos
 * **Automação Contábil GD:** Scraper/integrador automatizado com a concessionária de energia (**Cooperaliança**), extraindo histórico de faturas de 60 meses, extrato detalhado de créditos GD I e GD II e demonstrativo financeiro.
 * **Interface de Alta Fidelidade:** Dashboard em Next.js 16 (App Router + Turbopack), SSR com `@supabase/ssr`, Tailwind CSS, visual Glassmorphism e gráficos interativos com Recharts.
 * **Consultor Energético IA:** Módulo de análise inteligente integrado com o **Google Gemini**, avaliando perdas de eficiência, projeção de economia e saúde dos inversores.
+
+---
+
+## Demonstração
+
+Telas capturadas do [modo demonstração](https://solar-hub-diego-2112.vercel.app/demo), que roda com dados fictícios e abre sem login:
+
+<div align="center">
+  <img src="docs/images/inicio.png" alt="Visão Geral do Dashboard Solar Hub" width="850" />
+</div>
+
+<br />
+
+| Placas e inversores | Cooperativa |
+| :---: | :---: |
+| <img src="docs/images/placas.png" alt="Placas e inversores" width="420" /> | <img src="docs/images/cooperativa.png" alt="Cooperativa" width="420" /> |
+| **Análise e Consultor IA** | **Mobile** |
+| <img src="docs/images/analise.png" alt="Análise Integrada com IA" width="420" /> | <img src="docs/images/mobile-inicio.png" alt="Dashboard Mobile" width="210" /> |
 
 ---
 

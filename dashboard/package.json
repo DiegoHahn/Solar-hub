@@ -15,7 +15,8 @@
     "test:integration": "vitest run --config vitest.integration.config.mts",
     "e2e": "playwright test",
     "db:types": "supabase gen types typescript --project-id edezivabvjpygfbvvfvl > src/lib/database.types.ts",
-    "telemetry:check": "tsx scripts/check-telemetry.ts"
+    "telemetry:check": "tsx scripts/check-telemetry.ts",
+    "screenshots": "tsx scripts/capture-screenshots.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
