@@ -111,7 +111,7 @@ export async function getLatestTelemetry(): Promise<SolarTelemetryRow | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data ? (data as unknown as SolarTelemetryRow) : null;
 }
 
 export async function getLatestUtilityData(): Promise<UtilityDataRow | null> {
@@ -234,7 +234,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
       return [];
     }
 
-    return buildSunCurveGrid((data ?? []) as SunCurveRow[], todayIso, now);
+    return buildSunCurveGrid((data ?? []) as unknown as SunCurveRow[], todayIso, now);
   } catch (err) {
     console.error("Erro ao buscar curva diária do Supabase:", err);
     return [];
@@ -242,7 +242,7 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
 }
 
 export interface DailyGenerationRow {
-  date: string; // YYYY-MM-DD (Brasília)
+  date: string | null; // YYYY-MM-DD (Brasília)
   kwh: number | string | null;
 }
 
@@ -273,6 +273,7 @@ export function mergeDailyGeneration(
   const byDay: Record<string, DailyGenerationEntry> = {};
 
   for (const r of generationRows) {
+    if (!r.date) continue;
     byDay[r.date] = { kwh: Number((Number(r.kwh) || 0).toFixed(1)), isReal: true };
   }
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/database.types";
 
 export interface QuotaState {
   date: string; // YYYY-MM-DD (fuso de Brasília)
@@ -167,7 +168,7 @@ export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
   if (!data?.analysis) return null;
 
   return {
-    data: data.analysis as AdvisorResult,
+    data: data.analysis as unknown as AdvisorResult,
     modelUsed: data.model_used ?? "",
     updatedAt: data.analysis_updated_at ?? "",
   };
@@ -179,7 +180,7 @@ export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string): 
   const { error } = await supabase.from(TABLE).upsert(
     {
       date: getBrasiliaDate(),
-      analysis: data,
+      analysis: data as unknown as Json,
       model_used: modelUsed,
       analysis_updated_at: new Date().toISOString(),
     },

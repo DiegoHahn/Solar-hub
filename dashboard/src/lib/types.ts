@@ -1,3 +1,5 @@
+import type { Database } from "./database.types";
+
 export interface InverterReading {
   id: string;
   name: string;
@@ -59,20 +61,12 @@ export interface InverterMonthlyHistoryRow {
   is_estimated?: boolean | null;
 }
 
-export interface SolarTelemetryRow {
-  id: number;
-  recorded_at: string;
-  plant_name: string;
-  total_nominal_capacity_kw: number;
-  total_power_w: number;
-  total_power_kw: number;
-  total_today_kwh: number;
-  total_lifetime_kwh: number;
-  capacity_factor_pct: number | null;
-  inverters_count: number;
+export type SolarTelemetryRow = Omit<
+  Database["public"]["Tables"]["solar_telemetry"]["Row"],
+  "inverters_data"
+> & {
   inverters_data: InverterReading[];
-  created_at: string;
-}
+};
 
 export interface TarifaReferencia {
   classe: string;
@@ -168,27 +162,23 @@ export interface UnidadeConsumidora {
   };
 }
 
-export interface UtilityDataRow {
-  id: number;
-  updated_at: string;
-  distribuidora: string;
-  titular: string;
-  cpf: string;
+export type UtilityDataRow = Omit<
+  Database["public"]["Tables"]["utility_data"]["Row"],
+  "tarifa_referencia" | "unidades_consumidoras"
+> & {
   tarifa_referencia: TarifaReferencia | null;
   unidades_consumidoras: Record<string, UnidadeConsumidora>;
-  created_at: string;
   /** Código da UC geradora, resolvido em getLatestUtilityData (não existe na tabela) */
   generator_uc?: string | null;
-}
+};
 
 /** Linha da tabela daily_weather: valores brutos da Open-Meteo para um dia (fuso de Brasília). */
-export interface DailyWeatherRow {
-  date: string; // YYYY-MM-DD
-  weather_code: number;
-  temperature_max_c: number;
-  temperature_min_c: number;
-  sunshine_duration_s: number;
-  shortwave_radiation_mj: number;
-  precipitation_mm: number;
+export type DailyWeatherRow = Omit<
+  Database["public"]["Tables"]["daily_weather"]["Row"],
+  "source" | "updated_at"
+> & {
   source: "forecast" | "archive";
-}
+  updated_at?: string;
+};
+
+export type AiAdvisorDailyRow = Database["public"]["Tables"]["ai_advisor_daily"]["Row"];

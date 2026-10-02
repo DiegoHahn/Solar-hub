@@ -1,21 +1,22 @@
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { vi } from "vitest";
+import type { Database } from "@/lib/database.types";
 
-let cachedAuthenticatedClient: SupabaseClient | null = null;
+let cachedAuthenticatedClient: SupabaseClient<Database> | null = null;
 
-export function getAnonClient(): SupabaseClient {
+export function getAnonClient(): SupabaseClient<Database> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+  return createSupabaseClient<Database>(url, key, { auth: { persistSession: false } });
 }
 
-export function getAdminClient(): SupabaseClient {
+export function getAdminClient(): SupabaseClient<Database> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+  return createSupabaseClient<Database>(url, key, { auth: { persistSession: false } });
 }
 
-export async function getAuthenticatedTestClient(): Promise<SupabaseClient> {
+export async function getAuthenticatedTestClient(): Promise<SupabaseClient<Database>> {
   if (cachedAuthenticatedClient) return cachedAuthenticatedClient;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -23,7 +24,7 @@ export async function getAuthenticatedTestClient(): Promise<SupabaseClient> {
   const email = process.env.SUPABASE_TEST_EMAIL!;
   const password = process.env.SUPABASE_TEST_PASSWORD!;
 
-  const client = createSupabaseClient(url, key, { auth: { persistSession: false } });
+  const client = createSupabaseClient<Database>(url, key, { auth: { persistSession: false } });
   if (email && password) {
     const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) {

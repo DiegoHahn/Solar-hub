@@ -76,10 +76,16 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(ai.data?.length ?? 0).toBe(0);
       expect(weather.data?.length ?? 0).toBe(0);
 
-      const insertAttempt = await anon
-        .from("solar_telemetry")
-        .insert({ plant_name: "Ataque Anon" });
-      expect(insertAttempt.error).not.toBeNull();
+      const insertAttempt = await anon.from("solar_telemetry").insert({
+        plant_name: "Tentativa de escrita não autorizada",
+        inverters_count: 1,
+        inverters_data: [],
+        total_lifetime_kwh: 0,
+        total_power_kw: 0,
+        total_power_w: 0,
+        total_today_kwh: 0,
+      });
+      expect(insertAttempt.error?.code).toBe("42501");
 
       const rpcAttempt = await anon.rpc("increment_ai_quota", {
         p_date: SENTINEL_DATE,
@@ -92,12 +98,25 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       const client = await getAuthenticatedTestClient();
 
       const [telInsert, utilInsert] = await Promise.all([
-        client.from("solar_telemetry").insert({ plant_name: "Tentativa de escrita não autorizada" }),
-        client.from("utility_data").insert({ distribuidora: "Tentativa de escrita não autorizada" }),
+        client.from("solar_telemetry").insert({
+          plant_name: "Tentativa de escrita não autorizada",
+          inverters_count: 1,
+          inverters_data: [],
+          total_lifetime_kwh: 0,
+          total_power_kw: 0,
+          total_power_w: 0,
+          total_today_kwh: 0,
+        }),
+        client.from("utility_data").insert({
+          cpf: "000.000.000-00",
+          titular: "Titular Teste",
+          distribuidora: "Tentativa de escrita não autorizada",
+          unidades_consumidoras: {},
+        }),
       ]);
 
-      expect(telInsert.error).not.toBeNull();
-      expect(utilInsert.error).not.toBeNull();
+      expect(telInsert.error?.code).toBe("42501");
+      expect(utilInsert.error?.code).toBe("42501");
     });
   });
 
@@ -172,7 +191,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
         .order("date", { ascending: false })
         .limit(100);
 
-      const dates = (data || []).map((r: { date: string }) => r.date);
+      const dates = (data || []).map((r) => r.date);
       const unique = new Set(dates);
       expect(dates.length).toBe(unique.size);
     });
@@ -185,7 +204,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
         .order("date", { ascending: false })
         .limit(200);
 
-      const pairs = (data || []).map((r: { date: string; inverter_id: string }) => `${r.date}__${r.inverter_id}`);
+      const pairs = (data || []).map((r) => `${r.date}__${r.inverter_id}`);
       const unique = new Set(pairs);
       expect(pairs.length).toBe(unique.size);
     });
