@@ -1,4 +1,4 @@
-# Environment Variables & Secrets
+# Variáveis de ambiente e segredos
 .env
 .env.*
 *.env
@@ -8,40 +8,24 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 .venv/
 venv/
-env/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-.mcp.json
-.claude/
-.agents/
-
-# OS
-Thumbs.db
-Desktop.ini
-.DS_Store
-
-# Temporary scratch logs
-*.log
-
-imagens/
-
-# Configuração local do coletor (IPs e seriais dos inversores)
-collector/config.json
-
-# Local runtime data / dumps
-/data/
-/collector/data/
-!dashboard/src/lib/demo/data/
-# Caches de ferramentas Python
 .pytest_cache/
 .ruff_cache/
 .coverage
 .coverage.*
 htmlcov/
+
+# Editores e sistema operacional
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+*.log
+
+# Configuração local do coletor (IPs e seriais dos inversores) e dados gerados em execução
+collector/config.json
+/data/
+/collector/data/

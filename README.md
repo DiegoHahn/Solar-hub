@@ -58,42 +58,42 @@ Telas capturadas do [modo demonstração](https://solar-hub-diego-2112.vercel.ap
 
 ```mermaid
 flowchart TB
-    subgraph Edge["🏠 Edge Layer (Orange Pi 4 Pro / Linux Daemon 24/7)"]
+    subgraph Edge["Edge: Orange Pi 4 Pro (systemd)"]
         direction TB
-        INV1["☀️ Inversor 1 (Solis 6 kW)\nSolarman V5 Modbus (Porta 8899)"]
-        INV2["☀️ Inversor 2 (GoodWe 5 kW)\nModbus TCP / UDP (Porta 502/8899)"]
-        INV3["☀️ Inversor 3 (GoodWe 5 kW)\nModbus TCP / UDP (Porta 502/8899)"]
+        INV1["Inversor 1 · Solis 6 kW\nSolarman V5 (porta 8899)"]
+        INV2["Inversor 2 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
+        INV3["Inversor 3 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
 
-        COLLECTOR["🤖 collector/inverters.py\n(Ciclo 10m · Daemon Systemd · In-Memory)"]
-        UTILITY["🏢 collector/utility.py\n(Timer Systemd 3x ao dia · JWT Concessionária)"]
-        RETRY_QUEUE[("📦 Fila Offline\n(Buffer Transitório)")]
+        COLLECTOR["collector/inverters.py\nciclo de 10 min"]
+        UTILITY["collector/utility.py\ntimer 7h, 13h e 19h"]
+        RETRY_QUEUE[("Fila offline\noffline_queue.json")]
 
-        INV1 -->|Holding Regs 0..39| COLLECTOR
-        INV2 -->|52 Sensores Modbus| COLLECTOR
-        INV3 -->|52 Sensores Modbus| COLLECTOR
+        INV1 -->|registradores 0..39| COLLECTOR
+        INV2 -->|52 sensores| COLLECTOR
+        INV3 -->|52 sensores| COLLECTOR
 
         COLLECTOR --> RETRY_QUEUE
     end
 
-    subgraph Cloud["☁️ Cloud Layer (Supabase Serverless)"]
-        POSTGRES[("🐘 PostgreSQL Engine\nRow Level Security")]
-        TABLE_TEL["📊 solar_telemetry\n(Snapshot 10m + JSONB Inversores)"]
-        TABLE_UTL["📑 utility_data\n(60 Meses Faturas + Extrato GD)"]
-        AUTH["🔐 Supabase Auth\n(PKCE + JWT SSR Sessions)"]
+    subgraph Cloud["Supabase"]
+        POSTGRES[("PostgreSQL\nRow Level Security")]
+        TABLE_TEL["solar_telemetry\nsnapshot a cada 10 min"]
+        TABLE_UTL["utility_data\nfaturas de 60 meses e extrato GD"]
+        AUTH["Supabase Auth\nsessões SSR"]
 
         POSTGRES --> TABLE_TEL
         POSTGRES --> TABLE_UTL
     end
 
-    subgraph External["🏢 Serviços Externos"]
-        COOP_API["⚡ API Concessionária\n(Useall / Cooperaliança)"]
-        OPEN_METEO["⛅ Open-Meteo API\n(Radiação Solar & Tempo)"]
-        GEMINI["🧠 Google Gemini AI\n(Consultoria Energética)"]
+    subgraph External["Serviços externos"]
+        COOP_API["Portal da Cooperaliança\n(API Useall)"]
+        OPEN_METEO["Open-Meteo\nirradiação e clima"]
+        GEMINI["Google Gemini\nConsultor IA"]
     end
 
-    subgraph Frontend["🌐 Web App (Next.js 16 + Vercel)"]
-        DASH["📱 Portal Solar Hub\n(/, /placas, /combinada, /cooperativa)"]
-        PROXY["🛡️ Route Proxy SSR\n(Sessões & RBAC)"]
+    subgraph Frontend["Vercel: Next.js 16"]
+        DASH["Dashboard\n/, /placas, /cooperativa, /combinada"]
+        PROXY["Proxy\nsessão e lista de acesso"]
     end
 
     COLLECTOR -->|HTTPS REST| TABLE_TEL
@@ -168,8 +168,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 │   └── deploy/
 │       ├── solar-inverters@.service    # Unit systemd do coletor 24/7
 │       ├── solar-utility@.service      # Unit systemd da sincronização da concessionária
-│       ├── solar-utility@.timer        # Agendamento: 7h, 13h e 19h
-│       └── run_*.sh                    # Execução manual com watchdog
+│       └── solar-utility@.timer        # Agendamento: 7h, 13h e 19h
 ├── dashboard/                          # Web: Next.js 16 (App Router)
 │   ├── e2e/                            # Testes E2E (Playwright)
 │   ├── scripts/                        # Captura e anonimização das fixtures de teste
