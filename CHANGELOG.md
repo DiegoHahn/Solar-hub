@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.2...v1.1.0) (2026-10-02)
+
+
+### Funcionalidades
+
+* **ci:** alerta de telemetria parada ([#23](https://github.com/DiegoHahn/Solar-hub/issues/23)) ([0d0a8ec](https://github.com/DiegoHahn/Solar-hub/commit/0d0a8ec036ca3cdb2d364c0e01b272267ffbae2b))
+* **dashboard:** modo demonstração com dados fictícios ([#21](https://github.com/DiegoHahn/Solar-hub/issues/21)) ([b21683d](https://github.com/DiegoHahn/Solar-hub/commit/b21683d9f98d320337c6298131c6cfa9a9b28ac1))
+
+
+### Correções
+
+* **collector:** sincronização da Cooperaliança com novas tentativas e fora do horário instável do portal ([#27](https://github.com/DiegoHahn/Solar-hub/issues/27)) ([b2e5cb1](https://github.com/DiegoHahn/Solar-hub/commit/b2e5cb11d28db02620f10b78a3d8f60598aec6e3))
+* **dashboard:** eixo Y dos gráficos de curva sem rótulos sobrepostos ou cortados ([#26](https://github.com/DiegoHahn/Solar-hub/issues/26)) ([29a6ba0](https://github.com/DiegoHahn/Solar-hub/commit/29a6ba035c661a56cdd27689dffd328914735cc3))
+
 ## [1.0.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.0.1...v1.0.2) (2026-10-01)
 
 
