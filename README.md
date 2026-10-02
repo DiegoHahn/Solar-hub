@@ -89,6 +89,8 @@ flowchart TB
     TABLE_UTL --> DASH
 ```
 
+> As decisões fundamentais de engenharia, arquitetura e seus trade-offs estão documentadas nos [Registros de Decisões de Arquitetura (ADRs)](docs/adr/README.md).
+
 ---
 
 ## 3. Protocolos e Engenharia Reversa IoT
