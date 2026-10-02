@@ -12,7 +12,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Fluxo de Desenvolvimento](#9-fluxo-de-desenvolvimento)
+[Visão Geral](#1-visão-geral) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Monitoramento](#9-monitoramento-da-telemetria) • [Fluxo de Desenvolvimento](#10-fluxo-de-desenvolvimento)
 
 </div>
 
@@ -288,7 +288,20 @@ Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example
 
 ---
 
-## 9. Fluxo de Desenvolvimento
+## 9. Monitoramento da Telemetria
+
+O pipeline inclui vigilância contínua para assegurar que a geração solar e a sincronização com a concessionária permaneçam ativas:
+
+* **Checagem periódica:** O workflow `.github/workflows/monitor.yml` executa a cada 30 minutos em horário diurno (06h às 19h BRT / 09h às 22h UTC) via cron e sob demanda (`workflow_dispatch`).
+* **Regras de integridade:**
+  * **Telemetria Solar (`solar_telemetry`):** Alerta se o registro mais recente tiver mais de 30 minutos durante o dia. No período noturno, a verificação entra em repouso automaticamente, evitando falsos alertas enquanto os inversores estão desligados.
+  * **Concessionária (`utility_data`):** Alerta se a sincronização diária de faturas e balanço energético tiver mais de 26 horas de atraso.
+* **Notificação nativa:** Qualquer atraso dispara falha no job do GitHub Actions, gerando notificação imediata por e-mail ao proprietário do repositório sem necessidade de serviços externos.
+* **Execução sob demanda:** O script pode ser disparado localmente com `npm run telemetry:check` a partir do diretório `dashboard/`.
+
+---
+
+## 10. Fluxo de Desenvolvimento
 
 O repositório segue o GitHub Flow: toda mudança nasce em uma branch curta e entra no `main` por pull request, com CI obrigatório e squash merge; o `main` protegido é publicado automaticamente pela Vercel. Os commits seguem Conventional Commits, e o [release-please](https://github.com/googleapis/release-please) gera o `CHANGELOG.md`, as tags e as releases com versionamento semântico. Detalhes em [`CONTRIBUTING.md`](CONTRIBUTING.md).
 

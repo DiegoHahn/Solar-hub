@@ -1,0 +1,38 @@
+name: Monitoramento de Telemetria
+
+on:
+  schedule:
+    # A cada 30 minutos entre 09:00 e 22:59 UTC (06:00 às 19:59 BRT - horário de geração solar)
+    - cron: '*/30 9-22 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: monitor-telemetry
+  cancel-in-progress: true
+
+jobs:
+  check-telemetry:
+    name: Verificar Atualização da Telemetria
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
+      SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar verificação de saúde da telemetria
+        run: npm run telemetry:check
