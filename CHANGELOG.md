@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.1...v1.2.2) (2026-10-06)
+
+
+### Bug Fixes
+
+* **deps:** bump sharp to 0.35.5 and restrict monitor workflow permissions ([#16](https://github.com/DiegoHahn/Solar-hub/issues/16)) ([056fc41](https://github.com/DiegoHahn/Solar-hub/commit/056fc4162160a8a97801989716b860fa4918253f))
+
 ## [1.2.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.0...v1.2.1) (2026-10-06)
 
 
