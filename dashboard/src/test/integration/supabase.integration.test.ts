@@ -11,7 +11,7 @@ import {
   saveDailyWeather,
 } from "@/lib/queries";
 import {
-  fallbackAdvisorAnalysis,
+  getFallbackAdvisorAnalysis,
   getAdvisorCache,
   incrementQuota,
   saveAdvisorCache,
@@ -67,7 +67,7 @@ describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () =>
         anon.from("daily_weather").select("date").limit(1),
       ]);
 
-      // RLS restringe SELECT apenas a authenticated: anon recebe vazio ou erro
+      // RLS only allows SELECT for authenticated users: anon gets an empty result or an error
       expect(tel.data?.length ?? 0).toBe(0);
       expect(util.data?.length ?? 0).toBe(0);
       expect(gen.data?.length ?? 0).toBe(0);
@@ -254,12 +254,12 @@ describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () =>
       vi.setSystemTime(new Date(`${SENTINEL_DATE}T15:00:00Z`));
 
       try {
-        await saveAdvisorCache(fallbackAdvisorAnalysis, "gemini-3.8-flash");
+        await saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash");
         const cached = await getAdvisorCache();
 
         expect(cached).not.toBeNull();
         expect(cached?.modelUsed).toBe("gemini-3.8-flash");
-        expect(cached?.data.daily.summary).toBe(fallbackAdvisorAnalysis.daily.summary);
+        expect(cached?.data.daily.summary).toBe(getFallbackAdvisorAnalysis("pt-BR").daily.summary);
       } finally {
         vi.useRealTimers();
       }

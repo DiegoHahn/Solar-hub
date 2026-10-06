@@ -67,7 +67,7 @@ describe("GET /auth/callback", () => {
   it("redirects to login with error if exchangeCodeForSession fails", async () => {
     mockExchangeCode.mockResolvedValueOnce({
       data: null,
-      error: new Error("Código inválido"),
+      error: new Error("Invalid code"),
     });
 
     const req = new Request("http://localhost:3000/auth/callback?code=invalid-code");

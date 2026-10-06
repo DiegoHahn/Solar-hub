@@ -13,18 +13,18 @@ import { getIcaraWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
   it.each([
-    [0, "Céu Limpo", "sun", "clearSky"],
-    [1, "Ensolarado", "sun", "sunny"],
-    [2, "Parcialmente Nublado", "cloud-sun", "partlyCloudy"],
-    [3, "Nublado / Encoberto", "cloud", "overcast"],
-    [45, "Nevoeiro", "cloud", "foggy"],
-    [53, "Garoa / Chuvisco", "rain", "drizzle"],
-    [63, "Chuva Contínua", "rain", "continuousRain"],
-    [81, "Pancadas de Chuva", "rain", "rainShowers"],
-    [95, "Tempestade", "storm", "thunderstorm"],
-    [71, "Variação de Nuvens", "cloud-sun", "cloudVariation"],
-  ])("code %d -> %s (%s, key: %s)", (code, condition, icon, conditionKey) => {
-    expect(parseWmoCode(code)).toEqual({ condition, icon, conditionKey });
+    [0, "clearSky", "sun"],
+    [1, "sunny", "sun"],
+    [2, "partlyCloudy", "cloud-sun"],
+    [3, "overcast", "cloud"],
+    [45, "foggy", "cloud"],
+    [53, "drizzle", "rain"],
+    [63, "continuousRain", "rain"],
+    [81, "rainShowers", "rain"],
+    [95, "thunderstorm", "storm"],
+    [71, "cloudVariation", "cloud-sun"],
+  ])("code %d -> %s (%s)", (code, conditionKey, icon) => {
+    expect(parseWmoCode(code)).toEqual({ conditionKey, icon });
   });
 });
 
@@ -111,19 +111,18 @@ describe("getIcaraWeatherData", () => {
     const [jun27, jun28, sep24, today] = result;
 
     // Without recorded generation: estimate = 16 kWp * HSP * 0.81 (7.2 MJ = 2 HSP)
-    expect(jun27).toMatchObject({ condition: "Chuva Contínua", solarRadiationHsp: 2, estimatedKwh: 25.9, isReal: false });
+    expect(jun27).toMatchObject({ conditionKey: "continuousRain", solarRadiationHsp: 2, estimatedKwh: 25.9, isReal: false });
     // Estimated closure: uses recorded kWh, but without actual measurement flag
     expect(jun28).toMatchObject({ estimatedKwh: 30, isReal: false, realKwh: undefined });
     expect(sep24).toMatchObject({
-      dayOfWeek: "Qui",
-      formattedDate: "24/09",
+      isToday: false,
       sunshineHours: 10,
       solarRadiationHsp: 5,
       estimatedKwh: 71.3,
       isReal: true,
       realKwh: 71.3,
     });
-    expect(today.formattedDate).toBe("Hoje");
+    expect(today.isToday).toBe(true);
   });
 
   it("with stored history, only refetches recent window and rewrites only changed days", async () => {
@@ -141,7 +140,7 @@ describe("getIcaraWeatherData", () => {
 
     const saved = vi.mocked(saveDailyWeather).mock.calls[0][0];
     expect(saved.map((r) => r.date)).toEqual(["2026-09-25"]);
-    expect(result[result.length - 1]).toMatchObject({ date: "2026-09-25", formattedDate: "Hoje" });
+    expect(result[result.length - 1]).toMatchObject({ date: "2026-09-25", isToday: true });
     expect(result).toHaveLength(olderDates().length + 2);
   });
 
@@ -250,7 +249,7 @@ describe("toDailyWeather", () => {
     expect(weather.estimatedKwh).toBe(64.8);
     expect(weather.isReal).toBe(false);
     expect(weather.realKwh).toBeUndefined();
-    expect(weather.formattedDate).toBe("25/09");
+    expect(weather.isToday).toBe(false);
   });
 
   it("uses actual measured value when reported generation exists", () => {
@@ -260,7 +259,7 @@ describe("toDailyWeather", () => {
     expect(weather.estimatedKwh).toBe(72.5);
     expect(weather.isReal).toBe(true);
     expect(weather.realKwh).toBe(72.5);
-    expect(weather.formattedDate).toBe("Hoje");
+    expect(weather.isToday).toBe(true);
   });
 });
 

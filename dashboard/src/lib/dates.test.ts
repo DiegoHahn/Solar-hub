@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brasiliaClock, brasiliaIsoDaysAgo, toBrasiliaIsoDate } from "./dates";
+import { brasiliaClock, brasiliaIsoDaysAgo, minutesSince, toBrasiliaIsoDate } from "./dates";
 
 describe("toBrasiliaIsoDate", () => {
   it("converts UTC date to correct day in Brasília timezone", () => {
@@ -52,5 +52,19 @@ describe("brasiliaIsoDaysAgo", () => {
 
   it("calculates retroactive days across year turnover", () => {
     expect(brasiliaIsoDaysAgo(4, base)).toBe("2025-12-30");
+  });
+});
+
+describe("minutesSince", () => {
+  const NOW = new Date("2026-09-25T15:00:00-03:00").getTime();
+  const minutesAgo = (min: number) => new Date(NOW - min * 60_000).toISOString();
+
+  it("rounds the difference to whole minutes", () => {
+    expect(minutesSince(minutesAgo(12.4), NOW)).toBe(12);
+    expect(minutesSince(minutesAgo(12.6), NOW)).toBe(13);
+  });
+
+  it("returns a negative value for future dates", () => {
+    expect(minutesSince(minutesAgo(-5), NOW)).toBe(-5);
   });
 });

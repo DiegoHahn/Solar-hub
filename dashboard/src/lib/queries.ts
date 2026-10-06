@@ -27,7 +27,7 @@ function splitCoopDate(raw: string | undefined): string[] {
 export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeConsumidora {
   const uc: UnidadeConsumidora = { ...raw };
   const hist12 = uc.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal;
-  const extrato = uc.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal;
+  const gdStatement = uc.extrato_historico_gd?.RetornoDadosHistoricoGeracaoKwhNormal;
 
   if (!uc.balanco_energetico && hist12) {
     const rawBalanco = hist12.map((i) => {
@@ -54,8 +54,8 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
     uc.balanco_energetico = rawBalanco;
   }
 
-  if (!uc.extrato_gd && extrato) {
-    uc.extrato_gd = extrato.map((e) => {
+  if (!uc.extrato_gd && gdStatement) {
+    uc.extrato_gd = gdStatement.map((e) => {
       const isInjetada = (e.Operacao || "").includes("Energia injetada");
       const rawDate = e.MesGeracao?.startsWith("01/01/0001") ? e.MesFaturamento : e.MesGeracao;
       const parts = splitCoopDate(rawDate || e.MesFaturamento);
@@ -74,12 +74,12 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
   if (!gd || Object.keys(gd).length === 0 || !gd.ValorProximoSaldoVencer) {
     // Extracts latest balance from GD extract or 12-month chart
     const histItems = hist12 || [];
-    const fallbackSaldo = extrato?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo ?? 9900;
+    const fallbackBalance = gdStatement?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo ?? 9900;
 
     uc.geracao_distribuida = {
       ...gd,
-      ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer || fallbackSaldo,
-      ProximoSaldoVencer: gd?.ProximoSaldoVencer ? gd.ProximoSaldoVencer.split(" ")[0] : "Próx. ciclo",
+      ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer || fallbackBalance,
+      ProximoSaldoVencer: gd?.ProximoSaldoVencer ? gd.ProximoSaldoVencer.split(" ")[0] : undefined,
       PotenciaInstalada: gd?.PotenciaInstalada || NOMINAL_CAPACITY_KW,
       PercentualFatUcGeradora: gd?.PercentualFatUcGeradora || 100,
     };
@@ -90,15 +90,15 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
   // Normalizes resumo_ultima_fatura if portal endpoint returned empty
   const resumo = uc.resumo_ultima_fatura;
   if (!resumo || Object.keys(resumo).length === 0 || resumo.ValorFatura === undefined) {
-    const faturas = uc.historico_faturas_60_meses || [];
-    const lastFatura = faturas[faturas.length - 1];
-    if (lastFatura) {
-      const anoMesParts = splitCoopDate(lastFatura.AnoMes);
+    const bills = uc.historico_faturas_60_meses || [];
+    const lastBill = bills[bills.length - 1];
+    if (lastBill) {
+      const yearMonthParts = splitCoopDate(lastBill.AnoMes);
       uc.resumo_ultima_fatura = {
-        ValorFatura: lastFatura.ValorTotal ?? 0,
-        KwhReal: lastFatura.ConsumoFaturado ?? 0,
-        AnoMes: anoMesParts.length >= 3 ? `${anoMesParts[1]}/${anoMesParts[2]}` : "—",
-        DataLProxima: lastFatura.Vcto ? lastFatura.Vcto.split(" ")[0] : "—",
+        ValorFatura: lastBill.ValorTotal ?? 0,
+        KwhReal: lastBill.ConsumoFaturado ?? 0,
+        AnoMes: yearMonthParts.length >= 3 ? `${yearMonthParts[1]}/${yearMonthParts[2]}` : "—",
+        DataLProxima: lastBill.Vcto ? lastBill.Vcto.split(" ")[0] : "—",
       };
     }
   } else {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/database.types";
+import type { Locale } from "@/i18n";
 
 export interface QuotaState {
   date: string; // YYYY-MM-DD (Brasília timezone)
@@ -32,7 +33,7 @@ export interface AdvisorResult {
   };
 }
 
-export const fallbackAdvisorAnalysis: AdvisorResult = {
+const fallbackAnalysisPtBR: AdvisorResult = {
   daily: {
     summary:
       "A produção da usina refletiu diretamente as condições atmosféricas do dia em Içara/SC. A irradiação solar captada pelos módulos supriu as cargas essenciais da residência e direcionou o superávit para a rede da Cooperaliança, mantendo a operação equilibrada frente ao potencial nominal de 16 kWp.",
@@ -82,6 +83,59 @@ export const fallbackAdvisorAnalysis: AdvisorResult = {
     ],
   },
 };
+
+const fallbackAnalysisEn: AdvisorResult = {
+  daily: {
+    summary:
+      "Plant output followed the day's weather in Içara/SC. The solar irradiation captured by the modules covered the home's essential loads and sent the surplus to the Cooperaliança grid, keeping operation balanced against the 16 kWp nominal capacity.",
+    recommendations: [
+      {
+        title: "Make the Most of the Sun",
+        description:
+          "Run high-power appliances during the hours of strongest sunlight to maximize self-sufficiency.",
+        icon: "flashlight",
+      },
+      {
+        title: "Injection and Offsetting",
+        description:
+          "Surplus generation is injected into the Cooperaliança grid and credited to offset nighttime consumption.",
+        icon: "dollar",
+      },
+      {
+        title: "Operational Status",
+        description: "All three inverters ran steadily with no grid anomalies.",
+        icon: "tools",
+      },
+    ],
+  },
+  monthly: {
+    summary:
+      "The monthly energy balance remains solid, backed by a large credit reserve with Cooperaliança (over 9,000 kWh). This reserve provides energy security and financial stability through periods of lower sunlight.",
+    recommendations: [
+      {
+        title: "Strategic Credit Reserve",
+        description:
+          "The credit balance at Cooperaliança comfortably covers consumption in the months with less sunlight.",
+        icon: "shield",
+      },
+      {
+        title: "Financial Return",
+        description: "The plant's self-sufficiency steadily and substantially reduces the monthly energy bill.",
+        icon: "dollar",
+      },
+      {
+        title: "Preventive Maintenance",
+        description: "Periodic visual inspection of the modules preserves their full capture and generation capacity.",
+        icon: "tools",
+      },
+    ],
+  },
+};
+
+/** Static analysis shown when no Gemini model responds and there is no cached analysis for today. */
+export function getFallbackAdvisorAnalysis(locale: Locale): AdvisorResult {
+  return locale === "en" ? fallbackAnalysisEn : fallbackAnalysisPtBR;
+}
 
 const TABLE = "ai_advisor_daily";
 

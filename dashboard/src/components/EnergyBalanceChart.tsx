@@ -24,7 +24,7 @@ import { useI18n, formatNumber, type Locale } from "@/i18n";
 
 interface EnergyBalanceChartProps {
   data: BalancoEnergeticoMes[];
-  saldoAtual?: number;
+  currentBalanceKwh?: number;
 }
 
 interface CustomTooltipProps {
@@ -113,7 +113,7 @@ export function EnergyBalanceTooltip({
   );
 }
 
-export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceChartProps) {
+export function EnergyBalanceChart({ data: rawData, currentBalanceKwh }: EnergyBalanceChartProps) {
   const { t, locale } = useI18n();
   const isMounted = useIsClient();
   const [viewMode, setViewMode] = useState<"comparison" | "net">("comparison");
@@ -139,8 +139,8 @@ export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceC
   // 12-month calculations
   const totalInjetado = data.reduce((acc, d) => acc + d.injetado_kwh, 0);
   const totalCompensado = data.reduce((acc, d) => acc + d.compensado_kwh, 0);
-  const saldoLiquidoAno = totalInjetado - totalCompensado;
-  const ultimoSaldo = saldoAtual !== undefined ? saldoAtual : (data[data.length - 1]?.saldo_kwh ?? 0);
+  const yearNetBalanceKwh = totalInjetado - totalCompensado;
+  const latestBalanceKwh = currentBalanceKwh !== undefined ? currentBalanceKwh : (data[data.length - 1]?.saldo_kwh ?? 0);
 
   return (
     <Card className="p-4 md:p-6 space-y-4">
@@ -262,7 +262,7 @@ export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceC
             {t.utility.netSurplus}
           </span>
           <p className="mt-0.5 font-bold tabular-nums text-gray-900 dark:text-gray-100">
-            +{formatNumber(saldoLiquidoAno, locale)} <span className="font-normal text-[10px] text-gray-400">kWh</span>
+            +{formatNumber(yearNetBalanceKwh, locale)} <span className="font-normal text-[10px] text-gray-400">kWh</span>
           </p>
         </div>
 
@@ -272,7 +272,7 @@ export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceC
             {t.utility.currentBalanceLabel}
           </span>
           <p className="mt-0.5 font-bold tabular-nums text-amber-500">
-            {formatNumber(ultimoSaldo, locale)} <span className="font-normal text-[10px] text-gray-400">kWh</span>
+            {formatNumber(latestBalanceKwh, locale)} <span className="font-normal text-[10px] text-gray-400">kWh</span>
           </p>
         </div>
       </div>
@@ -419,7 +419,7 @@ export function EnergyBalanceChart({ data: rawData, saldoAtual }: EnergyBalanceC
       <div className="hidden sm:flex flex-wrap items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-900 text-[11px] text-gray-500 dark:text-gray-400">
         <span>{t.utility.balanceFooterNote}</span>
         <span className="font-medium text-amber-500">
-          {t.utility.currentBalanceFooter.replace("{balance}", formatNumber(ultimoSaldo, locale))}
+          {t.utility.currentBalanceFooter.replace("{balance}", formatNumber(latestBalanceKwh, locale))}
         </span>
       </div>
     </Card>

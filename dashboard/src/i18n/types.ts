@@ -8,6 +8,8 @@ export interface Translations {
   common: {
     today: string;
     yesterday: string;
+    days: string;
+    hoursPerDay: string;
     loading: string;
     error: string;
     refresh: string;
@@ -410,9 +412,6 @@ export interface Translations {
     rainShowers: string;
     thunderstorm: string;
     cloudVariation: string;
-    heavyRain: string;
-    drizzleOpenings: string;
-    sunAndClouds: string;
   };
   auth: {
     title: string;

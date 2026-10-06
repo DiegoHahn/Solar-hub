@@ -35,7 +35,7 @@ export async function getAuthenticatedTestClient(): Promise<SupabaseClient<Datab
   return client;
 }
 
-// Intercepta a fiação de cookies do Next.js e direciona para o cliente real autenticado do Supabase
+// Routes the Next.js cookie plumbing to the real authenticated Supabase client
 vi.mock("@/lib/supabase/server", () => {
   return {
     createClient: async () => {

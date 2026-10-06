@@ -14,7 +14,7 @@ import { InvertersGroupCard } from "@/components/InvertersGroupCard";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { SunCurveChart } from "@/components/SunCurveChart";
 import { getDataSource } from "@/lib/dataSource";
-import { minutesSince } from "@/lib/formatRelativeTime";
+import { minutesSince } from "@/lib/dates";
 import { getGeneratorUc, maskUcCode } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
@@ -55,11 +55,11 @@ export default async function Home() {
     ds.getIcaraWeatherData(),
   ]);
 
-  const saldoCreditos = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;
+  const creditBalanceKwh = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;
 
-  const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+  const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente ?? "Bandeira verde";
-  const saldoReais = Math.round(saldoCreditos * tarifaKwh);
+  const creditBalanceBrl = Math.round(creditBalanceKwh * tariffPerKwh);
 
   const capacityKw = telemetry?.total_nominal_capacity_kw ?? 16.0;
   const currentPowerKw = telemetry?.total_power_kw ?? 0.0;
@@ -72,7 +72,7 @@ export default async function Home() {
   const { isDaytime } = brasiliaClock();
 
   const geradoHojeKwh = telemetry?.total_today_kwh ?? 0.0;
-  const economiaHojeReais = formatCurrency(geradoHojeKwh * tarifaKwh, locale);
+  const todaySavingsBrl = formatCurrency(geradoHojeKwh * tariffPerKwh, locale);
 
   const onlineInvertersCount =
     telemetry?.inverters_data?.filter((i) => i.status === "online").length ?? 0;
@@ -272,16 +272,16 @@ export default async function Home() {
           label={t.overview.generationToday}
           value={formatNumber(geradoHojeKwh, locale, { minimumFractionDigits: 1 })}
           unit={t.common.kwh}
-          hint={interpolate(t.overview.savingsOf, { val: economiaHojeReais })}
+          hint={interpolate(t.overview.savingsOf, { val: todaySavingsBrl })}
           accent="amber"
         />
 
         <StatCard
           icon={RiWallet3Line}
           label={t.overview.accumulatedBalance}
-          value={formatNumber(saldoCreditos, locale)}
+          value={formatNumber(creditBalanceKwh, locale)}
           unit={t.common.kwh}
-          hint={`~${formatCurrency(saldoReais, locale)} ${t.overview.inReserve}`}
+          hint={`~${formatCurrency(creditBalanceBrl, locale)} ${t.overview.inReserve}`}
           accent="emerald"
         />
 
@@ -300,7 +300,7 @@ export default async function Home() {
         <StatCard
           icon={RiBuilding2Line}
           label={t.overview.currentTariff}
-          value={formatCurrency(tarifaKwh, locale)}
+          value={formatCurrency(tariffPerKwh, locale)}
           unit={`/${t.common.kwh}`}
           hint={`${translateBandeira(bandeira, t)} · ${t.utility.ruralSubgroup}`}
           accent="violet"

@@ -13,7 +13,7 @@ describe("EnergyBalanceChart", () => {
   const normalized = normalizeUnidadeConsumidora({
     ...utilityFixture.unidades_consumidoras[genCode as keyof typeof utilityFixture.unidades_consumidoras],
   } as unknown as UnidadeConsumidora);
-  const balanco = normalized.balanco_energetico!;
+  const balance = normalized.balanco_energetico!;
 
   it("renders nothing if data array is empty", () => {
     const { container } = render(<EnergyBalanceChart data={[]} />);
@@ -21,7 +21,7 @@ describe("EnergyBalanceChart", () => {
   });
 
   it("renders header, consolidated KPIs, and toggle tabs", () => {
-    render(<EnergyBalanceChart data={balanco} />);
+    render(<EnergyBalanceChart data={balance} />);
 
     expect(screen.getByRole("heading", { name: new RegExp(ptBR.utility.energyBalanceTitle, "i") })).toBeInTheDocument();
     expect(screen.getByText(ptBR.utility.last12BilledMonths)).toBeInTheDocument();
@@ -31,7 +31,7 @@ describe("EnergyBalanceChart", () => {
   });
 
   it("allows toggling between 'Injeção vs Rede' and 'Líquido (±)' tabs", () => {
-    render(<EnergyBalanceChart data={balanco} />);
+    render(<EnergyBalanceChart data={balance} />);
 
     const netTab = screen.getByRole("button", { name: ptBR.utility.netTab });
     fireEvent.click(netTab);
@@ -42,8 +42,8 @@ describe("EnergyBalanceChart", () => {
     expect(comparisonTab).toHaveClass("bg-white");
   });
 
-  it("displays provided saldoAtual in header and footer with priority", () => {
-    render(<EnergyBalanceChart data={balanco} saldoAtual={9900} />);
+  it("displays provided currentBalanceKwh in header and footer with priority", () => {
+    render(<EnergyBalanceChart data={balance} currentBalanceKwh={9900} />);
     expect(screen.getByText("9.900")).toBeInTheDocument();
     expect(screen.getByText("Saldo atual: 9.900 kWh")).toBeInTheDocument();
   });

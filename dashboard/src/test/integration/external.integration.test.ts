@@ -47,11 +47,11 @@ describe("External API Integration — Real Open-Meteo", () => {
     expect(weather.length).toBeGreaterThanOrEqual(80);
 
     const today = weather[weather.length - 1];
-    expect(today.formattedDate).toBe("Hoje");
+    expect(today.isToday).toBe(true);
     expect(typeof today.solarRadiationHsp).toBe("number");
     expect(today.solarRadiationHsp).toBeGreaterThanOrEqual(0);
     expect(typeof today.estimatedKwh).toBe("number");
-    expect(today.condition).toBeDefined();
+    expect(today.conditionKey).toBeDefined();
     expect(today.icon).toBeDefined();
   });
 });

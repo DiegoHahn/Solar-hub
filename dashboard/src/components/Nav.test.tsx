@@ -61,8 +61,8 @@ describe("Nav", () => {
     const homeLinks = screen.getAllByRole("link", { name: /Visão Geral|Início/i });
     expect(homeLinks.length).toBeGreaterThan(0);
 
-    const placasLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
-    expect(placasLinks.length).toBeGreaterThan(0);
+    const panelsLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
+    expect(panelsLinks.length).toBeGreaterThan(0);
 
     const coopLinks = screen.getAllByRole("link", { name: /Cooperativa/i });
     expect(coopLinks.length).toBeGreaterThan(0);
@@ -75,9 +75,9 @@ describe("Nav", () => {
     currentPathname = "/placas";
     render(<Nav />);
 
-    const placasLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
+    const panelsLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
     // On desktop nav, active item gets text-amber-500
-    expect(placasLinks[0]).toHaveClass("text-amber-500");
+    expect(panelsLinks[0]).toHaveClass("text-amber-500");
   });
 
   it("displays authenticated user email", async () => {

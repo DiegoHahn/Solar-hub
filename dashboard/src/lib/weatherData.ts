@@ -18,8 +18,6 @@ const PERFORMANCE_RATIO = 0.81;
 const DAILY_FIELDS =
   "weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum";
 
-const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-
 export interface OpenMeteoDaily {
   time: string[];
   weather_code: (number | null)[];
@@ -158,9 +156,8 @@ export function toDailyWeather(
   todayIso: string,
   generation: DailyGenerationEntry | undefined,
 ): DailyWeather {
-  const [year, month, day] = row.date.split("-");
   const code = Number(row.weather_code);
-  const { condition, conditionKey, icon } = parseWmoCode(code);
+  const { conditionKey, icon } = parseWmoCode(code);
   // 1 MJ/m² = 1/3.6 kWh/m² (Peak Sun Hours / HSP)
   const hsp = Number((Number(row.shortwave_radiation_mj) / 3.6).toFixed(2));
   const kwh = Number((generation ? generation.kwh : NOMINAL_KWP * hsp * PERFORMANCE_RATIO).toFixed(1));
@@ -168,10 +165,8 @@ export function toDailyWeather(
 
   return {
     date: row.date,
-    dayOfWeek: dayNames[new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay()],
-    formattedDate: row.date === todayIso ? "Hoje" : `${day}/${month}`,
+    isToday: row.date === todayIso,
     weatherCode: code,
-    condition,
     conditionKey,
     icon,
     tempMax: Number(row.temperature_max_c),

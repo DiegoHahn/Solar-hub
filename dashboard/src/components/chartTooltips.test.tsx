@@ -7,6 +7,7 @@ import { GenerationTooltip } from "./GenerationBarChart";
 import { WeatherTooltip } from "./WeatherEfficiencySection";
 import { buildSunCurveGrid, normalizeUnidadeConsumidora, type SunCurveRow } from "@/lib/queries";
 import { fallbackDailyWeather } from "@/lib/weather";
+import { ptBR } from "@/i18n/locales/pt-BR";
 import type { UnidadeConsumidora } from "@/lib/types";
 import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
 import utilityDataFixture from "../test/fixtures/utility-data.json";
@@ -17,10 +18,10 @@ const noonCurve = buildSunCurveGrid(
   new Date("2026-09-29T22:00:00-03:00"),
 );
 const sunPoint = noonCurve.reduce((max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max));
-const balanco = normalizeUnidadeConsumidora(
+const balance = normalizeUnidadeConsumidora(
   utilityDataFixture.unidades_consumidoras["UC-GERADORA"] as unknown as UnidadeConsumidora,
 ).balanco_energetico!;
-const balancoMes = balanco[balanco.length - 1];
+const balanceMonth = balance[balance.length - 1];
 const weatherDay = fallbackDailyWeather[0];
 
 describe("chart tooltips", () => {
@@ -70,11 +71,11 @@ describe("chart tooltips", () => {
   it("energy balance: displays month and injection and compensation values", () => {
     const onActivePoint = vi.fn();
     const { container } = render(
-      <EnergyBalanceTooltip active payload={[{ payload: balancoMes }]} onActivePoint={onActivePoint} />,
+      <EnergyBalanceTooltip active payload={[{ payload: balanceMonth }]} onActivePoint={onActivePoint} />,
     );
 
-    expect(container.textContent).toContain(balancoMes.mes.split("/")[1]);
-    expect(onActivePoint).toHaveBeenCalledWith(balancoMes);
+    expect(container.textContent).toContain(balanceMonth.mes.split("/")[1]);
+    expect(onActivePoint).toHaveBeenCalledWith(balanceMonth);
     expect(render(<EnergyBalanceTooltip active={false} />).container.firstChild).toBeNull();
   });
 
@@ -98,8 +99,8 @@ describe("chart tooltips", () => {
       <WeatherTooltip active payload={[{ payload: weatherDay }]} onActivePoint={onActivePoint} renderIcon={renderIcon} />,
     );
 
-    expect(container.textContent).toContain(weatherDay.formattedDate);
-    expect(container.textContent).toContain(weatherDay.condition);
+    expect(container.textContent).toContain("28/08");
+    expect(container.textContent).toContain(ptBR.weather[weatherDay.conditionKey]);
     expect(getByTestId("icone")).toBeInTheDocument();
     expect(onActivePoint).toHaveBeenCalledWith(weatherDay);
   });

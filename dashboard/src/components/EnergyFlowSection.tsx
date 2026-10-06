@@ -32,20 +32,20 @@ export function EnergyFlowSection({
   const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
   const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
-  const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
-  const saldoTotalAcumuladoKwh = gd?.ValorProximoSaldoVencer ?? 0;
-  const reservaTotalReais = Math.round(saldoTotalAcumuladoKwh * tarifaKwh);
+  const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+  const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? 0;
+  const creditReserveBrl = Math.round(creditBalanceKwh * tariffPerKwh);
 
   // Today's inverter telemetry data
   const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
-  const todaySavingsReais = todayGenerationKwh * tarifaKwh;
+  const todaySavingsBrl = todayGenerationKwh * tariffPerKwh;
 
   // Monthly data (last invoice / Cooperaliança history)
-  const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
-  const mesCompensadoKwh = lastMonthItem?.kwhCreditado ?? 0;
-  const mesSaldoLiquidoKwh = mesInjetadoKwh - mesCompensadoKwh;
-  const geracaoMesEstimadaOuReal = monthSolarKwh > 0 ? monthSolarKwh : mesInjetadoKwh;
-  const economiaMesReais = mesInjetadoKwh * tarifaKwh;
+  const monthInjectedKwh = lastMonthItem?.KwhGerado ?? 0;
+  const monthCompensatedKwh = lastMonthItem?.kwhCreditado ?? 0;
+  const monthNetBalanceKwh = monthInjectedKwh - monthCompensatedKwh;
+  const monthGenerationKwh = monthSolarKwh > 0 ? monthSolarKwh : monthInjectedKwh;
+  const monthSavingsBrl = monthInjectedKwh * tariffPerKwh;
 
   const isToday = timeframe === "today";
 
@@ -119,7 +119,7 @@ export function EnergyFlowSection({
 
           <div className="mt-4">
             <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
-              {formatNumber(isToday ? todayGenerationKwh : geracaoMesEstimadaOuReal, locale, {
+              {formatNumber(isToday ? todayGenerationKwh : monthGenerationKwh, locale, {
                 minimumFractionDigits: 1,
                 maximumFractionDigits: 1,
               })}{" "}
@@ -140,7 +140,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.generatedValueLabel}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                {formatCurrency(isToday ? todaySavingsReais : economiaMesReais, locale)}
+                {formatCurrency(isToday ? todaySavingsBrl : monthSavingsBrl, locale)}
               </strong>
             </div>
           </div>
@@ -170,7 +170,7 @@ export function EnergyFlowSection({
           <div className="mt-4">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
-                {isToday ? "—" : `+${formatNumber(mesInjetadoKwh, locale)}`}
+                {isToday ? "—" : `+${formatNumber(monthInjectedKwh, locale)}`}
               </span>
               <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                 {isToday ? t.combined.monthlyClosing : t.combined.kwhInjected}
@@ -185,13 +185,13 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.compensatedLabel}</span>
               <strong className="text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                {formatNumber(mesCompensadoKwh, locale)} kWh
+                {formatNumber(monthCompensatedKwh, locale)} kWh
               </strong>
             </div>
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.netSurplusLabel}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                +{formatNumber(mesSaldoLiquidoKwh, locale)} kWh
+                +{formatNumber(monthNetBalanceKwh, locale)} kWh
               </strong>
             </div>
           </div>
@@ -221,7 +221,7 @@ export function EnergyFlowSection({
           <div className="mt-4">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {formatNumber(saldoTotalAcumuladoKwh, locale)}
+                {formatNumber(creditBalanceKwh, locale)}
               </span>
               <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                 {t.combined.kwhBalance}
@@ -234,7 +234,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.reserveValue}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                {formatCurrency(reservaTotalReais, locale)}
+                {formatCurrency(creditReserveBrl, locale)}
               </strong>
             </div>
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
@@ -268,7 +268,7 @@ export function EnergyFlowSection({
             {t.combined.injectedMonthKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-blue-600 dark:text-blue-400">
-            {formatNumber(mesInjetadoKwh, locale)} kWh
+            {formatNumber(monthInjectedKwh, locale)} kWh
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {t.combined.billedByUtility}
@@ -281,7 +281,7 @@ export function EnergyFlowSection({
             {t.combined.accumulatedBalanceKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-            {formatNumber(saldoTotalAcumuladoKwh, locale)} kWh
+            {formatNumber(creditBalanceKwh, locale)} kWh
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {t.combined.totalCreditsStock}
@@ -294,7 +294,7 @@ export function EnergyFlowSection({
             {t.combined.estimatedSavingsKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-purple-600 dark:text-purple-400">
-            {formatCurrency(isToday ? todaySavingsReais : economiaMesReais, locale)}
+            {formatCurrency(isToday ? todaySavingsBrl : monthSavingsBrl, locale)}
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {isToday ? t.combined.economyToday : t.combined.economyMonth}

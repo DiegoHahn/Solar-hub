@@ -36,35 +36,6 @@ interface CustomWeatherTooltipProps {
   locale?: Locale;
 }
 
-export function translateWeatherCondition(
-  conditionOrKey: string | undefined,
-  t: ReturnType<typeof useI18n>["t"],
-  conditionKey?: keyof ReturnType<typeof useI18n>["t"]["weather"],
-): string {
-  if (conditionKey && t.weather[conditionKey]) {
-    return t.weather[conditionKey];
-  }
-  const condition = conditionOrKey || "";
-  const key = condition as keyof ReturnType<typeof useI18n>["t"]["weather"];
-  if (t.weather[key]) {
-    return t.weather[key];
-  }
-  const c = condition.toLowerCase();
-  if (c.includes("limpo")) return t.weather.clearSky;
-  if (c.includes("ensolarado")) return t.weather.sunny;
-  if (c.includes("parcialmente")) return t.weather.partlyCloudy;
-  if (c.includes("nublado") || c.includes("encoberto")) return t.weather.overcast;
-  if (c.includes("nevoeiro")) return t.weather.foggy;
-  if (c.includes("garoa / chuvisco")) return t.weather.drizzle;
-  if (c.includes("garoa") || c.includes("abertura")) return t.weather.drizzleOpenings;
-  if (c.includes("pancada")) return t.weather.rainShowers;
-  if (c.includes("tempestade")) return t.weather.thunderstorm;
-  if (c.includes("intensa")) return t.weather.heavyRain;
-  if (c.includes("sol com nuvens") || c.includes("sol c/ nuvens")) return t.weather.sunAndClouds;
-  if (c.includes("chuva")) return t.weather.continuousRain;
-  if (c.includes("nuvens") || c.includes("variação")) return t.weather.cloudVariation;
-  return condition;
-}
 
 export function formatWeatherDate(dateStr: string, locale: Locale): { dayOfWeek: string; formattedDate: string } {
   try {
@@ -99,7 +70,7 @@ export function WeatherTooltip({ active, payload, onActivePoint, renderIcon, loc
   if (!active || !payload || !payload.length) return null;
   const p = payload[0].payload;
   const { dayOfWeek, formattedDate } = formatWeatherDate(p.date, locale);
-  const conditionLabel = translateWeatherCondition(p.condition, t, p.conditionKey);
+  const conditionLabel = t.weather[p.conditionKey];
 
   return (
     <div className="hidden md:block rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
@@ -253,7 +224,7 @@ export function WeatherEfficiencySection({
                   {formatWeatherDate(point.date, locale).dayOfWeek}, {formatWeatherDate(point.date, locale).formattedDate}
                 </span>
                 <span className="rounded bg-gray-200/80 px-1.5 py-0.2 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300 truncate max-w-[110px] sm:max-w-none">
-                  {translateWeatherCondition(point.condition, t, point.conditionKey)}
+                  {t.weather[point.conditionKey]}
                 </span>
                 {point.date !== (displayedData[displayedData.length - 1]?.date) && (
                   <button
@@ -347,7 +318,12 @@ export function WeatherEfficiencySection({
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.2} />
             <XAxis
-              dataKey="formattedDate"
+              dataKey="date"
+              tickFormatter={(date: string) =>
+                displayedData.find((d) => d.date === date)?.isToday
+                  ? t.common.today
+                  : formatWeatherDate(date, locale).formattedDate
+              }
               tickLine={false}
               axisLine={false}
               interval={range === "90d" && !compact ? 14 : range === "30d" && !compact ? 4 : 0}
@@ -451,7 +427,7 @@ export function WeatherEfficiencySection({
               {t.combined.sunnyDaysLabel}
             </div>
             <div className="mt-0.5 text-lg font-bold text-amber-600 dark:text-amber-400">
-              {sunnyDays} <span className="text-xs font-normal text-gray-500">dias</span>
+              {sunnyDays} <span className="text-xs font-normal text-gray-500">{t.common.days}</span>
             </div>
             <p className="text-[10px] text-gray-500">{t.combined.clearSkyFull}</p>
           </div>
@@ -462,7 +438,7 @@ export function WeatherEfficiencySection({
               {t.combined.cloudSunDaysLabel}
             </div>
             <div className="mt-0.5 text-lg font-bold text-blue-600 dark:text-blue-400">
-              {partlyCloudyDays} <span className="text-xs font-normal text-gray-500">dias</span>
+              {partlyCloudyDays} <span className="text-xs font-normal text-gray-500">{t.common.days}</span>
             </div>
             <p className="text-[10px] text-gray-500">{t.combined.partlyCloudyDesc}</p>
           </div>
@@ -473,7 +449,7 @@ export function WeatherEfficiencySection({
               {t.combined.rainyDaysLabel}
             </div>
             <div className="mt-0.5 text-lg font-bold text-cyan-600 dark:text-cyan-400">
-              {rainyDays} <span className="text-xs font-normal text-gray-500">dias</span>
+              {rainyDays} <span className="text-xs font-normal text-gray-500">{t.common.days}</span>
             </div>
             <p className="text-[10px] text-gray-500">{t.combined.accumulatedRain.replace("{mm}", totalRainMm.toFixed(0))}</p>
           </div>
@@ -502,7 +478,7 @@ export function WeatherEfficiencySection({
             <div>
               <span className="text-[11px] text-gray-500 dark:text-gray-400">{t.combined.performanceRatioTitle}</span>
               <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                81,4% <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">{t.combined.excellentQuality}</span>
+                {formatNumber(81.4, locale, { minimumFractionDigits: 1 })}% <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">{t.combined.excellentQuality}</span>
               </div>
             </div>
           </div>
@@ -516,7 +492,7 @@ export function WeatherEfficiencySection({
                 {t.combined.cloudLossTitle.replace("{period}", range)}
               </span>
               <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                {range === "90d" ? "~415 kWh" : range === "30d" ? "~142 kWh" : "~38,2 kWh"}{" "}
+                ~{formatNumber(range === "90d" ? 415 : range === "30d" ? 142 : 38.2, locale)} kWh{" "}
                 <span className="text-xs font-normal text-gray-500">
                   {range === "90d" ? t.combined.inQuarter : range === "30d" ? t.combined.inMonth : t.combined.inWeek}
                 </span>
@@ -533,7 +509,7 @@ export function WeatherEfficiencySection({
                 {t.combined.avgHspPeriod.replace("{period}", range)}
               </span>
               <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                {avgHsp} h/dia <span className="text-xs font-normal text-gray-500">{t.combined.fullSunLabel}</span>
+                {formatNumber(Number(avgHsp), locale, { minimumFractionDigits: 2 })} {t.common.hoursPerDay} <span className="text-xs font-normal text-gray-500">{t.combined.fullSunLabel}</span>
               </div>
             </div>
           </div>

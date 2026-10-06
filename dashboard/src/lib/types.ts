@@ -83,7 +83,7 @@ export interface GeracaoDistribuida {
   CodigoUc?: number;
   PotenciaInstalada: number;
   PercentualFatUcGeradora: number;
-  ProximoSaldoVencer: string;
+  ProximoSaldoVencer?: string;
   ValorProximoSaldoVencer: number;
 }
 

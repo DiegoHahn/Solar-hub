@@ -49,9 +49,9 @@ export default async function CooperativaPage() {
   }
 
   const gd = uc.geracao_distribuida;
-  const fatura = uc.resumo_ultima_fatura;
-  const tarifaKwh = utilityData.tarifa_referencia?.tarifa_kwh ?? 0;
-  const reserveValue = Math.round((gd?.ValorProximoSaldoVencer ?? 0) * tarifaKwh);
+  const lastBill = uc.resumo_ultima_fatura;
+  const tariffPerKwh = utilityData.tarifa_referencia?.tarifa_kwh ?? 0;
+  const reserveValue = Math.round((gd?.ValorProximoSaldoVencer ?? 0) * tariffPerKwh);
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -104,14 +104,14 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiFileTextLine}
           label={t.utility.currentInvoice}
-          value={fatura?.ValorFatura !== undefined ? formatCurrency(Number(fatura.ValorFatura), locale) : "—"}
-          hint={fatura?.KwhReal !== undefined ? `${formatNumber(fatura.KwhReal, locale)} kWh · ${formatDateOnly(fatura.AnoMes)}` : undefined}
+          value={lastBill?.ValorFatura !== undefined ? formatCurrency(Number(lastBill.ValorFatura), locale) : "—"}
+          hint={lastBill?.KwhReal !== undefined ? `${formatNumber(lastBill.KwhReal, locale)} kWh · ${formatDateOnly(lastBill.AnoMes)}` : undefined}
           accent="amber"
         />
         <StatCard
           icon={RiCalendarEventLine}
           label={t.utility.nextDueDate}
-          value={formatDateOnly(fatura?.DataLProxima)}
+          value={formatDateOnly(lastBill?.DataLProxima)}
           hint={t.utility.readingDate}
           accent="blue"
         />
@@ -126,7 +126,7 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiWallet3Line}
           label={t.utility.effectiveTariff}
-          value={`R$ ${tarifaKwh.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
+          value={`R$ ${tariffPerKwh.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
           unit="/kWh"
           hint={bandeira ?? "Rural B2"}
           accent="violet"
@@ -137,7 +137,7 @@ export default async function CooperativaPage() {
       {uc.balanco_energetico && (
         <EnergyBalanceChart
           data={uc.balanco_energetico}
-          saldoAtual={gd?.ValorProximoSaldoVencer}
+          currentBalanceKwh={gd?.ValorProximoSaldoVencer}
         />
       )}
 

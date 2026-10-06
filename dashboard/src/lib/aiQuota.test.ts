@@ -6,7 +6,7 @@ import {
   incrementQuota,
   getAdvisorCache,
   saveAdvisorCache,
-  fallbackAdvisorAnalysis,
+  getFallbackAdvisorAnalysis,
 } from "./aiQuota";
 
 const mockFrom = vi.fn();
@@ -71,7 +71,7 @@ describe("database access failures", () => {
     const mockEq = vi.fn().mockReturnThis();
     const mockMaybeSingle = vi.fn().mockResolvedValue({
       data: null,
-      error: new Error("Falha no banco"),
+      error: new Error("Database failure"),
     });
 
     mockFrom.mockReturnValue({
@@ -89,7 +89,7 @@ describe("database access failures", () => {
     mockRpc.mockReturnValue({
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("RPC indisponível"),
+        error: new Error("RPC unavailable"),
       }),
     });
 
@@ -119,7 +119,7 @@ describe("database access failures", () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Falha no banco") }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Database failure") }),
     });
 
     await expect(getAdvisorCache()).resolves.toBeNull();
@@ -128,10 +128,22 @@ describe("database access failures", () => {
   it("does not interrupt analysis generation when cache saving fails", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     mockFrom.mockReturnValue({
-      upsert: vi.fn().mockResolvedValue({ error: new Error("Falha no banco") }),
+      upsert: vi.fn().mockResolvedValue({ error: new Error("Database failure") }),
     });
 
-    await expect(saveAdvisorCache(fallbackAdvisorAnalysis, "gemini-3.8-flash")).resolves.toBeUndefined();
+    await expect(saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash")).resolves.toBeUndefined();
     expect(consoleError).toHaveBeenCalled();
+  });
+});
+
+describe("getFallbackAdvisorAnalysis", () => {
+  it("returns the analysis in the requested locale", () => {
+    const ptBR = getFallbackAdvisorAnalysis("pt-BR");
+    const en = getFallbackAdvisorAnalysis("en");
+
+    expect(en.daily.recommendations).toHaveLength(ptBR.daily.recommendations.length);
+    expect(en.monthly.recommendations).toHaveLength(ptBR.monthly.recommendations.length);
+    expect(en.daily.summary).not.toBe(ptBR.daily.summary);
+    expect(en.daily.recommendations.map((r) => r.icon)).toEqual(ptBR.daily.recommendations.map((r) => r.icon));
   });
 });

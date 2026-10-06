@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { ptBR } from "../src/i18n/locales/pt-BR";
 
 const testEmail = process.env.SUPABASE_TEST_EMAIL;
 const testPassword = process.env.SUPABASE_TEST_PASSWORD;
@@ -19,7 +20,7 @@ async function getTodayCachedAnalysis(): Promise<{ daily: { summary: string } } 
   return data?.analysis ?? null;
 }
 
-test.describe("Fluxos Autenticados com Dados Reais", () => {
+test.describe("Authenticated flows with real data", () => {
   test.skip(!testEmail || !testPassword, "Credenciais de teste não configuradas no .env.test.local");
 
   test.beforeEach(async ({ page }) => {
@@ -31,7 +32,7 @@ test.describe("Fluxos Autenticados com Dados Reais", () => {
     await expect(page).toHaveURL("/", { timeout: 15000 });
   });
 
-  test("carrega o dashboard principal com KPIs e gráficos reais", async ({ page }) => {
+  test("loads the main dashboard with real KPIs and charts", async ({ page }) => {
     await expect(page.locator("h1")).toBeVisible();
 
     const svgCharts = page.locator(".recharts-responsive-container svg");
@@ -40,16 +41,16 @@ test.describe("Fluxos Autenticados com Dados Reais", () => {
     await expect(page.getByText(/kW|kWh/i).first()).toBeVisible();
   });
 
-  test("navega para a página Placas e exibe inversores reais", async ({ page }) => {
+  test("navigates to the Panels page and shows real inverters", async ({ page }) => {
     await page.goto("/placas");
     await expect(page).toHaveURL("/placas");
 
-    await expect(page.getByRole("heading", { name: "Placas & Inversores" })).toBeVisible();
-    await expect(page.getByText("Painel de Engenharia & Qualidade de Energia")).toBeVisible();
+    await expect(page.getByRole("heading", { name: ptBR.inverters.title })).toBeVisible();
+    await expect(page.getByText(ptBR.inverters.engineeringTitle)).toBeVisible();
     await expect(page.locator("p", { hasText: /Inversor 1/i })).toBeVisible({ timeout: 10000 });
   });
 
-  test("navega para a página Cooperativa e exibe balanço e extrato", async ({ page }) => {
+  test("navigates to the Cooperative page and shows the balance and statement", async ({ page }) => {
     await page.goto("/cooperativa");
     await expect(page).toHaveURL("/cooperativa");
 
@@ -57,14 +58,14 @@ test.describe("Fluxos Autenticados com Dados Reais", () => {
     await expect(page.getByText(/Saldo de créditos|Extrato/i).first()).toBeVisible({ timeout: 10000 });
   });
 
-  test("redireciona usuário autenticado que tenta acessar /login de volta para /", async ({ page }) => {
+  test("redirects a signed-in user from /login back to /", async ({ page }) => {
     await page.goto("/login");
     await expect(page).toHaveURL("/", { timeout: 10000 });
   });
 
-  test("consulta GET /api/ai-advisor autenticado e recebe a análise em cache do dia", async ({ page }) => {
+  test("GET /api/ai-advisor while signed in returns today's cached analysis", async ({ page }) => {
     const cached = await getTodayCachedAnalysis();
-    // Sem cache a rota chamaria o Gemini; o teste não consome cota nem grava análise fictícia na produção.
+    // Without a cached analysis the route would call Gemini; the test must not spend quota or store a fake analysis in production.
     test.skip(!cached, "Ainda não há análise em cache para hoje.");
 
     const response = await page.request.get("/api/ai-advisor");

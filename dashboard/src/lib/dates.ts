@@ -26,3 +26,8 @@ export function brasiliaClock(now: Date = new Date()): { time: string; isDaytime
 export function brasiliaIsoDaysAgo(days: number, now: Date = new Date()): string {
   return toBrasiliaIsoDate(new Date(now.getTime() - days * DAY_MS));
 }
+
+/** Whole minutes elapsed since `isoDate`. */
+export function minutesSince(isoDate: string, now: number = Date.now()): number {
+  return Math.round((now - new Date(isoDate).getTime()) / 60000);
+}
