@@ -53,7 +53,7 @@ export const en: Translations = {
   overview: {
     title: "Plant Overview",
     subtitle: "Real-time photovoltaic solar generation and telemetry monitoring",
-    plantTitle: "Diego Hahn Solar Plant",
+    plantTitle: "16 kWp Solar Plant",
     generationToday: "Today's Generation",
     currentPower: "Current Power",
     accumulatedBalance: "Net Energy Bank",

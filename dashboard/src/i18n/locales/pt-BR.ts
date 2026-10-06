@@ -53,7 +53,7 @@ export const ptBR: Translations = {
   overview: {
     title: "Visão Geral da Usina",
     subtitle: "Monitoramento em tempo real da geração solar fotovoltaica e telemetria",
-    plantTitle: "Usina Solar Diego Hahn",
+    plantTitle: "Usina Solar 16 kWp",
     generationToday: "Geração Hoje",
     currentPower: "Potência Atual",
     accumulatedBalance: "Saldo Acumulado",
