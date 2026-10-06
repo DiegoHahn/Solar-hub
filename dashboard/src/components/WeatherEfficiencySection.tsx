@@ -19,13 +19,12 @@ import {
   RiRainyLine,
   RiThunderstormsLine,
   RiSunCloudyLine,
-  RiContrastDropLine,
   RiSpeedUpLine,
   RiFlashlightLine,
 } from "@remixicon/react";
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
-import { DailyWeather, fallbackDailyWeather } from "@/lib/weather";
+import { DailyWeather, fallbackDailyWeather, specificYield } from "@/lib/weather";
 import { useI18n, formatNumber, type Locale } from "@/i18n";
 
 interface CustomWeatherTooltipProps {
@@ -136,6 +135,7 @@ export function WeatherEfficiencySection({
   const sunnyDays = displayedData.filter((d) => d.weatherCode <= 1).length;
   const partlyCloudyDays = displayedData.filter((d) => d.weatherCode >= 2 && d.weatherCode <= 48).length;
   const rainyDays = displayedData.filter((d) => d.weatherCode >= 50).length;
+  const yieldStats = specificYield(displayedData);
 
   const renderWeatherIcon = (icon: DailyWeather["icon"], className = "size-4") => {
     switch (icon) {
@@ -470,33 +470,28 @@ export function WeatherEfficiencySection({
 
       {/* Diagnostic Cards */}
       {!compact && (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <RiSpeedUpLine className="size-4" />
             </div>
             <div>
-              <span className="text-[11px] text-gray-500 dark:text-gray-400">{t.combined.performanceRatioTitle}</span>
-              <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                {formatNumber(81.4, locale, { minimumFractionDigits: 1 })}% <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">{t.combined.excellentQuality}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <RiContrastDropLine className="size-4" />
-            </div>
-            <div>
-              <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                {t.combined.cloudLossTitle.replace("{period}", range)}
-              </span>
-              <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                ~{formatNumber(range === "90d" ? 415 : range === "30d" ? 142 : 38.2, locale)} kWh{" "}
-                <span className="text-xs font-normal text-gray-500">
-                  {range === "90d" ? t.combined.inQuarter : range === "30d" ? t.combined.inMonth : t.combined.inWeek}
-                </span>
-              </div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">{t.combined.specificYieldTitle}</span>
+              {yieldStats ? (
+                <>
+                  <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    {formatNumber(yieldStats.kwhPerKwpDay, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
+                    <span className="text-xs font-normal text-gray-500">{t.combined.specificYieldUnit}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500">
+                    {t.combined.measuredDays.replace("{n}", String(yieldStats.measuredDays))}
+                  </p>
+                </>
+              ) : (
+                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                  — <span className="text-xs font-normal text-gray-500">{t.combined.noMeasuredDays}</span>
+                </div>
+              )}
             </div>
           </div>
 
