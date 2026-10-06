@@ -1,3 +1,5 @@
+"use client";
+
 import { cx } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
