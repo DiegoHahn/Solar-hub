@@ -1,4 +1,7 @@
+"use client";
+
 import { cx } from "@/lib/utils";
+import { useI18n } from "@/i18n";
 
 export function SkeletonBlock({ className }: { className?: string }) {
   return <div className={cx("animate-pulse rounded-md bg-gray-200 dark:bg-gray-800/60", className)} />;
@@ -60,14 +63,15 @@ export function SkeletonPageHeader() {
 }
 
 export function SkeletonPage({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   return (
     <main
       className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8"
       role="status"
       aria-busy="true"
-      aria-label="Carregando"
+      aria-label={t.common.loading}
     >
-      <span className="sr-only">Carregando…</span>
+      <span className="sr-only">{t.common.loading}</span>
       {children}
     </main>
   );

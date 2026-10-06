@@ -17,13 +17,13 @@ concurrency:
 
 jobs:
   dashboard:
-    name: Dashboard (lint, typecheck, testes unitários e componentes, build)
+    name: Dashboard (lint, typecheck, unit & component tests, build)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: dashboard
     env:
-      # O build só precisa de valores com formato válido; nenhuma página consulta o Supabase durante o build.
+      # Build requires syntactically valid placeholder values; no pages query Supabase during build.
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
     steps:
@@ -42,7 +42,7 @@ jobs:
       - run: npm run build
 
   collector:
-    name: Collector Python (lint, formatação e pytest)
+    name: Python Collector (lint, format, pytest)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -64,7 +64,7 @@ jobs:
       - run: pytest -m "not live"
 
   integration:
-    name: Integração e E2E (Supabase Real, Open-Meteo, Playwright)
+    name: Integration and E2E (Live Supabase, Open-Meteo, Playwright)
     if: github.event_name == 'schedule' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     defaults:
@@ -91,38 +91,38 @@ jobs:
       - run: npm ci
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
 
-      - name: Executar Testes de Integração com Supabase Real
+      - name: Run Integration Tests with Live Supabase
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: npm run test:integration -- --coverage --coverage.reporter=text-summary
 
-      - name: Versão do Playwright
+      - name: Playwright Version
         id: playwright
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Cache do Chromium do Playwright
+      - name: Cache Playwright Chromium
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
-      # A imagem ubuntu-latest já traz as bibliotecas de sistema do Chromium; o --with-deps só
-      # acrescentaria fontes de outros alfabetos, que os testes não usam.
-      - name: Instalar Navegador Chromium para Playwright
+      # The ubuntu-latest image already includes Chromium system libraries; --with-deps would
+      # only install extra non-Latin font packages not required by tests.
+      - name: Install Chromium for Playwright
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: npx playwright install chromium
 
-      - name: Build do Dashboard para E2E
+      - name: Build Dashboard for E2E
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: npm run build
 
-      - name: Executar Testes E2E com Playwright
+      - name: Run E2E Tests with Playwright
         if: ${{ env.SUPABASE_TEST_EMAIL != '' }}
         run: npm run e2e
 
   trivy:
-    name: Trivy (dependências, segredos, configuração)
+    name: Trivy (dependencies, secrets, misconfigurations)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -137,7 +137,7 @@ jobs:
           exit-code: "1"
 
   semgrep:
-    name: Semgrep (análise do código)
+    name: Semgrep (static code analysis)
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep

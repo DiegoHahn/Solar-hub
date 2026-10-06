@@ -26,9 +26,9 @@ export interface InverterReading {
   serial?: string | null;
   firmware?: string | null;
   work_mode?: string | null;
-  /** Sensores GoodWe crus (o coletor converte valores não numéricos para string) */
+  /** Raw GoodWe sensors (collector converts non-numeric values to string) */
   raw_sensors?: Record<string, number | string | boolean> | null;
-  /** Variáveis do status.html do logger Solarman (Solis) */
+  /** Solarman logger (Solis) status.html variables */
   raw_variables?: Record<string, string> | null;
   error?: string | null;
 }
@@ -43,7 +43,7 @@ export interface SunCurvePoint {
 }
 
 export interface GenerationPoint {
-  label: string; // dia do mês ("01".."31"), mês ("Jan".."Dez") ou ano ("2025")
+  label: string; // day of month ("01".."31"), month ("Jan".."Dec"), or year ("2025")
   kwh: number;
 }
 
@@ -83,7 +83,7 @@ export interface GeracaoDistribuida {
   CodigoUc?: number;
   PotenciaInstalada: number;
   PercentualFatUcGeradora: number;
-  ProximoSaldoVencer: string;
+  ProximoSaldoVencer?: string;
   ValorProximoSaldoVencer: number;
 }
 
@@ -97,21 +97,21 @@ export interface BalancoEnergeticoMes {
   mes: string; // MM/YYYY
   injetado_kwh: number;
   compensado_kwh: number;
-  liquido_kwh: number; // injetado - compensado (superávit / déficit)
-  saldo_kwh: number; // saldo acumulado de créditos no fim do mês
+  liquido_kwh: number; // injected - compensated (surplus / deficit)
+  saldo_kwh: number; // accumulated credit balance at end of month
 }
 
 export interface ExtratoGdEntry {
   tipo: "injetada" | "compensada";
   mes: string; // MM/YYYY
-  kwh: number; // negativo quando compensada
+  kwh: number; // negative when compensated
   saldo: number;
-  grupo: 1 | 2; // 1 = GD I (Art. 26) · 2 = GD II (Lei 14.300)
+  grupo: 1 | 2; // 1 = GD I (Art. 26) · 2 = GD II (Law 14.300)
 }
 
-// ---- Payload cru da API Useall/Cooperaliança (como gravado pelo collector_utility.py) ----
+// ---- Raw Useall/Cooperaliança API payload (as stored by collector/utility.py) ----
 
-/** Item de GeracaoDistribuida/BuscaDadosHistoricoGeracaoConsumo. `AnoMes` vem como "DD/MM/YYYY HH:mm:ss". */
+/** Item from GeracaoDistribuida/BuscaDadosHistoricoGeracaoConsumo. `AnoMes` is formatted as "DD/MM/YYYY HH:mm:ss". */
 export interface CoopHistoricoGeracaoConsumo {
   AnoMes: string;
   KwhGerado: number;
@@ -119,7 +119,7 @@ export interface CoopHistoricoGeracaoConsumo {
   Saldo: number;
 }
 
-/** Item de GeracaoDistribuida/RecuperarDadosHistoricoGeracao. Datas "DD/MM/YYYY HH:mm:ss"; "01/01/0001" = vazio. */
+/** Item from GeracaoDistribuida/RecuperarDadosHistoricoGeracao. Dates formatted as "DD/MM/YYYY HH:mm:ss"; "01/01/0001" = empty. */
 export interface CoopExtratoGd {
   Operacao?: string;
   MesGeracao?: string;
@@ -130,7 +130,7 @@ export interface CoopExtratoGd {
   GrupoTransicaoLei14300?: number;
 }
 
-/** Item de Fatura/RecuperarHistoricoFaturaConsumo60Meses. */
+/** Item from Fatura/RecuperarHistoricoFaturaConsumo60Meses. */
 export interface CoopFatura {
   AnoMes?: string;
   ValorTotal?: number;
@@ -152,7 +152,7 @@ export interface UnidadeConsumidora {
   historico_consumo?: HistoricoConsumoMes[];
   balanco_energetico?: BalancoEnergeticoMes[];
   extrato_gd?: ExtratoGdEntry[];
-  // Campos crus vindos da concessionária, normalizados em lib/queries.ts
+  // Raw fields from utility API, normalized in lib/queries.ts
   historico_faturas_60_meses?: CoopFatura[];
   grafico_historico_12_meses?: {
     RetornoDadosHistoricoGeracaoConsumoKwhNormal?: CoopHistoricoGeracaoConsumo[];
@@ -168,11 +168,11 @@ export type UtilityDataRow = Omit<
 > & {
   tarifa_referencia: TarifaReferencia | null;
   unidades_consumidoras: Record<string, UnidadeConsumidora>;
-  /** Código da UC geradora, resolvido em getLatestUtilityData (não existe na tabela) */
+  /** Generator Consumer Unit code, resolved in getLatestUtilityData (virtual property, not on DB table) */
   generator_uc?: string | null;
 };
 
-/** Linha da tabela daily_weather: valores brutos da Open-Meteo para um dia (fuso de Brasília). */
+/** Row from daily_weather table: raw Open-Meteo values for a day (Brasília timezone). */
 export type DailyWeatherRow = Omit<
   Database["public"]["Tables"]["daily_weather"]["Row"],
   "source" | "updated_at"

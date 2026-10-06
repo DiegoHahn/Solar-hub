@@ -16,6 +16,7 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 import { RiSunLine, RiFlashlightLine } from "@remixicon/react";
 import type { SunCurvePoint } from "@/lib/types";
+import { useI18n, type Locale } from "@/i18n";
 
 interface SunCurveChartProps {
   data: SunCurvePoint[];
@@ -29,9 +30,22 @@ interface CustomTooltipProps {
   nominalCapKw: number;
   onActivePoint?: (point: SunCurvePoint) => void;
   canUpdate?: boolean;
+  locale?: Locale;
+  percentOfPlantText?: string;
+  totalPowerText?: string;
 }
 
-export function SunCurveTooltip({ active, payload, label, nominalCapKw, onActivePoint, canUpdate = true }: CustomTooltipProps) {
+export function SunCurveTooltip({
+  active,
+  payload,
+  label,
+  nominalCapKw,
+  onActivePoint,
+  canUpdate = true,
+  locale = "en",
+  percentOfPlantText = "{percent}% of plant",
+  totalPowerText = "Total Power:",
+}: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint && canUpdate) {
       const point = payload[0]?.payload as SunCurvePoint | undefined;
@@ -52,34 +66,34 @@ export function SunCurveTooltip({ active, payload, label, nominalCapKw, onActive
       <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-1.5 dark:border-gray-800">
         <span className="font-semibold text-gray-900 dark:text-gray-100">{label}</span>
         <Badge variant={isOver ? "warning" : "neutral"} className="text-[10px] px-1.5 py-0.5">
-          {pct}% da usina
+          {percentOfPlantText.replace("{percent}", String(pct))}
         </Badge>
       </div>
 
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between gap-4 font-semibold text-amber-500">
-          <span>Potência Total:</span>
-          <span className="tabular-nums">{point.power_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
+          <span>{totalPowerText}</span>
+          <span className="tabular-nums">{point.power_kw.toLocaleString(locale, { minimumFractionDigits: 1 })} kW</span>
         </div>
 
         {point.solis_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>Solis 6kW:</span>
-            <span className="tabular-nums">{point.solis_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
+            <span className="tabular-nums">{point.solis_kw.toLocaleString(locale, { minimumFractionDigits: 1 })} kW</span>
           </div>
         )}
 
         {point.goodwe1_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>GoodWe #1 (5kW):</span>
-            <span className="tabular-nums">{point.goodwe1_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
+            <span className="tabular-nums">{point.goodwe1_kw.toLocaleString(locale, { minimumFractionDigits: 1 })} kW</span>
           </div>
         )}
 
         {point.goodwe2_kw != null && (
           <div className="flex items-center justify-between gap-4 text-gray-500 dark:text-gray-400">
             <span>GoodWe #2 (5kW):</span>
-            <span className="tabular-nums">{point.goodwe2_kw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
+            <span className="tabular-nums">{point.goodwe2_kw.toLocaleString(locale, { minimumFractionDigits: 1 })} kW</span>
           </div>
         )}
       </div>
@@ -88,6 +102,7 @@ export function SunCurveTooltip({ active, payload, label, nominalCapKw, onActive
 }
 
 export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps) {
+  const { t, locale } = useI18n();
   const isMounted = useIsClient();
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
@@ -106,7 +121,6 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
     e.preventDefault();
     isResettingRef.current = true;
     setInspectedPoint(null);
-    // Remonta o gráfico (nova key) para descartar o ponto ativo que o Safari do iOS mantém após o toque
     setChartKey((k) => k + 1);
     setTimeout(() => {
       isResettingRef.current = false;
@@ -117,7 +131,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
     return null;
   }
 
-  // Encontra o pico de potência do dia
+  // Find daily peak power
   const fallbackPoint: SunCurvePoint = { power_kw: 0, time: "--:--", nominal_cap_kw: nominalCapKw };
   const peakPoint = data.reduce(
     (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
@@ -133,49 +147,52 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
 
   return (
     <Card className="relative overflow-hidden p-4 md:p-6">
-      {/* Header do Gráfico */}
+      {/* Chart Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
             <RiSunLine className="size-4 text-amber-500" />
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Curva Solar de Hoje
+              {t.inverters.sunCurveToday}
             </h2>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Janela solar das 05:00 às 20:00 em tempo real (intervalos de 30 min)
+            {t.inverters.solarWindowSubtitle}
           </p>
         </div>
 
-        {/* Badge de Pico do Dia (Visível no Desktop) */}
+        {/* Daily Peak Badge (Desktop) */}
         <div className="hidden sm:flex items-center gap-2">
           <Badge
             variant={isPeakOverload ? "warning" : "default"}
             className="flex items-center gap-1 text-xs py-1 px-2.5"
           >
             <RiFlashlightLine className="size-3.5" />
-            Pico: <span className="font-bold">{peakKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span> às {peakPoint.time} ({peakPct}%)
+            {t.inverters.peakAt
+              .replace("{peak}", `${peakKw.toLocaleString(locale, { minimumFractionDigits: 1 })} kW`)
+              .replace("{time}", peakPoint.time)
+              .replace("{percent}", String(peakPct))}
           </Badge>
         </div>
       </div>
 
-      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (mostra o pico do dia até o usuário tocar em um ponto) */}
+      {/* MOBILE EXCLUSIVE INSPECTION PANEL */}
       <div className="block sm:hidden mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs transition-all">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Horário {displayPoint.time}:
+                {t.common.time} {displayPoint.time}:
               </span>
               <span className="text-xl font-extrabold text-amber-500 tabular-nums">
-                {displayKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+                {displayKw.toLocaleString(locale, { minimumFractionDigits: 1 })}
                 <span className="ml-1 text-xs font-semibold text-amber-500/80">kW</span>
               </span>
               <Badge
                 variant={Math.round((displayKw / nominalCapKw) * 100) > 100 ? "warning" : "neutral"}
                 className="text-[10px] px-1.5 py-0"
               >
-                {Math.round((displayKw / nominalCapKw) * 100)}% pico
+                {t.inverters.percentPeak.replace("{percent}", String(Math.round((displayKw / nominalCapKw) * 100)))}
               </Badge>
             </div>
             {isInspecting && (
@@ -185,7 +202,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 onTouchEnd={handleReset}
                 className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
               >
-                ✕ Voltar
+                {t.common.back}
               </button>
             )}
           </div>
@@ -198,7 +215,7 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
         </div>
       </div>
 
-      {/* Gráfico Recharts */}
+      {/* Recharts Chart */}
       <div className="mt-3 md:mt-4 h-52 w-full">
         {!isMounted ? (
           <div className="size-full animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800/40" />
@@ -251,6 +268,9 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 content={
                   <SunCurveTooltip
                     nominalCapKw={nominalCapKw}
+                    locale={locale}
+                    percentOfPlantText={t.inverters.percentOfPlant}
+                    totalPowerText={t.inverters.totalPower}
                     onActivePoint={(p) => {
                       if (!isResettingRef.current) {
                         setInspectedPoint(p);
@@ -261,14 +281,14 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
                 cursor={{ stroke: "#f59e0b", strokeWidth: 1, strokeDasharray: "3 3" }}
               />
 
-              {/* Linha de referência da capacidade nominal de 16 kW */}
+              {/* Reference line for nominal capacity */}
               <ReferenceLine
                 y={nominalCapKw}
                 stroke="#64748b"
                 strokeDasharray="4 4"
                 strokeOpacity={0.7}
                 label={{
-                  value: `Nominal ${nominalCapKw} kW`,
+                  value: t.inverters.nominalLabel.replace("{capacity}", String(nominalCapKw)),
                   fill: "#94a3b8",
                   position: "insideTopRight",
                   fontSize: 10,
@@ -289,15 +309,15 @@ export function SunCurveChart({ data, nominalCapKw = 16.0 }: SunCurveChartProps)
         )}
       </div>
 
-      {/* Legenda inferior */}
+      {/* Bottom legend */}
       <div className="mt-3 flex flex-wrap items-center justify-between border-t border-gray-100 pt-2.5 dark:border-gray-900 text-[11px] text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-amber-500" />
-          <span>Geração Real</span>
+          <span>{t.inverters.actualGeneration}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-0.5 w-3 border-t-2 border-dashed border-slate-400" />
-          <span>Capacidade Homologada (16.0 kWp)</span>
+          <span>{t.inverters.approvedCapacity.replace("{capacity}", "16.0")}</span>
         </div>
       </div>
     </Card>

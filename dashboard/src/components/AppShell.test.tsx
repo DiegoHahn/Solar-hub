@@ -14,11 +14,11 @@ vi.mock("@/components/Nav", () => ({
 }));
 
 describe("AppShell", () => {
-  it("renderiza o Nav e o conteúdo com padding quando em rotas internas", () => {
+  it("renders Nav and padded content when on internal routes", () => {
     currentPathname = "/";
     render(
       <AppShell>
-        <main data-testid="main-content">Conteúdo do Dashboard</main>
+        <main data-testid="main-content">Dashboard Content</main>
       </AppShell>,
     );
 
@@ -27,11 +27,11 @@ describe("AppShell", () => {
     expect(screen.getByTestId("main-content").parentElement).toHaveClass("md:pl-56");
   });
 
-  it("não renderiza o Nav quando em rotas de autenticação (/login ou /auth)", () => {
+  it("does not render Nav when on authentication routes (/login or /auth)", () => {
     currentPathname = "/login";
     render(
       <AppShell>
-        <main data-testid="login-content">Tela de Login</main>
+        <main data-testid="login-content">Login Screen</main>
       </AppShell>,
     );
 

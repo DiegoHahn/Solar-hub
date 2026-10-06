@@ -36,7 +36,7 @@ def test_load_config_with_example():
 
 def test_load_env(monkeypatch, tmp_path):
     env_file = tmp_path / ".env"
-    env_file.write_text('FOO=bar\nBAZ="qux"\n# Comentario\nSPACED = 123\n', encoding="utf-8")
+    env_file.write_text('FOO=bar\nBAZ="qux"\n# Comment\nSPACED = 123\n', encoding="utf-8")
 
     monkeypatch.setattr(inverters, "ENV_FILE", str(env_file))
     env_vars = inverters.load_env()

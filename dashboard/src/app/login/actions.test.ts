@@ -14,7 +14,7 @@ describe("clearDemoCookie", () => {
     vi.clearAllMocks();
   });
 
-  it("apaga o cookie solarhub_demo definindo maxAge 0 e path /", async () => {
+  it("clears solarhub_demo cookie by setting maxAge 0 and path /", async () => {
     await clearDemoCookie();
     expect(mockSet).toHaveBeenCalledWith("solarhub_demo", "", {
       path: "/",

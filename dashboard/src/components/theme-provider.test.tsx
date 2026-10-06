@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { ThemeProvider } from "./theme-provider";
 
 describe("ThemeProvider", () => {
-  it("renderiza os elementos filhos corretamente", () => {
+  it("renders children correctly", () => {
     render(
       <ThemeProvider attribute="class" defaultTheme="dark">
         <div data-testid="child-element">Conteúdo com tema</div>

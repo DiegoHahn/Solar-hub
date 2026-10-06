@@ -9,11 +9,13 @@ import {
 } from "@remixicon/react";
 import { readNumericSensor } from "@/lib/inverter";
 import { getDataSource } from "@/lib/dataSource";
+import { getServerI18n } from "@/i18n/server";
+import { formatNumber } from "@/i18n/formatters";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlacasPage() {
-  const ds = await getDataSource();
+  const [{ t, locale }, ds] = await Promise.all([getServerI18n(), getDataSource()]);
   const [telemetry, sunCurve, monthlyGeneration, multiYearHistory] = await Promise.all([
     ds.getLatestTelemetry(),
     ds.getTodaySunCurve(),
@@ -24,7 +26,7 @@ export default async function PlacasPage() {
   const inverters = telemetry?.inverters_data ?? [];
   const onlineCount = inverters.filter((i) => i.status === "online").length;
 
-  // Cálculos globais de arranjo fotovoltaico (CC) e rede (CA)
+  // Global calculations for PV array (DC) and grid feed-in (AC)
   const totalDcW = inverters.reduce((acc, inv) => {
     const pv1 = inv.pv1?.w ?? 0;
     const pv2 = inv.pv2?.w ?? 0;
@@ -57,11 +59,11 @@ export default async function PlacasPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-            Placas & Inversores
+            {t.inverters.title}
           </h1>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {telemetry
-              ? `${onlineCount} de ${telemetry.inverters_count} inversores operando · Arranjo de 16 kWp nominal`
+              ? `${onlineCount} / ${telemetry.inverters_count} ${t.inverters.operatingSummary}`
               : "Solis 6kW + 2x GoodWe 5kW"}
           </p>
         </div>
@@ -70,14 +72,12 @@ export default async function PlacasPage() {
       {!telemetry ? (
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Nenhuma leitura da usina ainda. Inicie o coletor (
-            <code className="text-gray-700 dark:text-gray-300">python collector_inverters.py</code>
-            ) para começar a ver os dados aqui.
+            {t.overview.noTelemetryYet}
           </p>
         </Card>
       ) : (
         <>
-          {/* Gráfico de Geração por Período */}
+          {/* Generation Chart by Period */}
           <GenerationPeriodSection
             dayCurve={sunCurve}
             monthData={monthlyGeneration}
@@ -85,67 +85,67 @@ export default async function PlacasPage() {
             multiYearHistory={multiYearHistory}
           />
 
-          {/* Cards dos 3 Inversores com Strings e Diagnóstico Modbus */}
+          {/* 3 Inverter Cards with PV Strings & Modbus Diagnostics */}
           <InverterCardsSection inverters={inverters} />
 
-          {/* Quadro de Engenharia e Parâmetros da Usina */}
+          {/* Engineering & Plant Operating Parameters Grid */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                  Painel de Engenharia & Qualidade de Energia
+                  {t.inverters.engineeringTitle}
                 </h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Métricas agregadas dos módulos fotovoltaicos (CC) e conversão para a rede (CA)
+                  {t.inverters.engineeringSubtitle}
                 </p>
               </div>
             </div>
 
-            {/* 4 Mini Cards de Indicadores Elétricos */}
+            {/* 4 Mini Electrical Metric Cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Card className="p-3.5">
                 <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                   <RiSunLine className="size-4 text-amber-500" />
-                  Potência CC Total
+                  {t.inverters.totalDcPower}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">
-                  {(totalDcW / 1000).toFixed(2)}{" "}
+                  {formatNumber(totalDcW / 1000, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
                   <span className="text-xs font-normal text-gray-400">kW CC</span>
                 </p>
-                <p className="mt-0.5 text-[11px] text-gray-400">6 strings ativas</p>
+                <p className="mt-0.5 text-[11px] text-gray-400">{t.inverters.activeStrings}</p>
               </Card>
 
               <Card className="p-3.5">
                 <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                   <RiPercentLine className="size-4 text-emerald-500" />
-                  Rendimento CC➔CA
+                  {t.inverters.dcToAcYield}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                   {overallEfficiency ? `${overallEfficiency}%` : "—"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-gray-400">Eficiência de conversão</p>
+                <p className="mt-0.5 text-[11px] text-gray-400">{t.inverters.conversionEfficiency}</p>
               </Card>
 
               <Card className="p-3.5">
                 <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                   <RiFlashlightLine className="size-4 text-blue-500" />
-                  Tensão Média CA
+                  {t.inverters.avgGridVoltage}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">
                   {avgVgrid ? `${avgVgrid} V` : "—"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-gray-400">Rede Cooperaliança</p>
+                <p className="mt-0.5 text-[11px] text-gray-400">{t.inverters.utilityGrid}</p>
               </Card>
 
               <Card className="p-3.5">
                 <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                   <RiPulseLine className="size-4 text-indigo-500" />
-                  Fator de Potência
+                  {t.inverters.powerFactor}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">
                   {avgPF}
                 </p>
-                <p className="mt-0.5 text-[11px] text-emerald-500">Qualidade ótima (~1.0)</p>
+                <p className="mt-0.5 text-[11px] text-emerald-500">{t.inverters.optimalQuality}</p>
               </Card>
             </div>
           </div>

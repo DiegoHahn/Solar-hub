@@ -10,8 +10,8 @@ import {
 } from "./Skeleton";
 import HomeLoading from "@/app/loading";
 
-describe("Skeleton e Loading", () => {
-  it("SkeletonPage possui role='status' e aria-busy='true'", () => {
+describe("Skeleton and Loading", () => {
+  it("SkeletonPage has role='status' and aria-busy='true'", () => {
     render(
       <SkeletonPage>
         <p>Carregando conteúdo...</p>
@@ -21,19 +21,19 @@ describe("Skeleton e Loading", () => {
     const statusEl = screen.getByRole("status");
     expect(statusEl).toBeInTheDocument();
     expect(statusEl).toHaveAttribute("aria-busy", "true");
-    expect(statusEl).toHaveAttribute("aria-label", "Carregando");
+    expect(statusEl).toHaveAttribute("aria-label", "Carregando...");
   });
 
-  it("HomeLoading renderiza página de carregamento acessível com role status", () => {
+  it("HomeLoading renders accessible loading page with status role", () => {
     render(<HomeLoading />);
 
     const statusEl = screen.getByRole("status");
     expect(statusEl).toBeInTheDocument();
     expect(statusEl).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByText("Carregando…")).toBeInTheDocument();
+    expect(screen.getByText("Carregando...")).toBeInTheDocument();
   });
 
-  it("renderiza blocos individuais sem erros de layout", () => {
+  it("renders individual blocks without layout errors", () => {
     const { container } = render(
       <div>
         <SkeletonPageHeader />

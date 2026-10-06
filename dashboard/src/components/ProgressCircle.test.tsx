@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { ProgressCircle } from "./ProgressCircle";
 
 describe("ProgressCircle", () => {
-  it("renderiza o elemento progressbar com atributos aria e valor", () => {
+  it("renders progressbar element with aria attributes and value", () => {
     render(
       <ProgressCircle value={45} max={100}>
         <span>45%</span>
@@ -16,7 +16,7 @@ describe("ProgressCircle", () => {
     expect(screen.getByText("45%")).toBeInTheDocument();
   });
 
-  it("limita valores negativos a zero e valores maiores que o máximo a max", () => {
+  it("clamps negative values to zero and values above maximum to max", () => {
     const { rerender } = render(<ProgressCircle value={-10} max={100} />);
     let progress = screen.getByRole("progressbar");
     expect(progress).toHaveAttribute("data-value", "0");
@@ -26,7 +26,7 @@ describe("ProgressCircle", () => {
     expect(progress).toHaveAttribute("data-value", "100");
   });
 
-  it("renderiza com variantes de cor e tamanhos personalizados", () => {
+  it("renders with color variants and custom sizes", () => {
     render(
       <ProgressCircle
         value={80}

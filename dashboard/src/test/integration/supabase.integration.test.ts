@@ -11,7 +11,7 @@ import {
   saveDailyWeather,
 } from "@/lib/queries";
 import {
-  fallbackAdvisorAnalysis,
+  getFallbackAdvisorAnalysis,
   getAdvisorCache,
   incrementQuota,
   saveAdvisorCache,
@@ -27,9 +27,9 @@ const hasEnv = Boolean(
 
 const SENTINEL_DATE = "1999-01-01";
 
-describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () => {
+describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () => {
   afterAll(async () => {
-    // Limpeza de segurança da data sentinela usando service_role
+    // Safety cleanup of sentinel date using service_role
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const admin = getAdminClient();
       await Promise.all([
@@ -45,8 +45,8 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
     }
   });
 
-  describe("Autenticação e RLS", () => {
-    it("autentica com sucesso o usuário dedicado de testes", async () => {
+  describe("Authentication and RLS", () => {
+    it("successfully authenticates dedicated test user", async () => {
       const client = await getAuthenticatedTestClient();
       const { data, error } = await client.auth.getUser();
 
@@ -54,7 +54,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(data.user?.email).toBe(process.env.SUPABASE_TEST_EMAIL);
     });
 
-    it("bloqueia leitura e escrita para clientes anônimos (RLS fail-closed)", async () => {
+    it("blocks read and write operations for anonymous clients (RLS fail-closed)", async () => {
       const anon = getAnonClient();
 
       const [tel, util, gen, hist, monthly, ai, weather] = await Promise.all([
@@ -67,7 +67,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
         anon.from("daily_weather").select("date").limit(1),
       ]);
 
-      // RLS restringe SELECT apenas a authenticated: anon recebe vazio ou erro
+      // RLS only allows SELECT for authenticated users: anon gets an empty result or an error
       expect(tel.data?.length ?? 0).toBe(0);
       expect(util.data?.length ?? 0).toBe(0);
       expect(gen.data?.length ?? 0).toBe(0);
@@ -94,12 +94,12 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(rpcAttempt.error).not.toBeNull();
     });
 
-    it("impede que usuário autenticado insira em tabelas restritas (solar_telemetry e utility_data)", async () => {
+    it("prevents authenticated user from inserting into restricted tables (solar_telemetry and utility_data)", async () => {
       const client = await getAuthenticatedTestClient();
 
       const [telInsert, utilInsert] = await Promise.all([
         client.from("solar_telemetry").insert({
-          plant_name: "Tentativa de escrita não autorizada",
+          plant_name: "Unauthorized write attempt",
           inverters_count: 1,
           inverters_data: [],
           total_lifetime_kwh: 0,
@@ -110,7 +110,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
         client.from("utility_data").insert({
           cpf: "000.000.000-00",
           titular: "Titular Teste",
-          distribuidora: "Tentativa de escrita não autorizada",
+          distribuidora: "Unauthorized write attempt",
           unidades_consumidoras: {},
         }),
       ]);
@@ -120,8 +120,8 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
     });
   });
 
-  describe("Consultas Reais de Produção (queries.ts)", () => {
-    it("getLatestTelemetry retorna os dados e estrutura dos inversores", async () => {
+  describe("Real Production Queries (queries.ts)", () => {
+    it("getLatestTelemetry returns inverter telemetry data and structure", async () => {
       const telemetry = await getLatestTelemetry();
       expect(telemetry).not.toBeNull();
       expect(telemetry?.plant_name).toBeDefined();
@@ -129,7 +129,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(telemetry?.inverters_data.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("getLatestUtilityData retorna dados com UC geradora identificada", async () => {
+    it("getLatestUtilityData returns data with identified generator UC", async () => {
       const utility = await getLatestUtilityData();
       expect(utility).not.toBeNull();
       expect(utility?.distribuidora).toBeDefined();
@@ -137,7 +137,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(typeof utility?.generator_uc).toBe("string");
     });
 
-    it("getTodaySunCurve retorna pontos da grade diária", async () => {
+    it("getTodaySunCurve returns daily grid points", async () => {
       const curve = await getTodaySunCurve();
       expect(Array.isArray(curve)).toBe(true);
       if (curve.length > 0) {
@@ -146,12 +146,12 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       }
     });
 
-    it("getGenerationByDay retorna 30 dias contíguos com kWh válido", async () => {
+    it("getGenerationByDay returns 30 contiguous days with valid kWh", async () => {
       const byDay = await getGenerationByDay(30);
       const dates = Object.keys(byDay);
 
       expect(dates.length).toBeGreaterThanOrEqual(25);
-      const maxKwhDay = 16.0 * 13; // Limite físico nominal para a usina de 16 kWp
+      const maxKwhDay = 16.0 * 13; // Physical nominal limit for 16 kWp plant
 
       for (const d of dates) {
         const entry = byDay[d];
@@ -161,7 +161,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       }
     });
 
-    it("getMonthlyGeneration e getMultiYearHistory retornam séries temporais ordenadas", async () => {
+    it("getMonthlyGeneration and getMultiYearHistory return sorted time series", async () => {
       const [monthly, multi, yearly] = await Promise.all([
         getMonthlyGeneration(),
         getMultiYearHistory(),
@@ -175,15 +175,15 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
     });
   });
 
-  describe("Invariantes de Dados em Produção", () => {
-    it("não possui nenhum dia com geração negativa nos últimos 30 dias", async () => {
+  describe("Production Data Invariants", () => {
+    it("has zero negative generation days over the last 30 days", async () => {
       const byDay = await getGenerationByDay(30);
       for (const [date, entry] of Object.entries(byDay)) {
-        expect(entry.kwh, `Dia ${date} com geração negativa`).toBeGreaterThanOrEqual(0);
+        expect(entry.kwh, `Day ${date} has negative generation`).toBeGreaterThanOrEqual(0);
       }
     });
 
-    it("view daily_generation não possui datas duplicadas", async () => {
+    it("daily_generation view does not have duplicate dates", async () => {
       const client = await getAuthenticatedTestClient();
       const { data } = await client
         .from("daily_generation")
@@ -196,7 +196,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(dates.length).toBe(unique.size);
     });
 
-    it("inverter_daily_history não possui duplicatas de (date, inverter_id)", async () => {
+    it("inverter_daily_history does not have duplicate (date, inverter_id) pairs", async () => {
       const client = await getAuthenticatedTestClient();
       const { data } = await client
         .from("inverter_daily_history")
@@ -210,8 +210,8 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
     });
   });
 
-  describe("Escrita Controlada com Data Sentinela (1999-01-01)", () => {
-    it("saveDailyWeather realiza upsert e getStoredDailyWeather relê com fidelidade", async () => {
+  describe("Controlled Write with Sentinel Date (1999-01-01)", () => {
+    it("saveDailyWeather performs upsert and getStoredDailyWeather rereads accurately", async () => {
       const row: DailyWeatherRow = {
         date: SENTINEL_DATE,
         weather_code: 1,
@@ -232,7 +232,7 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       expect(found?.shortwave_radiation_mj).toBe(19.5);
     });
 
-    it("incrementQuota incrementa a cota de forma atômica via RPC", async () => {
+    it("incrementQuota atomically increments quota via RPC", async () => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(new Date(`${SENTINEL_DATE}T15:00:00Z`));
 
@@ -249,17 +249,17 @@ describe.skipIf(!hasEnv)("Integração Supabase — Produção e RLS Real", () =
       }
     });
 
-    it("saveAdvisorCache grava análise e getAdvisorCache recupera do cache", async () => {
+    it("saveAdvisorCache persists analysis and getAdvisorCache retrieves from cache", async () => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(new Date(`${SENTINEL_DATE}T15:00:00Z`));
 
       try {
-        await saveAdvisorCache(fallbackAdvisorAnalysis, "gemini-3.8-flash");
+        await saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash");
         const cached = await getAdvisorCache();
 
         expect(cached).not.toBeNull();
         expect(cached?.modelUsed).toBe("gemini-3.8-flash");
-        expect(cached?.data.daily.summary).toBe(fallbackAdvisorAnalysis.daily.summary);
+        expect(cached?.data.daily.summary).toBe(getFallbackAdvisorAnalysis("pt-BR").daily.summary);
       } finally {
         vi.useRealTimers();
       }

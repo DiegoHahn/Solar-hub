@@ -20,7 +20,7 @@ import utilityDataFixture from "../test/fixtures/utility-data.json";
 const telemetryDayFixture = telemetryDayFixtureRaw as unknown as SunCurveRow[];
 
 describe("normalizeUnidadeConsumidora", () => {
-  it("normaliza balanço energético e extrato GD a partir dos dados crus da concessionária", () => {
+  it("normalizes energy balance and DG extract from raw utility data", () => {
     const rawUc = utilityDataFixture.unidades_consumidoras["UC-GERADORA"] as unknown as UnidadeConsumidora;
     const normalized = normalizeUnidadeConsumidora(rawUc);
 
@@ -46,7 +46,7 @@ describe("normalizeUnidadeConsumidora", () => {
     }
   });
 
-  it("preserva balanço e extrato caso já existam previamente normalizados", () => {
+  it("preserves balance and extract if already previously normalized", () => {
     const baseUc: UnidadeConsumidora = {
       codigo_uc: "UC-101",
       balanco_energetico: [
@@ -60,7 +60,7 @@ describe("normalizeUnidadeConsumidora", () => {
     expect(res.extrato_gd).toEqual(baseUc.extrato_gd);
   });
 
-  it("remove meses futuros/não faturados do final do array que vêm zerados da concessionária", () => {
+  it("removes trailing unbilled/future zeroed months provided by utility", () => {
     const ucWithTrailingZeros: UnidadeConsumidora = {
       codigo_uc: "UC-101",
       grafico_historico_12_meses: {
@@ -82,7 +82,7 @@ describe("normalizeUnidadeConsumidora", () => {
 describe("buildSunCurveGrid", () => {
   const targetDate = "2026-09-29";
 
-  it("gera grade fixa de 30 em 30 minutos das 05:00 às 20:00 (31 pontos)", () => {
+  it("generates a fixed 30-minute interval grid from 05:00 to 20:00 (31 points)", () => {
     const nighttime = new Date(`${targetDate}T22:00:00-03:00`);
     const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, nighttime);
 
@@ -92,7 +92,7 @@ describe("buildSunCurveGrid", () => {
     expect(grid.every((p) => p.nominal_cap_kw === 16.0)).toBe(true);
   });
 
-  it("define como null os slots posteriores ao horário atual (now) durante o dia", () => {
+  it("sets slots subsequent to current time (now) to null during daytime", () => {
     const afternoon = new Date(`${targetDate}T12:00:00-03:00`);
     const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, afternoon);
 
@@ -103,7 +103,7 @@ describe("buildSunCurveGrid", () => {
     expect(future.every((p) => p.power_kw === null)).toBe(true);
   });
 
-  it("só preenche um slot depois que o horário dele chega", () => {
+  it("only fills a slot after its timestamp has been reached", () => {
     const beforeFive = new Date(`${targetDate}T16:53:00-03:00`);
     const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, beforeFive);
     const slot = (time: string) => grid.find((p) => p.time === time)!;
@@ -112,7 +112,7 @@ describe("buildSunCurveGrid", () => {
     expect(slot("17:00").power_kw).toBeNull();
   });
 
-  it("mantém todos os slots preenchidos quando now é posterior às 20:00", () => {
+  it("keeps all slots filled when now is after 20:00", () => {
     const night = new Date(`${targetDate}T21:30:00-03:00`);
     const grid = buildSunCurveGrid(telemetryDayFixture, targetDate, night);
 
@@ -121,7 +121,7 @@ describe("buildSunCurveGrid", () => {
 });
 
 describe("mergeDailyGeneration", () => {
-  it("sobrescreve a view de telemetria com os dados fechados do histórico diário", () => {
+  it("overwrites telemetry view with finalized daily history data", () => {
     const viewRows: DailyGenerationRow[] = [
       { date: "2026-08-27", kwh: 35.0 },
       { date: "2026-08-28", kwh: 40.0 },
@@ -135,7 +135,7 @@ describe("mergeDailyGeneration", () => {
     expect(merged["2026-08-28"]).toEqual({ kwh: 40.0, isReal: true });
   });
 
-  it("marca isReal como false quando o registro de histórico foi calibrado/estimado", () => {
+  it("marks isReal as false when the history record is calibrated/estimated", () => {
     const viewRows: DailyGenerationRow[] = [{ date: "2026-08-27", kwh: 30.0 }];
     const historyRows: InverterDailyHistoryRow[] = [
       { date: "2026-08-27", inverter_id: "plant_total", kwh: 45.0, is_estimated: true },
@@ -145,7 +145,7 @@ describe("mergeDailyGeneration", () => {
     expect(merged["2026-08-27"]).toEqual({ kwh: 45.0, isReal: false });
   });
 
-  it("soma goodwe_combined + inv_1 quando plant_total não estiver presente no histórico", () => {
+  it("sums goodwe_combined + inv_1 when plant_total is missing from history", () => {
     const viewRows: DailyGenerationRow[] = [];
     const historyRows: InverterDailyHistoryRow[] = [
       { date: "2026-08-27", inverter_id: "inv_1", kwh: 20.0, is_estimated: false },
@@ -156,7 +156,7 @@ describe("mergeDailyGeneration", () => {
     expect(merged["2026-08-27"]).toEqual({ kwh: 50.5, isReal: true });
   });
 
-  it("processa com sucesso os dados reais da fixture daily-generation.json", () => {
+  it("successfully processes real data from daily-generation.json fixture", () => {
     const merged = mergeDailyGeneration(
       dailyGenFixture.view as DailyGenerationRow[],
       dailyGenFixture.history as InverterDailyHistoryRow[],
@@ -207,10 +207,10 @@ describe("currentMonthGenerationKwh", () => {
 });
 
 describe("buildMultiYearHistory", () => {
-  it("teste de regressão: o mês a partir de dailyFromMonth utiliza a soma diária em vez do valor parcial da tabela mensal", () => {
+  it("regression test: month starting from dailyFromMonth uses daily sum instead of partial monthly table value", () => {
     const monthlyRows: InverterMonthlyHistoryRow[] = [
       { month: "2026-08", inverter_id: "plant_total", kwh: 1200 },
-      { month: "2026-09", inverter_id: "plant_total", kwh: 300 }, // valor parcial/incompleto na tabela mensal
+      { month: "2026-09", inverter_id: "plant_total", kwh: 300 }, // partial/incomplete value in monthly table
     ];
 
     const dailyEntries = {
@@ -221,7 +221,7 @@ describe("buildMultiYearHistory", () => {
 
     const history = buildMultiYearHistory(monthlyRows, dailyEntries, "2026-09", "2026-09-29");
 
-    // No ano de 2026, Setembro deve refletir a soma dos dias (50 + 60 + 70 = 180), e não os 300 parciais
+    // In 2026, September should reflect daily sum (50 + 60 + 70 = 180), not the partial 300
     const points2026 = history.byYear["2026"];
     expect(points2026).toBeDefined();
 
@@ -232,7 +232,7 @@ describe("buildMultiYearHistory", () => {
     expect(augPoint?.kwh).toBe(1200);
   });
 
-  it("monta histórico plurianual consistente com os dados reais de monthly-history e daily-generation", () => {
+  it("builds consistent multi-year history from real monthly-history and daily-generation fixtures", () => {
     const monthlyRows = monthlyHistoryFixture as InverterMonthlyHistoryRow[];
     const dailyEntries = mergeDailyGeneration(
       dailyGenFixture.view as DailyGenerationRow[],

@@ -7,7 +7,7 @@ import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
 describe("InverterCard", () => {
   const realInverter = telemetryDayFixture[0].inverters_data[0] as unknown as InverterReading;
 
-  it("renderiza o nome do inversor, status online e potência", () => {
+  it("renders inverter name, online status, and power output", () => {
     render(<InverterCard inverter={realInverter} />);
 
     expect(screen.getByText(realInverter.name)).toBeInTheDocument();
@@ -15,12 +15,12 @@ describe("InverterCard", () => {
     expect(screen.getByText(realInverter.power_w.toLocaleString("pt-BR"))).toBeInTheDocument();
   });
 
-  it("calcula e exibe a porcentagem da capacidade nominal", () => {
+  it("calculates and displays percentage of nominal capacity", () => {
     render(<InverterCard inverter={realInverter} />);
     expect(screen.getByText(/% de \d+ kW/)).toBeInTheDocument();
   });
 
-  it("exibe badge Standby e potência zero quando desconectado", () => {
+  it("displays Standby badge and zero power when disconnected", () => {
     const offlineInverter: InverterReading = {
       ...realInverter,
       status: "offline",
@@ -32,7 +32,7 @@ describe("InverterCard", () => {
     expect(screen.getByText("0")).toBeInTheDocument();
   });
 
-  it("alterna diagnóstico avançado no modo não controlado (estado interno)", () => {
+  it("toggles advanced diagnostics in uncontrolled mode (internal state)", () => {
     render(<InverterCard inverter={realInverter} detailed />);
 
     expect(screen.getByText("Expandir")).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe("InverterCard", () => {
     expect(screen.getByText("Sensores Térmicos")).toBeInTheDocument();
   });
 
-  it("respeita a prop controlada showAdvanced e chama onToggleAdvanced", () => {
+  it("respects controlled showAdvanced prop and calls onToggleAdvanced", () => {
     const onToggle = vi.fn();
     const { rerender } = render(
       <InverterCard

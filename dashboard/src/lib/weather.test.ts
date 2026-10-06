@@ -13,23 +13,23 @@ import { getIcaraWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
   it.each([
-    [0, "Céu Limpo", "sun"],
-    [1, "Ensolarado", "sun"],
-    [2, "Parcialmente Nublado", "cloud-sun"],
-    [3, "Nublado / Encoberto", "cloud"],
-    [45, "Nevoeiro", "cloud"],
-    [53, "Garoa / Chuvisco", "rain"],
-    [63, "Chuva Contínua", "rain"],
-    [81, "Pancadas de Chuva", "rain"],
-    [95, "Tempestade", "storm"],
-    [71, "Variação de Nuvens", "cloud-sun"],
-  ])("código %d -> %s (%s)", (code, condition, icon) => {
-    expect(parseWmoCode(code)).toEqual({ condition, icon });
+    [0, "clearSky", "sun"],
+    [1, "sunny", "sun"],
+    [2, "partlyCloudy", "cloud-sun"],
+    [3, "overcast", "cloud"],
+    [45, "foggy", "cloud"],
+    [53, "drizzle", "rain"],
+    [63, "continuousRain", "rain"],
+    [81, "rainShowers", "rain"],
+    [95, "thunderstorm", "storm"],
+    [71, "cloudVariation", "cloud-sun"],
+  ])("code %d -> %s (%s)", (code, conditionKey, icon) => {
+    expect(parseWmoCode(code)).toEqual({ conditionKey, icon });
   });
 });
 
 describe("getIcaraWeatherData", () => {
-  // Agora simulado: 25/09/2026 12h em Brasília -> janela de 90 dias a partir de 27/06; recente a partir de 18/09
+  // Simulated current time: 2026-09-25 12:00 BRT -> 90-day window starting 2026-06-27; recent window starting 2026-09-18
   const NOW = new Date("2026-09-25T12:00:00-03:00");
 
   const row = (date: string, overrides: Partial<DailyWeatherRow> = {}): DailyWeatherRow => ({
@@ -86,7 +86,7 @@ describe("getIcaraWeatherData", () => {
     vi.unstubAllGlobals();
   });
 
-  it("na carga inicial completa pela Archive API os dias sem radiação no forecast e não grava dias nulos", async () => {
+  it("completes initial load via Archive API for days missing radiation in forecast and omits null days", async () => {
     mockFetch((url) =>
       url.includes("archive-api")
         ? daily([["2026-06-27", 7.2, 61], ["2026-06-28", 18, 0]])
@@ -110,23 +110,22 @@ describe("getIcaraWeatherData", () => {
     expect(result.map((d) => d.date)).toEqual(["2026-06-27", "2026-06-28", "2026-09-24", "2026-09-25"]);
     const [jun27, jun28, sep24, today] = result;
 
-    // Sem geração registrada: estimativa = 16 kWp × HSP × 0.81 (7.2 MJ = 2 HSP)
-    expect(jun27).toMatchObject({ condition: "Chuva Contínua", solarRadiationHsp: 2, estimatedKwh: 25.9, isReal: false });
-    // Fechamento estimado: usa o kWh registrado, mas sem selo de medição real
+    // Without recorded generation: estimate = 16 kWp * HSP * 0.81 (7.2 MJ = 2 HSP)
+    expect(jun27).toMatchObject({ conditionKey: "continuousRain", solarRadiationHsp: 2, estimatedKwh: 25.9, isReal: false });
+    // Estimated closure: uses recorded kWh, but without actual measurement flag
     expect(jun28).toMatchObject({ estimatedKwh: 30, isReal: false, realKwh: undefined });
     expect(sep24).toMatchObject({
-      dayOfWeek: "Qui",
-      formattedDate: "24/09",
+      isToday: false,
       sunshineHours: 10,
       solarRadiationHsp: 5,
       estimatedKwh: 71.3,
       isReal: true,
       realKwh: 71.3,
     });
-    expect(today.formattedDate).toBe("Hoje");
+    expect(today.isToday).toBe(true);
   });
 
-  it("com o histórico armazenado rebusca só a janela recente e regrava apenas os dias alterados", async () => {
+  it("with stored history, only refetches recent window and rewrites only changed days", async () => {
     vi.mocked(getStoredDailyWeather).mockResolvedValue([
       ...olderDates().map((d) => row(d)),
       row("2026-09-24", { source: "forecast", weather_code: 0, temperature_max_c: 28.1, temperature_min_c: 15.2, sunshine_duration_s: 36000 }),
@@ -141,11 +140,11 @@ describe("getIcaraWeatherData", () => {
 
     const saved = vi.mocked(saveDailyWeather).mock.calls[0][0];
     expect(saved.map((r) => r.date)).toEqual(["2026-09-25"]);
-    expect(result[result.length - 1]).toMatchObject({ date: "2026-09-25", formattedDate: "Hoje" });
+    expect(result[result.length - 1]).toMatchObject({ date: "2026-09-25", isToday: true });
     expect(result).toHaveLength(olderDates().length + 2);
   });
 
-  it("devolve o fallback quando não há clima armazenado e a Open-Meteo falha", async () => {
+  it("returns fallback when there is no stored weather and Open-Meteo fails", async () => {
     mockFetch(() => null);
 
     await expect(getIcaraWeatherData()).resolves.toBe(fallbackDailyWeather);
@@ -157,7 +156,7 @@ import openMeteoForecastFixture from "../test/fixtures/open-meteo-forecast.json"
 import openMeteoArchiveFixture from "../test/fixtures/open-meteo-archive.json";
 
 describe("toWeatherRows", () => {
-  it("converte o payload real de forecast da Open-Meteo para DailyWeatherRow", () => {
+  it("converts real Open-Meteo forecast payload to DailyWeatherRow", () => {
     const rows = toWeatherRows(openMeteoForecastFixture.daily as unknown as OpenMeteoDaily, "forecast");
     expect(rows.length).toBeGreaterThanOrEqual(7);
 
@@ -173,20 +172,20 @@ describe("toWeatherRows", () => {
     }
   });
 
-  it("converte o payload real de archive da Open-Meteo para DailyWeatherRow", () => {
+  it("converts real Open-Meteo archive payload to DailyWeatherRow", () => {
     const rows = toWeatherRows(openMeteoArchiveFixture.daily as unknown as OpenMeteoDaily, "archive");
     expect(rows.length).toBeGreaterThan(0);
     expect(rows[0].source).toBe("archive");
   });
 
-  it("descarta dias que contenham qualquer campo nulo", () => {
+  it("discards days containing any null field", () => {
     const dailyWithNull: OpenMeteoDaily = {
       time: ["2026-06-01", "2026-06-02"],
       weather_code: [1, 1],
       temperature_2m_max: [25, 25],
       temperature_2m_min: [15, 15],
       sunshine_duration: [30000, 30000],
-      shortwave_radiation_sum: [18.5, null], // radiação nula (comum em forecast antigo)
+      shortwave_radiation_sum: [18.5, null], // null radiation (common in older forecast entries)
       precipitation_sum: [0, 0],
     };
 
@@ -197,11 +196,11 @@ describe("toWeatherRows", () => {
 });
 
 describe("isoDateRange", () => {
-  it("gera lista contígua de datas no formato ISO", () => {
+  it("generates contiguous list of ISO formatted dates", () => {
     expect(isoDateRange("2026-09-01", "2026-09-04")).toEqual(["2026-09-01", "2026-09-02", "2026-09-03"]);
   });
 
-  it("retorna array vazio quando data inicial é igual à data final", () => {
+  it("returns empty array when start date equals end date", () => {
     expect(isoDateRange("2026-09-01", "2026-09-01")).toEqual([]);
   });
 });
@@ -218,11 +217,11 @@ describe("sameWeather", () => {
     source: "forecast",
   };
 
-  it("retorna true para registros idênticos", () => {
+  it("returns true for identical records", () => {
     expect(sameWeather({ ...base }, { ...base })).toBe(true);
   });
 
-  it("retorna false quando source ou métricas mudam", () => {
+  it("returns false when source or metrics change", () => {
     expect(sameWeather(undefined, base)).toBe(false);
     expect(sameWeather({ ...base, source: "archive" }, base)).toBe(false);
     expect(sameWeather({ ...base, shortwave_radiation_mj: 20.0 }, base)).toBe(false);
@@ -242,7 +241,7 @@ describe("toDailyWeather", () => {
     source: "forecast",
   };
 
-  it("calcula estimativa teórica 16 kWp * HSP * 0.81 quando não há medição real de geração", () => {
+  it("calculates theoretical estimate 16 kWp * HSP * 0.81 when no real generation measurement exists", () => {
     // 5 HSP * 16 kWp * 0.81 = 64.8 kWh
     const weather = toDailyWeather(row, "2026-09-29", undefined);
 
@@ -250,17 +249,17 @@ describe("toDailyWeather", () => {
     expect(weather.estimatedKwh).toBe(64.8);
     expect(weather.isReal).toBe(false);
     expect(weather.realKwh).toBeUndefined();
-    expect(weather.formattedDate).toBe("25/09");
+    expect(weather.isToday).toBe(false);
   });
 
-  it("utiliza o valor real medido quando a geração informada existe", () => {
+  it("uses actual measured value when reported generation exists", () => {
     const generation = { kwh: 72.5, isReal: true };
     const weather = toDailyWeather(row, "2026-09-25", generation);
 
     expect(weather.estimatedKwh).toBe(72.5);
     expect(weather.isReal).toBe(true);
     expect(weather.realKwh).toBe(72.5);
-    expect(weather.formattedDate).toBe("Hoje");
+    expect(weather.isToday).toBe(true);
   });
 });
 

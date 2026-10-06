@@ -1,41 +1,41 @@
-# 4. GitHub Flow e Automação de Versões com Release Please
+# 4. GitHub Flow and Automated Releases with Release Please
 
-* **Status:** Aceito
-* **Data:** 2026-09-29 (registro retroativo)
-* **Decisores:** Diego Hahn
+* **Status:** Accepted
+* **Date:** 2026-09-29 (retroactive record)
+* **Decision Makers:** Diego Hahn
 
-## Contexto
+## Context
 
-Estratégias de versionamento com múltiplos ramos concorrentes de longa duração (como GitFlow, com branches `develop`, `master`, `release/*` e `hotfix/*`) geram atrito em equipes enxutas:
-1. **Conflitos de integração (*merge hell*):** Ramos acumulados aumentam a complexidade de conciliação de código.
-2. **Lentidão de entrega:** Múltiplas etapas manuais entre a conclusão de uma funcionalidade e sua publicação.
-3. **Inconsistência de releases:** Criação manual de tags git e escrita manual de `CHANGELOG.md`, sujeitas a omissões.
+Branching strategies featuring multiple concurrent long-lived branches (such as classic GitFlow with `develop`, `master`, `release/*`, and `hotfix/*`) introduce significant friction for agile projects:
+1. **Integration conflicts ("merge hell"):** Long divergence between branches increases merge reconciliation complexity.
+2. **Delivery lag:** Multiple manual stabilization gates between completing a feature and deploying to production.
+3. **Inconsistent releases:** Manual git tagging and changelog drafting are error-prone and frequently fall out of sync.
 
-Por outro lado, commits diretos no ramo principal (`main`) sem esteiras automatizadas comprometeriam a integridade do ambiente produtivo na Vercel e inviabilizariam revisões atômicas.
+Conversely, committing directly to `main` without automated pipelines would threaten production stability on Vercel and undermine atomic code reviews.
 
-## Decisão
+## Decision
 
-Adotamos o GitHub Flow associado ao padrão Conventional Commits e à automação do Release Please:
+We adopted GitHub Flow paired with Conventional Commits and Google Release Please automation:
 
-1. **Branches efêmeras:** Todo desenvolvimento tem origem a partir do `main` atualizado, adotando prefixos semânticos padronizados (`feat/`, `fix/`, `docs/`, `chore/`).
-2. **Ruleset e proteção de branch:** Commits diretos no `main` são bloqueados. O branch exige Pull Request com status checks obrigatórios passando (sem exigência de número mínimo de aprovações de terceiros, compatível com projeto mantido individualmente).
-3. **Esteira de CI por PR:** Todo Pull Request deve ter 100% de sucesso nas seguintes checagens:
-   - Linting e checagem de tipos (TypeScript no dashboard, Ruff no coletor Python);
-   - Testes unitários e de componentes com trava de cobertura mínima de 80%;
-   - Build de produção do Next.js;
-   - Análise estática de vulnerabilidades e dependências (Trivy e Semgrep).
-   Os testes de integração (com Supabase e Open-Meteo reais) e testes E2E executam no branch `main` e em agendamento diário, protegendo credenciais de integração em PRs externos.
-4. **Squash and Merge:** O merge no `main` é realizado via *squash*, consolidando o Pull Request em um commit único e mantendo histórico linear.
-5. **Versionamento semântico automatizado:** O workflow `.github/workflows/release-please.yml` analisa os commits incorporados ao `main`, determina a próxima versão semântica (SemVer), atualiza o `CHANGELOG.md` e gera as tags e releases no GitHub.
+1. **Short-lived feature branches:** All development branches off an up-to-date `main` using standardized semantic prefixes (`feat/`, `fix/`, `docs/`, `chore/`).
+2. **Branch protection rulesets:** Direct commits to `main` are blocked. Branches require Pull Requests with all required status checks passing (configured without third-party approval counts, matching solo/pair engineering workflows).
+3. **Automated CI gates per Pull Request:** Every PR must achieve 100% pass rates across:
+   - Linting and static type checking (TypeScript in the dashboard, Ruff in the Python collector);
+   - Unit and component tests with an enforced minimum code coverage threshold of ≥ 80%;
+   - Production Next.js builds;
+   - Security scanning for known vulnerabilities, misconfigurations, and leaked secrets (Trivy and Semgrep).
+   Integration tests (using real Supabase and Open-Meteo services) and end-to-end (E2E) browser tests execute upon merge to `main` and via daily schedules to protect live credentials from fork PRs.
+4. **Squash and Merge:** PRs are merged via squash commits, compressing branch revisions into a single atomic commit with a Conventional Commit message and maintaining a clean, linear history.
+5. **Automated semantic versioning:** The `.github/workflows/release-please.yml` workflow parses merged Conventional Commits, computes the next Semantic Version (SemVer), updates `CHANGELOG.md`, and drafts or publishes GitHub Releases and git tags automatically.
 
-## Consequências
+## Consequences
 
-### Positivas
+### Positive
 
-* **Histórico linear e legível:** Facilidade para auditorias, comandos `git bisect` e eventuais operações de reversão (*revert*).
-* **Deploy contínuo confiável:** Todo commit incorporado ao `main` passou por validação estática e testes de unidade com cobertura travada.
-* **Governança de versões:** Changelog automatizado e rastreável, categorizado por tipo de contribuição.
+* **Linear, auditable history:** Clean git tree simplifies `git bisect`, audits, and automated rollbacks.
+* **Continuous deployment confidence:** Every commit merged into `main` has passed strict static analysis, builds, and test coverage thresholds.
+* **Predictable version governance:** Fully automated, categorized changelogs eliminating human versioning errors.
 
-### Negativas e Mitigações
+### Negative and Mitigations
 
-* **Disciplina nas mensagens de commit:** Títulos de PR e commits precisam seguir o padrão Conventional Commits. *Mitigação:* Diretrizes documentadas no `CONTRIBUTING.md` e verificação nos templates de Pull Request.
+* **Strict commit discipline:** PR titles and commit messages must conform strictly to Conventional Commits. *Mitigation:* Documented guidelines in `CONTRIBUTING.md` and automated validation in PR templates.

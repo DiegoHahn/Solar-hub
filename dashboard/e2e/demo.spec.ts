@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { ptBR } from "../src/i18n/locales/pt-BR";
 
-test.describe("Modo Demonstração (Portfólio / Showcase)", () => {
-  test("acesso a /demo define cookie solarhub_demo=1 e redireciona para a raiz", async ({
+test.describe("Demo mode", () => {
+  test("visiting /demo sets the solarhub_demo=1 cookie and redirects to the root", async ({
     page,
     context,
   }) => {
@@ -14,54 +15,48 @@ test.describe("Modo Demonstração (Portfólio / Showcase)", () => {
     expect(demoCookie?.value).toBe("1");
   });
 
-  test("exibe banner de modo demonstração, usina demo e usuário Visitante", async ({
+  test("shows the demo banner, the demo plant and the Visitor user", async ({
     page,
   }) => {
     await page.goto("/demo");
     await expect(page).toHaveURL("/");
 
-    // Banner de demonstração no topo
     await expect(
       page.getByText("Modo demonstração — dados fictícios"),
     ).toBeVisible();
 
-    // Usina e identificação no menu
     await expect(page.getByText("Usina Solar").first()).toBeVisible();
-    await expect(page.getByText("Visitante (Demo)")).toBeVisible();
+    await expect(page.getByText(ptBR.nav.guestDemo, { exact: true }).first()).toBeVisible();
 
-    // Gráficos carregados com sucesso
     const svgCharts = page.locator(".recharts-responsive-container svg");
     await expect(svgCharts.first()).toBeVisible({ timeout: 10000 });
   });
 
-  test("navega por todas as abas do dashboard no modo demo", async ({
+  test("navigates through every dashboard tab in demo mode", async ({
     page,
   }) => {
     await page.goto("/demo");
     await expect(page).toHaveURL("/");
 
-    // Página Placas & Inversores
     await page.goto("/placas");
     await expect(page).toHaveURL("/placas");
     await expect(
-      page.getByRole("heading", { name: "Placas & Inversores" }),
+      page.getByRole("heading", { name: ptBR.inverters.title }),
     ).toBeVisible();
     await expect(
-      page.getByText("Painel de Engenharia & Qualidade de Energia"),
+      page.getByText(ptBR.inverters.engineeringTitle),
     ).toBeVisible();
 
-    // Página Cooperativa
     await page.goto("/cooperativa");
     await expect(page).toHaveURL("/cooperativa");
     await expect(page.getByText("Cooperativa").first()).toBeVisible();
 
-    // Página Visão Combinada
     await page.goto("/combinada");
     await expect(page).toHaveURL("/combinada");
     await expect(page.getByRole("heading", { name: "Análise" })).toBeVisible();
   });
 
-  test("página /login não exibe link ou botão para demonstração", async ({
+  test("the /login page has no demo link or button", async ({
     page,
   }) => {
     await page.goto("/login");
@@ -71,7 +66,7 @@ test.describe("Modo Demonstração (Portfólio / Showcase)", () => {
     await expect(demoButtonsOrLinks).toHaveCount(0);
   });
 
-  test("GET /api/ai-advisor com cookie demo retorna 200, isDemo: true e não aciona Gemini", async ({
+  test("GET /api/ai-advisor with the demo cookie returns 200 and isDemo: true without calling Gemini", async ({
     page,
   }) => {
     await page.goto("/demo");
@@ -86,27 +81,23 @@ test.describe("Modo Demonstração (Portfólio / Showcase)", () => {
     expect(data.daily).toHaveProperty("summary");
   });
 
-  test("sair da demonstração limpa o cookie e redireciona para /login", async ({
+  test("leaving the demo clears the cookie and redirects to /login", async ({
     page,
     context,
   }) => {
     await page.goto("/demo");
     await expect(page).toHaveURL("/");
 
-    // Clica no link de sair da demonstração no banner
     const exitLink = page.getByRole("link", { name: "Sair da demonstração" });
     await expect(exitLink).toBeVisible();
     await exitLink.click();
 
-    // Deve redirecionar para /login
     await expect(page).toHaveURL(/\/login/);
 
-    // O cookie deve ter sido limpo
     const cookies = await context.cookies();
     const demoCookie = cookies.find((c) => c.name === "solarhub_demo");
     expect(demoCookie?.value ?? "").not.toBe("1");
 
-    // Acessar raiz agora deve redirecionar para /login
     await page.goto("/");
     await expect(page).toHaveURL(/\/login/);
   });

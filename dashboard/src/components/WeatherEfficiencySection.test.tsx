@@ -1,9 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { WeatherEfficiencySection } from "./WeatherEfficiencySection";
 import { toDailyWeather } from "@/lib/weatherData";
 import weatherFixture from "@/test/fixtures/daily-weather.json";
 import type { DailyWeatherRow } from "@/lib/types";
+import { I18nProvider } from "@/i18n/context";
+import { en } from "@/i18n/locales/en";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 describe("WeatherEfficiencySection", () => {
   const todayIso = "2026-09-29";
@@ -11,7 +15,7 @@ describe("WeatherEfficiencySection", () => {
     toDailyWeather(row, todayIso, undefined),
   );
 
-  it("renderiza o cabeçalho completo, badges e estatísticas agregadas na versão padrão", () => {
+  it("renders full header, badges, and aggregated statistics in default view", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);
 
     expect(screen.getByRole("heading", { name: "Índice Climático vs. Eficiência Solar" })).toBeInTheDocument();
@@ -24,7 +28,7 @@ describe("WeatherEfficiencySection", () => {
     expect(screen.getByText(/Sol \(HSP\)/i)).toBeInTheDocument();
   });
 
-  it("permite alternar entre os filtros de 7, 30 e 90 dias", () => {
+  it("allows toggling between 7, 30, and 90 day filters", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);
 
     const btn30 = screen.getByRole("button", { name: "30 Dias" });
@@ -40,10 +44,26 @@ describe("WeatherEfficiencySection", () => {
     expect(btn7).toHaveClass("bg-white");
   });
 
-  it("renderiza a versão compacta para o dashboard inicial", () => {
+  it("renders compact version for overview dashboard", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={true} />);
 
     expect(screen.getByRole("heading", { name: "Sol vs. Geração (Últimos 7 dias)" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "30 Dias" })).not.toBeInTheDocument();
+  });
+
+  it("renders labels, weather condition and day units in English", () => {
+    render(
+      <I18nProvider initialLocale="en">
+        <WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByRole("heading", { name: en.combined.weatherVsEfficiencyTitle })).toBeInTheDocument();
+    const latest = dailyWeatherList[dailyWeatherList.length - 1];
+    expect(screen.getAllByText(en.weather[latest.conditionKey]).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: en.combined.days30 }));
+    expect(screen.getAllByText(en.common.days).length).toBe(3);
+    expect(screen.queryByText("dias")).not.toBeInTheDocument();
   });
 });

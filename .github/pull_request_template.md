@@ -1,16 +1,16 @@
-## O que muda
+## Description
 
-<!-- Resumo da mudança e do motivo. Referencie a issue, se houver (ex.: Closes #12). -->
+<!-- Summary of changes and technical rationale. Reference issues if applicable (e.g., Closes #12). -->
 
-## Como testar
+## How to Test
 
-<!-- Passos para validar: comandos, páginas, dados usados. -->
+<!-- Validation steps: commands, pages visited, datasets tested. -->
 
 ## Checklist
 
-- [ ] Título do PR no formato Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `chore:`, `ci:`...)
-- [ ] Lint, typecheck e testes passando localmente
-- [ ] Cobertura mínima mantida
-- [ ] Sem segredos ou dados pessoais em código, fixtures ou logs
-- [ ] Documentação atualizada, se o comportamento mudou
-- [ ] Mudanças no coletor validadas no dispositivo edge, se aplicável
+- [ ] PR title adheres to Conventional Commits format (`feat:`, `fix:`, `test:`, `docs:`, `chore:`, `ci:`...)
+- [ ] Linting, typechecking, and test suites passing locally
+- [ ] Minimum test coverage threshold maintained (≥ 80%)
+- [ ] Zero credentials, secrets, or PII introduced into code, fixtures, or logs
+- [ ] Documentation updated if application behavior or architecture changed
+- [ ] Collector changes verified on physical edge hardware (if applicable)

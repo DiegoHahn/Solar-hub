@@ -32,7 +32,7 @@ def test_push_to_supabase_success(httpserver, monkeypatch, tmp_path):
 
     plant_summary = {
         "timestamp": "2026-09-29T12:00:00Z",
-        "plant_name": "Usina Teste",
+        "plant_name": "Test Plant",
         "total_nominal_capacity_kw": 16.0,
         "total_power_w": 4500.0,
         "total_power_kw": 4.5,
@@ -155,7 +155,7 @@ def test_push_to_supabase_network_exception(monkeypatch, tmp_path):
     monkeypatch.setattr(
         inverters.requests,
         "post",
-        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Rede indisponível")),
+        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Network unavailable")),
     )
 
     inverters.push_to_supabase({"timestamp": "2026-09-29T12:00:00Z", "total_power_w": 100})
@@ -215,7 +215,7 @@ def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
         {"SUPABASE_URL": httpserver.url_for(""), "SUPABASE_SERVICE_ROLE_KEY": "fake-key"},
     )
     httpserver.expect_request("/rest/v1/utility_data", method="POST").respond_with_data(
-        "Erro", status=500
+        "Error", status=500
     )
     sample_result = {
         "timestamp": "2026-09-29T10:00:00Z",
@@ -230,6 +230,6 @@ def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
     monkeypatch.setattr(
         utility.requests,
         "post",
-        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Rede")),
+        lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Network")),
     )
     assert utility.push_utility_to_supabase(sample_result) is False

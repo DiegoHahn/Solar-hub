@@ -6,7 +6,7 @@ import {
   incrementQuota,
   getAdvisorCache,
   saveAdvisorCache,
-  fallbackAdvisorAnalysis,
+  getFallbackAdvisorAnalysis,
 } from "./aiQuota";
 
 const mockFrom = vi.fn();
@@ -20,17 +20,17 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 describe("getBrasiliaDate", () => {
-  it("converte data UTC para o dia correto no fuso de Brasília", () => {
+  it("converts UTC date to correct day in Brasília timezone", () => {
     const utcNoon = new Date("2026-07-20T15:00:00Z"); // 12:00 BRT
     expect(getBrasiliaDate(utcNoon)).toBe("2026-07-20");
   });
 
-  it("mantém a data do dia corrente às 23:30 em Brasília (02:30 UTC do dia seguinte)", () => {
+  it("preserves current date at 23:30 in Brasília (02:30 UTC next day)", () => {
     const lateNightBrt = new Date("2026-07-20T23:30:00-03:00");
     expect(getBrasiliaDate(lateNightBrt)).toBe("2026-07-20");
   });
 
-  it("vira a data imediatamente após a meia-noite em Brasília (00:05 BRT = 03:05 UTC)", () => {
+  it("rolls over date immediately after midnight in Brasília (00:05 BRT = 03:05 UTC)", () => {
     const earlyMorningBrt = new Date("2026-07-21T00:05:00-03:00");
     expect(getBrasiliaDate(earlyMorningBrt)).toBe("2026-07-21");
   });
@@ -39,39 +39,39 @@ describe("getBrasiliaDate", () => {
 describe("isPrimaryModel", () => {
   const PRIMARY = "gemini-3.8-flash";
 
-  it("reconhece quando os nomes são idênticos", () => {
+  it("recognizes identical model names", () => {
     expect(isPrimaryModel("gemini-3.8-flash", PRIMARY)).toBe(true);
   });
 
-  it("ignora diferenças de maiúsculas/minúsculas e espaços laterais", () => {
+  it("ignores casing differences and surrounding whitespace", () => {
     expect(isPrimaryModel("  GEMINI-3.8-FLASH  ", PRIMARY)).toBe(true);
     expect(isPrimaryModel("Gemini-3.8-Flash", " gemini-3.8-flash ")).toBe(true);
   });
 
-  it("aceita sufixos e prefixos usuais de versão e namespace", () => {
+  it("accepts common version and namespace prefixes/suffixes", () => {
     expect(isPrimaryModel("models/gemini-3.8-flash", PRIMARY)).toBe(true);
     expect(isPrimaryModel("gemini-3.8-flash-latest", PRIMARY)).toBe(true);
     expect(isPrimaryModel("gemini-3.8-flash-001", PRIMARY)).toBe(true);
   });
 
-  it("retorna falso para modelos visivelmente distintos", () => {
+  it("returns false for distinct models", () => {
     expect(isPrimaryModel("gemini-1.5-flash", PRIMARY)).toBe(false);
     expect(isPrimaryModel("gemini-3.8-pro", PRIMARY)).toBe(false);
     expect(isPrimaryModel("gpt-4o", PRIMARY)).toBe(false);
   });
 });
 
-describe("falhas de acesso ao banco", () => {
+describe("database access failures", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("retorna zeros quando a consulta de cota falha ou não tem dados", async () => {
+  it("returns zeroes when quota query fails or has no data", async () => {
     const mockSelect = vi.fn().mockReturnThis();
     const mockEq = vi.fn().mockReturnThis();
     const mockMaybeSingle = vi.fn().mockResolvedValue({
       data: null,
-      error: new Error("Falha no banco"),
+      error: new Error("Database failure"),
     });
 
     mockFrom.mockReturnValue({
@@ -85,11 +85,11 @@ describe("falhas de acesso ao banco", () => {
     expect(state.total_calls).toBe(0);
   });
 
-  it("aplica fallback quando RPC falha ao incrementar cota", async () => {
+  it("applies fallback when RPC fails to increment quota", async () => {
     mockRpc.mockReturnValue({
       maybeSingle: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error("RPC indisponível"),
+        error: new Error("RPC unavailable"),
       }),
     });
 
@@ -114,24 +114,36 @@ describe("falhas de acesso ao banco", () => {
     expect(mockUpsert).toHaveBeenCalled();
   });
 
-  it("trata o cache da análise como ausente quando a leitura falha", async () => {
+  it("treats advisor cache as absent when read fails", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Falha no banco") }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Database failure") }),
     });
 
     await expect(getAdvisorCache()).resolves.toBeNull();
   });
 
-  it("não interrompe a geração da análise quando salvar o cache falha", async () => {
+  it("does not interrupt analysis generation when cache saving fails", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     mockFrom.mockReturnValue({
-      upsert: vi.fn().mockResolvedValue({ error: new Error("Falha no banco") }),
+      upsert: vi.fn().mockResolvedValue({ error: new Error("Database failure") }),
     });
 
-    await expect(saveAdvisorCache(fallbackAdvisorAnalysis, "gemini-3.8-flash")).resolves.toBeUndefined();
+    await expect(saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash")).resolves.toBeUndefined();
     expect(consoleError).toHaveBeenCalled();
+  });
+});
+
+describe("getFallbackAdvisorAnalysis", () => {
+  it("returns the analysis in the requested locale", () => {
+    const ptBR = getFallbackAdvisorAnalysis("pt-BR");
+    const en = getFallbackAdvisorAnalysis("en");
+
+    expect(en.daily.recommendations).toHaveLength(ptBR.daily.recommendations.length);
+    expect(en.monthly.recommendations).toHaveLength(ptBR.monthly.recommendations.length);
+    expect(en.daily.summary).not.toBe(ptBR.daily.summary);
+    expect(en.daily.recommendations.map((r) => r.icon)).toEqual(ptBR.daily.recommendations.map((r) => r.icon));
   });
 });

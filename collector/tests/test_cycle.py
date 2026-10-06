@@ -28,7 +28,7 @@ def test_collect_inverter_solis_via_local_server(httpserver):
 
     solis_cfg = {
         "id": "inv_1",
-        "name": "Inversor Solis",
+        "name": "Solis Inverter",
         "type": "solarman_lsw3",
         "brand": "Solis",
         "ip": f"{httpserver.host}:{httpserver.port}",
@@ -56,7 +56,7 @@ def test_collect_inverter_goodwe_mocked():
 
     goodwe_cfg = {
         "id": "inv_2",
-        "name": "Inversor GoodWe 2",
+        "name": "GoodWe Inverter 2",
         "type": "goodwe_tcp",
         "brand": "GoodWe",
         "ip": "10.0.0.2",
@@ -75,7 +75,7 @@ def test_collect_inverter_goodwe_mocked():
 def test_collect_inverter_error_handling():
     goodwe_fail_cfg = {
         "id": "inv_err",
-        "name": "Inversor Falho",
+        "name": "Failing Inverter",
         "type": "goodwe_tcp",
         "brand": "GoodWe",
         "ip": "127.0.0.1",
@@ -84,14 +84,14 @@ def test_collect_inverter_error_handling():
     with patch.object(
         inverters,
         "fetch_goodwe_async",
-        side_effect=RuntimeError("Conexão recusada pelo inversor"),
+        side_effect=RuntimeError("Connection refused by inverter"),
     ):
         res = collect_inverter(goodwe_fail_cfg)
 
     assert res["id"] == "inv_err"
     assert res["status"] == "offline / standby"
     assert res["power_w"] == 0.0
-    assert "Conexão recusada pelo inversor" in res["error"]
+    assert "Connection refused by inverter" in res["error"]
 
 
 def test_run_collection_cycle_full(httpserver, monkeypatch, tmp_path):
@@ -112,7 +112,7 @@ def test_run_collection_cycle_full(httpserver, monkeypatch, tmp_path):
     mock_inv.read_runtime_data = AsyncMock(return_value=runtime_data)
 
     mock_config = {
-        "plant_name": "Usina Teste 16kW",
+        "plant_name": "Test Plant 16kW",
         "nominal_capacity_kw": 16.0,
         "inverters": [
             {
@@ -158,7 +158,7 @@ def test_run_collection_cycle_full(httpserver, monkeypatch, tmp_path):
         plant_summary = run_collection_cycle()
 
     assert plant_summary is not None
-    assert plant_summary["plant_name"] == "Usina Teste 16kW"
+    assert plant_summary["plant_name"] == "Test Plant 16kW"
     assert plant_summary["inverters_count"] == 2
     assert plant_summary["total_power_w"] == 988.0
 
@@ -172,7 +172,7 @@ def test_run_collection_cycle_offline_fallback(httpserver, monkeypatch, tmp_path
     )
 
     mock_config = {
-        "plant_name": "Usina Teste",
+        "plant_name": "Test Plant",
         "nominal_capacity_kw": 16.0,
         "inverters": [],
     }
@@ -201,7 +201,7 @@ def test_run_collection_cycle_offline_fallback(httpserver, monkeypatch, tmp_path
 
 def test_inverter_disabled_is_skipped(monkeypatch):
     mock_config = {
-        "plant_name": "Usina",
+        "plant_name": "Plant",
         "inverters": [{"id": "inv_off", "enabled": False}],
     }
     monkeypatch.setattr(inverters, "config", mock_config)
@@ -213,7 +213,7 @@ def test_inverter_disabled_is_skipped(monkeypatch):
 
 def test_inverter_offline_recovers_last_known(monkeypatch):
     mock_config = {
-        "plant_name": "Usina",
+        "plant_name": "Plant",
         "inverters": [
             {
                 "id": "inv_offline",
@@ -273,13 +273,13 @@ def test_collect_inverter_goodwe_udp_fallback():
 
     goodwe_cfg = {
         "id": "inv_2",
-        "name": "Inversor GoodWe 2",
+        "name": "GoodWe Inverter 2",
         "type": "goodwe_tcp",
         "brand": "GoodWe",
         "ip": "10.0.0.2",
     }
 
-    # Primeira chamada falha (Modbus TCP), segunda funciona (UDP)
+    # First call fails (Modbus TCP), second succeeds (UDP fallback)
     connect_mock = AsyncMock(side_effect=[RuntimeError("TCP failed"), mock_inv])
     with patch("collector.inverters.goodwe.connect", connect_mock):
         res = collect_inverter(goodwe_cfg)
@@ -292,7 +292,7 @@ def test_collect_inverter_goodwe_udp_fallback():
 def test_collect_inverter_unknown_type():
     unknown_cfg = {
         "id": "inv_unknown",
-        "name": "Inversor Desconhecido",
+        "name": "Unknown Inverter",
         "type": "generic_custom",
         "ip": "10.0.0.99",
     }

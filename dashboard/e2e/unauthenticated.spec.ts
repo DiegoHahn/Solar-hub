@@ -1,33 +1,33 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Acesso Não Autenticado e Segurança", () => {
+test.describe("Unauthenticated access and security", () => {
   const protectedRoutes = ["/", "/placas", "/cooperativa", "/combinada"];
 
   for (const route of protectedRoutes) {
-    test(`redireciona ${route} para /login quando não logado`, async ({ page }) => {
+    test(`redirects ${route} to /login when signed out`, async ({ page }) => {
       await page.goto(route);
       await expect(page).toHaveURL(/\/login/);
       await expect(page.locator("h1")).toContainText("Solar Hub");
     });
   }
 
-  test("retorna 401 em GET /api/ai-advisor sem autenticação", async ({ request }) => {
+  test("returns 401 on GET /api/ai-advisor without authentication", async ({ request }) => {
     const res = await request.get("/api/ai-advisor");
     expect(res.status()).toBe(401);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Não autenticado.");
+    expect(body).toHaveProperty("error", "Not authenticated.");
   });
 
-  test("retorna 401 em POST /api/ai-advisor sem autenticação", async ({ request }) => {
+  test("returns 401 on POST /api/ai-advisor without authentication", async ({ request }) => {
     const res = await request.post("/api/ai-advisor", {
       data: { force: false },
     });
     expect(res.status()).toBe(401);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Não autenticado.");
+    expect(body).toHaveProperty("error", "Not authenticated.");
   });
 
-  test("aplica headers de segurança e CSP rigorosos", async ({ page }) => {
+  test("applies strict security headers and CSP", async ({ page }) => {
     const response = await page.goto("/login");
     expect(response).not.toBeNull();
     const headers = response!.headers();
@@ -39,15 +39,15 @@ test.describe("Acesso Não Autenticado e Segurança", () => {
     expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
   });
 
-  test("bloqueia tentativas de open redirect no callback de auth", async ({ page, baseURL }) => {
-    await page.goto("/auth/callback?code=invalido&next=@evil.com");
+  test("blocks open redirect attempts in the auth callback", async ({ page, baseURL }) => {
+    await page.goto("/auth/callback?code=invalid&next=@evil.com");
     expect(page.url().startsWith(baseURL!)).toBe(true);
 
-    await page.goto("/auth/callback?code=invalido&next=//evil.com");
+    await page.goto("/auth/callback?code=invalid&next=//evil.com");
     expect(page.url().startsWith(baseURL!)).toBe(true);
   });
 
-  test("exibe mensagem genérica ao tentar login com senha incorreta", async ({ page }) => {
+  test("shows a generic message for a wrong password", async ({ page }) => {
     await page.goto("/login");
 
     const email = process.env.SUPABASE_TEST_EMAIL || "teste-invalido@solarhub.local";

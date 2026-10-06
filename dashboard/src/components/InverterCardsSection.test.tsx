@@ -7,7 +7,7 @@ import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
 describe("InverterCardsSection", () => {
   const inverters = telemetryDayFixture[0].inverters_data as unknown as InverterReading[];
 
-  it("renderiza todos os inversores da lista", () => {
+  it("renders all inverters in the list", () => {
     render(<InverterCardsSection inverters={inverters} />);
 
     for (const inv of inverters) {
@@ -15,7 +15,7 @@ describe("InverterCardsSection", () => {
     }
   });
 
-  it("sincroniza a expansão e recolhimento do diagnóstico entre todos os cards", () => {
+  it("synchronizes expansion and collapse of diagnostics across all cards", () => {
     render(<InverterCardsSection inverters={inverters} />);
 
     expect(screen.queryAllByText("Sensores Térmicos")).toHaveLength(0);

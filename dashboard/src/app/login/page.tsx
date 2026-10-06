@@ -13,14 +13,11 @@ import {
   RiEyeLine,
   RiEyeOffLine,
 } from "@remixicon/react";
-
-const CALLBACK_ERRORS: Record<string, string> = {
-  unauthorized_email:
-    "Acesso não autorizado: Esta conta não possui permissão para acessar o Solar Hub.",
-  auth_callback_failed: "Falha na autenticação com o Google. Tente novamente.",
-};
+import { useI18n } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -31,8 +28,14 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(() => {
-    const callbackError = CALLBACK_ERRORS[searchParams.get("error") ?? ""];
-    return callbackError ? { type: "error", text: callbackError } : null;
+    const errorParam = searchParams.get("error");
+    if (errorParam === "unauthorized_email") {
+      return { type: "error", text: t.auth.unauthorizedEmail };
+    }
+    if (errorParam === "auth_callback_failed") {
+      return { type: "error", text: t.auth.googleAuthFailed };
+    }
+    return null;
   });
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
@@ -52,8 +55,8 @@ function LoginForm() {
       router.push("/");
       router.refresh();
     } catch (err) {
-      console.error("Erro no login:", err);
-      setMessage({ type: "error", text: "E-mail ou senha incorretos." });
+      console.error("Sign-in failed:", err);
+      setMessage({ type: "error", text: t.auth.invalidCredentials });
     } finally {
       setLoading(false);
     }
@@ -73,10 +76,10 @@ function LoginForm() {
 
       if (error) throw error;
     } catch (err) {
-      console.error("Erro no login Google:", err);
+      console.error("Google sign-in failed:", err);
       setMessage({
         type: "error",
-        text: "Não foi possível entrar com o Google. Tente novamente.",
+        text: t.auth.googleAuthFailed,
       });
       setGoogleLoading(false);
     }
@@ -84,10 +87,15 @@ function LoginForm() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#030712] px-4 py-12">
+      {/* Language Toggle in Top-Right Corner */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageToggle />
+      </div>
+
       <div className="relative w-full max-w-md">
-        {/* Card Principal */}
+        {/* Main Card */}
         <div className="rounded-2xl border border-gray-800/80 bg-gray-950/85 p-8 shadow-2xl backdrop-blur-xl">
-          {/* Topo: Logo & Título */}
+          {/* Logo & Title */}
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-amber-500/30 bg-gradient-to-tr from-amber-500/20 to-amber-400/5 shadow-inner">
               <Image src="/logo.png" alt="Solar Hub" width={36} height={36} priority />
@@ -96,11 +104,11 @@ function LoginForm() {
               Solar Hub
             </h1>
             <p className="mt-1.5 text-xs text-gray-400">
-              Acesso restrito ao monitoramento da Usina Solar
+              {t.auth.restrictedAccess}
             </p>
           </div>
 
-          {/* Mensagens de Feedback */}
+          {/* Feedback Messages */}
           {message && (
             <div
               className={`mb-5 rounded-lg border p-3 text-xs leading-relaxed ${
@@ -113,7 +121,7 @@ function LoginForm() {
             </div>
           )}
 
-          {/* Botão de Login com Google */}
+          {/* Google Login Button */}
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -142,27 +150,27 @@ function LoginForm() {
                 />
               </svg>
             )}
-            <span>Continuar com o Google</span>
+            <span>{t.auth.continueWithGoogle}</span>
           </button>
 
-          {/* Divisor Visual */}
+          {/* Divider */}
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-800" />
             </div>
             <div className="relative flex justify-center text-[11px]">
-              <span className="bg-gray-950 px-2 text-gray-500">ou entre com e-mail e senha</span>
+              <span className="bg-gray-950 px-2 text-gray-500">{t.auth.orEmailPassword}</span>
             </div>
           </div>
 
-          {/* Formulário E-mail / Senha */}
+          {/* Password Form */}
           <form onSubmit={handlePasswordLogin} className="space-y-4">
             <div>
               <label
                 htmlFor="email"
                 className="block text-xs font-medium text-gray-300"
               >
-                E-mail
+                {t.auth.emailLabel}
               </label>
               <div className="relative mt-1">
                 <RiMailLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
@@ -173,7 +181,7 @@ function LoginForm() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@exemplo.com"
+                  placeholder={t.auth.emailPlaceholder}
                   className="w-full rounded-lg border border-gray-800 bg-gray-900/80 py-2.5 pl-9 pr-3 text-sm text-gray-100 placeholder-gray-500 transition-colors focus:border-amber-500/60 focus:outline-none focus:ring-1 focus:ring-amber-500/60"
                 />
               </div>
@@ -184,7 +192,7 @@ function LoginForm() {
                 htmlFor="password"
                 className="block text-xs font-medium text-gray-300"
               >
-                Senha
+                {t.auth.passwordLabel}
               </label>
               <div className="relative mt-1">
                 <RiLockPasswordLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
@@ -195,7 +203,7 @@ function LoginForm() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t.auth.passwordPlaceholder}
                   className="w-full rounded-lg border border-gray-800 bg-gray-900/80 py-2.5 pl-9 pr-10 text-sm text-gray-100 placeholder-gray-500 transition-colors focus:border-amber-500/60 focus:outline-none focus:ring-1 focus:ring-amber-500/60"
                 />
                 <button
@@ -221,7 +229,7 @@ function LoginForm() {
                 <div className="size-4 animate-spin rounded-full border-2 border-gray-950 border-t-transparent" />
               ) : (
                 <>
-                  <span>Entrar no Dashboard</span>
+                  <span>{t.auth.signInButton}</span>
                   <RiArrowRightLine className="size-4" />
                 </>
               )}
@@ -229,10 +237,10 @@ function LoginForm() {
           </form>
         </div>
 
-        {/* Rodapé de Segurança */}
+        {/* Security Footer */}
         <div className="mt-4 flex items-center justify-center gap-1.5 text-center text-[11px] text-gray-600">
           <RiShieldCheckLine className="size-3.5 text-gray-500" />
-          <span>Autenticação criptografada protegida por Supabase Auth</span>
+          <span>{t.auth.encryptedAuth}</span>
         </div>
       </div>
     </div>

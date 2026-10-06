@@ -1,6 +1,6 @@
 /**
- * Retorna true se o e-mail estiver explicitamente configurado na variável de ambiente ALLOWED_EMAILS.
- * Opera em modo fail-closed: se a variável estiver ausente ou vazia, o acesso é negado.
+ * Returns true if the email is explicitly configured in ALLOWED_EMAILS environment variable.
+ * Operates in fail-closed mode: if the variable is missing or empty, access is denied.
  */
 export function isEmailAllowed(email?: string | null): boolean {
   if (!email) return false;
@@ -16,10 +16,10 @@ export function isEmailAllowed(email?: string | null): boolean {
 }
 
 /**
- * Mascara um endereço de e-mail para logs de auditoria (ex: "u***r@example.com").
+ * Masks an email address for privacy/audit logs (e.g., "u***r@example.com").
  */
 export function maskEmail(email?: string | null): string {
-  if (!email) return "desconhecido";
+  if (!email) return "unknown";
   const parts = email.split("@");
   if (parts.length !== 2) return "***";
   const [local, domain] = parts;
@@ -29,8 +29,8 @@ export function maskEmail(email?: string | null): string {
 }
 
 /**
- * Valida caminhos relativos internos para redirecionamentos seguros,
- * evitando vulnerabilidades de open redirect.
+ * Validates internal relative paths for secure redirects,
+ * preventing open redirect vulnerabilities.
  */
 export function getSafeRedirectUrl(next: string | null | undefined): string {
   if (!next) return "/";

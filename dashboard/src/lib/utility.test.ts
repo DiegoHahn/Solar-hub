@@ -20,7 +20,7 @@ const createMockUtilityRow = (overrides: Partial<UtilityDataRow> = {}): UtilityD
   }) as UtilityDataRow;
 
 describe("findGeneratorUcCode", () => {
-  it("identifica a UC geradora pela potência instalada de GD (> 0)", () => {
+  it("identifies generating consumer unit by installed DG capacity (> 0)", () => {
     const unidades: Record<string, UnidadeConsumidora> = {
       "1001": createMockUc({ codigo_uc: "1001" }),
       "1002": createMockUc({
@@ -38,7 +38,7 @@ describe("findGeneratorUcCode", () => {
     expect(findGeneratorUcCode(unidades)).toBe("1002");
   });
 
-  it("utiliza fallback por operação de 'Energia injetada' no extrato de GD quando não há potência informada", () => {
+  it("falls back to 'Energia injetada' operation in DG statement when capacity is unspecified", () => {
     const unidades: Record<string, UnidadeConsumidora> = {
       "1001": createMockUc({
         codigo_uc: "1001",
@@ -71,7 +71,7 @@ describe("findGeneratorUcCode", () => {
     expect(findGeneratorUcCode(unidades)).toBe("1002");
   });
 
-  it("retorna null quando nenhuma UC possui potência nem energia injetada", () => {
+  it("returns null when no consumer unit has installed capacity or injected energy", () => {
     const unidades: Record<string, UnidadeConsumidora> = {
       "1001": createMockUc({ codigo_uc: "1001" }),
       "1002": createMockUc({ codigo_uc: "1002" }),
@@ -80,14 +80,14 @@ describe("findGeneratorUcCode", () => {
     expect(findGeneratorUcCode(unidades)).toBeNull();
   });
 
-  it("retorna null quando a lista de unidades é vazia ou undefined", () => {
+  it("returns null when consumer units map is empty or undefined", () => {
     expect(findGeneratorUcCode(undefined)).toBeNull();
     expect(findGeneratorUcCode({})).toBeNull();
   });
 });
 
 describe("getGeneratorUc", () => {
-  it("retorna a unidade consumidora mapeada por generator_uc", () => {
+  it("returns consumer unit mapped by generator_uc", () => {
     const ucGeradora = createMockUc({
       codigo_uc: "1002",
       geracao_distribuida: {
@@ -108,7 +108,7 @@ describe("getGeneratorUc", () => {
     expect(getGeneratorUc(row)).toEqual(ucGeradora);
   });
 
-  it("retorna undefined quando generator_uc não existe ou utilityData é nulo", () => {
+  it("returns undefined when generator_uc does not exist or utilityData is null", () => {
     expect(getGeneratorUc(null)).toBeUndefined();
     expect(getGeneratorUc(undefined)).toBeUndefined();
 
@@ -123,11 +123,11 @@ describe("getGeneratorUc", () => {
 });
 
 describe("maskUcCode", () => {
-  it("mantém visíveis só os 4 últimos dígitos", () => {
+  it("keeps only the last 4 digits visible", () => {
     expect(maskUcCode("9876543210")).toBe("••••3210");
   });
 
-  it("exibe travessão sem código e não mascara códigos curtos", () => {
+  it("displays em-dash when empty and does not mask short codes", () => {
     expect(maskUcCode(null)).toBe("—");
     expect(maskUcCode("")).toBe("—");
     expect(maskUcCode("123")).toBe("123");
@@ -135,12 +135,12 @@ describe("maskUcCode", () => {
 });
 
 describe("holderFirstName", () => {
-  it("exibe só o primeiro nome, capitalizado", () => {
+  it("returns only capitalized first name", () => {
     expect(holderFirstName("MARIA DA SILVA SANTOS")).toBe("Maria");
     expect(holderFirstName("  joão pereira ")).toBe("João");
   });
 
-  it("retorna vazio sem nome", () => {
+  it("returns empty string when name is undefined", () => {
     expect(holderFirstName(undefined)).toBe("");
   });
 });

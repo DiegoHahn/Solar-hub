@@ -11,6 +11,7 @@ import {
   RiCloseLine,
 } from "@remixicon/react";
 import type { ExtratoGdEntry } from "@/lib/types";
+import { useI18n, formatNumber } from "@/i18n";
 
 interface GdExtractListProps {
   entries: ExtratoGdEntry[];
@@ -21,23 +22,24 @@ type FilterType = "todos" | "injetada" | "compensada" | "gd1" | "gd2";
 const PAGE_SIZE = 15;
 
 export function GdExtractList({ entries }: GdExtractListProps) {
+  const { t, locale } = useI18n();
   const [filter, setFilter] = useState<FilterType>("todos");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Filtragem dos lançamentos
+  // Filter entries
   const filteredEntries = useMemo(() => {
     if (!entries) return [];
 
     return entries.filter((e) => {
-      // Filtro de tipo
+      // Type filter
       if (filter === "injetada" && e.tipo !== "injetada") return false;
       if (filter === "compensada" && e.tipo !== "compensada") return false;
       if (filter === "gd1" && e.grupo !== 1) return false;
       if (filter === "gd2" && e.grupo !== 2) return false;
 
-      // Filtro de busca (mês ou ano)
+      // Search filter (month or year)
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         const matchesMes = e.mes.toLowerCase().includes(q);
@@ -49,7 +51,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
     });
   }, [entries, filter, search]);
 
-  // Contagens para os botões de filtro
+  // Counts for filter chips
   const counts = useMemo(() => {
     if (!entries) return { todos: 0, injetada: 0, compensada: 0, gd1: 0, gd2: 0 };
     return {
@@ -61,7 +63,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
     };
   }, [entries]);
 
-  // Carregamento contínuo conforme o usuário rola o container interno
+  // Infinite scroll
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - scrollTop - clientHeight < 80) {
@@ -93,29 +95,30 @@ export function GdExtractList({ entries }: GdExtractListProps) {
 
   return (
     <Card className="p-4 md:p-6 space-y-4">
-      {/* Cabeçalho */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
             <RiFileList3Line className="size-4 text-blue-500" />
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Extrato de Geração Distribuída
+              {t.utility.gdExtractTitle}
             </h2>
           </div>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Histórico completo de injeção e compensação de créditos · UC geradora
+            {t.utility.gdExtractDesc}
           </p>
         </div>
 
         <div className="text-xs text-gray-400 dark:text-gray-500 self-start sm:self-auto">
-          Exibindo <span className="font-semibold text-gray-700 dark:text-gray-200">{visibleEntries.length}</span> de{" "}
-          <span className="font-semibold text-gray-700 dark:text-gray-200">{filteredEntries.length}</span> lançamentos
+          {t.utility.showingEntries
+            .replace("{visible}", String(visibleEntries.length))
+            .replace("{total}", String(filteredEntries.length))}
         </div>
       </div>
 
-      {/* Barra de Filtros e Busca Rápida */}
+      {/* Filter and search bar */}
       <div className="flex flex-col gap-2.5 pt-1">
-        {/* Chips de filtro */}
+        {/* Filter chips */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <button
             type="button"
@@ -126,7 +129,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
             }`}
           >
-            Todos ({counts.todos})
+            {t.utility.filterAll.replace("{count}", String(counts.todos))}
           </button>
 
           <button
@@ -139,7 +142,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
             }`}
           >
             <span className="size-1.5 rounded-full bg-emerald-400" />
-            Injetada ({counts.injetada})
+            {t.utility.filterInjected.replace("{count}", String(counts.injetada))}
           </button>
 
           <button
@@ -152,7 +155,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
             }`}
           >
             <span className="size-1.5 rounded-full bg-blue-400" />
-            Compensada ({counts.compensada})
+            {t.utility.filterCompensated.replace("{count}", String(counts.compensada))}
           </button>
 
           <button
@@ -180,12 +183,12 @@ export function GdExtractList({ entries }: GdExtractListProps) {
           </button>
         </div>
 
-        {/* Input de Busca */}
+        {/* Search Input */}
         <div className="relative">
           <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
           <input
             type="text"
-            placeholder="Filtrar por mês (ex: 08/2026 ou 2025)..."
+            placeholder={t.utility.searchPlaceholder}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-1.5 pl-8 pr-8 text-xs text-gray-900 placeholder-gray-400 outline-hidden transition-colors focus:border-blue-500 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:focus:border-blue-400"
@@ -202,7 +205,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
         </div>
       </div>
 
-      {/* CONTAINER DE SCROLL INTERNO */}
+      {/* Internal scroll container */}
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
@@ -210,7 +213,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
       >
         {visibleEntries.length === 0 ? (
           <div className="py-8 text-center text-xs text-gray-400 dark:text-gray-500">
-            Nenhum lançamento encontrado para os filtros selecionados.
+            {t.utility.noEntriesFound}
           </div>
         ) : (
           visibleEntries.map((e, idx) => {
@@ -225,7 +228,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {isInjecao ? "Energia injetada" : "Energia compensada"}
+                      {isInjecao ? t.utility.energyInjected : t.utility.energyCompensated}
                     </p>
                     <p className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-gray-500">
                       {e.mes}
@@ -245,10 +248,10 @@ export function GdExtractList({ entries }: GdExtractListProps) {
                     }
                   >
                     {isInjecao ? "+" : ""}
-                    {e.kwh.toLocaleString("pt-BR")} kWh
+                    {formatNumber(e.kwh, locale)} kWh
                   </p>
                   <p className="text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
-                    saldo {e.saldo.toLocaleString("pt-BR")} kWh
+                    {t.utility.balanceKwh.replace("{balance}", formatNumber(e.saldo, locale))}
                   </p>
                 </div>
               </div>
@@ -256,7 +259,7 @@ export function GdExtractList({ entries }: GdExtractListProps) {
           })
         )}
 
-        {/* Indicador de Carregamento Contínuo */}
+        {/* Load more button */}
         {visibleCount < filteredEntries.length && (
           <div className="py-3 text-center">
             <button
@@ -264,17 +267,17 @@ export function GdExtractList({ entries }: GdExtractListProps) {
               onClick={() => setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredEntries.length))}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 py-1 px-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 transition-colors"
             >
-              Carregar mais lançamentos (+{PAGE_SIZE})
+              {t.utility.loadMoreEntries.replace("{pageSize}", String(PAGE_SIZE))}
             </button>
             <p className="mt-1 text-[10px] text-gray-400">
-              Role para baixo para carregar automaticamente
+              {t.utility.scrollDownToLoad}
             </p>
           </div>
         )}
 
         {visibleCount >= filteredEntries.length && filteredEntries.length > 0 && (
           <div className="py-2.5 text-center text-[11px] text-gray-400 dark:text-gray-500">
-            ✓ Todos os {filteredEntries.length} lançamentos carregados
+            {t.utility.allEntriesLoaded.replace("{total}", String(filteredEntries.length))}
           </div>
         )}
       </div>

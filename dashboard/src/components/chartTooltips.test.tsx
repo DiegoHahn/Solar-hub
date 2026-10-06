@@ -7,6 +7,7 @@ import { GenerationTooltip } from "./GenerationBarChart";
 import { WeatherTooltip } from "./WeatherEfficiencySection";
 import { buildSunCurveGrid, normalizeUnidadeConsumidora, type SunCurveRow } from "@/lib/queries";
 import { fallbackDailyWeather } from "@/lib/weather";
+import { ptBR } from "@/i18n/locales/pt-BR";
 import type { UnidadeConsumidora } from "@/lib/types";
 import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
 import utilityDataFixture from "../test/fixtures/utility-data.json";
@@ -17,14 +18,14 @@ const noonCurve = buildSunCurveGrid(
   new Date("2026-09-29T22:00:00-03:00"),
 );
 const sunPoint = noonCurve.reduce((max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max));
-const balanco = normalizeUnidadeConsumidora(
+const balance = normalizeUnidadeConsumidora(
   utilityDataFixture.unidades_consumidoras["UC-GERADORA"] as unknown as UnidadeConsumidora,
 ).balanco_energetico!;
-const balancoMes = balanco[balanco.length - 1];
+const balanceMonth = balance[balance.length - 1];
 const weatherDay = fallbackDailyWeather[0];
 
-describe("tooltips dos gráficos", () => {
-  it("curva solar: mostra o horário e a potência total e avisa o ponto ativo", () => {
+describe("chart tooltips", () => {
+  it("sun curve: displays time and total power and notifies active point", () => {
     const onActivePoint = vi.fn();
     const { container } = render(
       <SunCurveTooltip
@@ -37,11 +38,11 @@ describe("tooltips dos gráficos", () => {
     );
 
     expect(container.textContent).toContain(sunPoint.time);
-    expect(container.textContent).toContain("Potência Total");
+    expect(container.textContent).toContain("Total Power:");
     expect(onActivePoint).toHaveBeenCalledWith(sunPoint);
   });
 
-  it("curva solar: não renderiza nem avisa quando inativo ou sem potência", () => {
+  it("sun curve: does not render or notify when inactive or lacking power", () => {
     const onActivePoint = vi.fn();
     const inactive = render(<SunCurveTooltip active={false} nominalCapKw={16} onActivePoint={onActivePoint} />);
     const noPower = render(
@@ -53,7 +54,7 @@ describe("tooltips dos gráficos", () => {
     expect(onActivePoint).not.toHaveBeenCalled();
   });
 
-  it("curva por inversor: lista a potência de cada série no horário", () => {
+  it("inverter curve: lists power for each series at timestamp", () => {
     const onActivePoint = vi.fn();
     const payload = [
       { dataKey: "solis_kw", value: sunPoint.solis_kw ?? 0, color: "#f59e0b", payload: sunPoint },
@@ -67,18 +68,18 @@ describe("tooltips dos gráficos", () => {
     expect(onActivePoint).toHaveBeenCalledWith(sunPoint);
   });
 
-  it("balanço energético: mostra o mês e os valores de injeção e compensação", () => {
+  it("energy balance: displays month and injection and compensation values", () => {
     const onActivePoint = vi.fn();
     const { container } = render(
-      <EnergyBalanceTooltip active payload={[{ payload: balancoMes }]} onActivePoint={onActivePoint} />,
+      <EnergyBalanceTooltip active payload={[{ payload: balanceMonth }]} onActivePoint={onActivePoint} />,
     );
 
-    expect(container.textContent).toContain(balancoMes.mes.split("/")[1]);
-    expect(onActivePoint).toHaveBeenCalledWith(balancoMes);
+    expect(container.textContent).toContain(balanceMonth.mes.split("/")[1]);
+    expect(onActivePoint).toHaveBeenCalledWith(balanceMonth);
     expect(render(<EnergyBalanceTooltip active={false} />).container.firstChild).toBeNull();
   });
 
-  it("geração por período: mostra o rótulo e a unidade", () => {
+  it("generation by period: displays label and unit", () => {
     const point = { label: "Set", kwh: 2072.7 };
     const onActivePoint = vi.fn();
     const { container } = render(
@@ -91,15 +92,15 @@ describe("tooltips dos gráficos", () => {
     expect(render(<GenerationTooltip unitLabel="kWh" />).container.firstChild).toBeNull();
   });
 
-  it("clima: mostra a data e a condição do dia", () => {
+  it("weather: displays date and condition of the day", () => {
     const onActivePoint = vi.fn();
     const renderIcon = vi.fn(() => <span data-testid="icone" />);
     const { container, getByTestId } = render(
       <WeatherTooltip active payload={[{ payload: weatherDay }]} onActivePoint={onActivePoint} renderIcon={renderIcon} />,
     );
 
-    expect(container.textContent).toContain(weatherDay.formattedDate);
-    expect(container.textContent).toContain(weatherDay.condition);
+    expect(container.textContent).toContain("28/08");
+    expect(container.textContent).toContain(ptBR.weather[weatherDay.conditionKey]);
     expect(getByTestId("icone")).toBeInTheDocument();
     expect(onActivePoint).toHaveBeenCalledWith(weatherDay);
   });

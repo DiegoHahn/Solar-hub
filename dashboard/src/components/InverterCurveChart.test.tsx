@@ -10,7 +10,7 @@ describe("InverterCurveChart", () => {
   const nighttime = new Date(`${targetDate}T22:00:00-03:00`);
   const dayCurve = buildSunCurveGrid(telemetryDayFixture as unknown as SunCurveRow[], targetDate, nighttime);
 
-  it("renderiza o gráfico de contribuição por inversor sem erros", () => {
+  it("renders inverter contribution chart without errors", () => {
     const { container } = render(<InverterCurveChart data={dayCurve} />);
 
     expect(screen.getByText("Contribuição por Inversor")).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe("InverterCurveChart", () => {
     expect(rechartsContainer).toBeInTheDocument();
   });
 
-  it("retorna null quando o array de dados está vazio", () => {
+  it("returns null when data array is empty", () => {
     const { container } = render(<InverterCurveChart data={[]} />);
     expect(container.firstChild).toBeNull();
   });

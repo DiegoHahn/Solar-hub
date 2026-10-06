@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Nav } from "./Nav";
+import { I18nProvider } from "@/i18n/context";
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
@@ -39,9 +40,12 @@ describe("Nav", () => {
     authCallback = null;
     mockGetUser.mockResolvedValue({ data: { user: { email: "teste@solarhub.local" } } });
     mockSignOut.mockResolvedValue({});
+    if (typeof document !== "undefined") {
+      document.cookie = "";
+    }
   });
 
-  it("não renderiza nada em rotas de autenticação (/login ou /auth)", () => {
+  it("renders nothing on authentication routes (/login or /auth)", () => {
     currentPathname = "/login";
     const { container, rerender } = render(<Nav />);
     expect(container).toBeEmptyDOMElement();
@@ -51,14 +55,14 @@ describe("Nav", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renderiza todos os links de navegação", async () => {
+  it("renders all navigation links", async () => {
     render(<Nav />);
 
-    const homeLinks = screen.getAllByRole("link", { name: /Início/i });
+    const homeLinks = screen.getAllByRole("link", { name: /Visão Geral|Início/i });
     expect(homeLinks.length).toBeGreaterThan(0);
 
-    const placasLinks = screen.getAllByRole("link", { name: /Placas/i });
-    expect(placasLinks.length).toBeGreaterThan(0);
+    const panelsLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
+    expect(panelsLinks.length).toBeGreaterThan(0);
 
     const coopLinks = screen.getAllByRole("link", { name: /Cooperativa/i });
     expect(coopLinks.length).toBeGreaterThan(0);
@@ -67,23 +71,23 @@ describe("Nav", () => {
     expect(analiseLinks.length).toBeGreaterThan(0);
   });
 
-  it("destaca visualmente o item ativo de acordo com a rota atual", () => {
+  it("visually highlights active item according to current route", () => {
     currentPathname = "/placas";
     render(<Nav />);
 
-    const placasLinks = screen.getAllByRole("link", { name: /Placas/i });
-    // No desktop nav, item ativo ganha text-amber-500
-    expect(placasLinks[0]).toHaveClass("text-amber-500");
+    const panelsLinks = screen.getAllByRole("link", { name: /Inversores|Placas/i });
+    // On desktop nav, active item gets text-amber-500
+    expect(panelsLinks[0]).toHaveClass("text-amber-500");
   });
 
-  it("exibe o e-mail do usuário autenticado", async () => {
+  it("displays authenticated user email", async () => {
     render(<Nav />);
     await waitFor(() => {
       expect(screen.getByText("teste@solarhub.local")).toBeInTheDocument();
     });
   });
 
-  it("atualiza o e-mail quando o estado de autenticação muda", async () => {
+  it("updates email when authentication state changes", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
     render(<Nav />);
 
@@ -98,7 +102,7 @@ describe("Nav", () => {
     });
   });
 
-  it("executa logout e redireciona para /login ao clicar em Sair", async () => {
+  it("executes logout and redirects to /login on Sign out click", async () => {
     render(<Nav />);
 
     const logoutButtons = screen.getAllByRole("button", { name: /Sair/i });
@@ -108,6 +112,25 @@ describe("Nav", () => {
       expect(mockSignOut).toHaveBeenCalled();
       expect(mockPush).toHaveBeenCalledWith("/login");
       expect(mockRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it("allows switching language to English and updates navigation labels", async () => {
+    render(
+      <I18nProvider>
+        <Nav />
+      </I18nProvider>,
+    );
+
+    const enButtons = screen.getAllByRole("button", { name: "EN" });
+    fireEvent.click(enButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("link", { name: /Overview/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("link", { name: /Inverters/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("link", { name: /Utility/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("link", { name: /Analysis/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("button", { name: /Sign out/i }).length).toBeGreaterThan(0);
     });
   });
 });

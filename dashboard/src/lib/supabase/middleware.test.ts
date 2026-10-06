@@ -25,7 +25,7 @@ describe("middleware updateSession", () => {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "anon-key";
   });
 
-  it("permite navegação em páginas no modo demonstração sem usuário", async () => {
+  it("allows page navigation in demo mode without authenticated user", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
 
     const req = new NextRequest("http://localhost:3000/placas", {
@@ -36,7 +36,7 @@ describe("middleware updateSession", () => {
     expect(res.status).toBe(200);
   });
 
-  it("permite acesso a /api/ai-advisor no modo demonstração", async () => {
+  it("allows access to /api/ai-advisor in demo mode", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
 
     const req = new NextRequest("http://localhost:3000/api/ai-advisor", {
@@ -47,7 +47,7 @@ describe("middleware updateSession", () => {
     expect(res.status).toBe(200);
   });
 
-  it("bloqueia outras rotas de /api com 401 mesmo no modo demonstração", async () => {
+  it("blocks other /api routes with 401 even in demo mode", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
 
     const req = new NextRequest("http://localhost:3000/api/telemetria", {
@@ -58,7 +58,7 @@ describe("middleware updateSession", () => {
     expect(res.status).toBe(401);
   });
 
-  it("apaga o cookie solarhub_demo quando o usuário está autenticado e autorizado", async () => {
+  it("deletes solarhub_demo cookie when user is authenticated and authorized", async () => {
     mockGetUser.mockResolvedValueOnce({
       data: { user: { email: "autorizado@exemplo.com" } },
     });

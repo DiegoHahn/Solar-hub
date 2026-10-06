@@ -5,7 +5,7 @@ import {
   getAdvisorCache,
   saveAdvisorCache,
   AdvisorResult,
-  fallbackAdvisorAnalysis,
+  getFallbackAdvisorAnalysis,
 } from "@/lib/aiQuota";
 import {
   getLatestTelemetry,
@@ -18,14 +18,20 @@ import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
 
 import demoAdvisor from "@/lib/demo/data/advisor.json";
+import demoAdvisorEn from "@/lib/demo/data/advisor.en.json";
 import { isDemoMode } from "@/lib/dataSource";
+import type { Locale } from "@/i18n";
+import { getServerLocale } from "@/i18n/server";
+import { en } from "@/i18n/locales/en";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
-function respondFromDemo(): NextResponse {
+
+function respondFromDemo(locale: Locale): NextResponse {
+  const data = locale === "en" ? demoAdvisorEn : demoAdvisor;
   return NextResponse.json({
-    ...demoAdvisor,
-    modelUsed: "demonstração",
+    ...data,
+    modelUsed: locale === "en" ? "demo mode" : "demonstração",
     quotaCount: 1,
     maxPrimaryQuota: getMaxPrimaryQuota(),
     isCached: true,
@@ -34,7 +40,7 @@ function respondFromDemo(): NextResponse {
   });
 }
 
-/** Responde com a análise do dia já gerada, se existir. */
+/** Responds with the daily analysis if already generated. */
 async function respondFromCache(): Promise<NextResponse | null> {
   const [cached, quota] = await Promise.all([getAdvisorCache(), getQuotaState()]);
   if (!cached) return null;
@@ -50,26 +56,28 @@ async function respondFromCache(): Promise<NextResponse | null> {
 }
 
 export async function GET() {
+  const locale = await getServerLocale();
   if (await isDemoMode()) {
-    return respondFromDemo();
+    return respondFromDemo(locale);
   }
 
   const user = await requireUser();
   if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  return (await respondFromCache()) ?? handleGenerate();
+  return (await respondFromCache()) ?? handleGenerate(locale);
 }
 
 export async function POST(req: Request) {
+  const locale = await getServerLocale();
   if (await isDemoMode()) {
-    return respondFromDemo();
+    return respondFromDemo(locale);
   }
 
   const user = await requireUser();
   if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -80,15 +88,16 @@ export async function POST(req: Request) {
     if (cachedResponse) return cachedResponse;
   }
 
-  return handleGenerate();
+  return handleGenerate(locale);
 }
 
-async function handleGenerate() {
+async function handleGenerate(locale: Locale = "pt-BR") {
   try {
+    const isEn = locale === "en";
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY não configurada no ambiente." },
+        { error: "GEMINI_API_KEY is not configured." },
         { status: 500 }
       );
     }
@@ -105,19 +114,19 @@ async function handleGenerate() {
     let candidateModels: string[] = [];
     let switchedDueToQuota = false;
 
-    // Regra de Cota: Se já atingiu a cota do modelo primário, salta direto para os fallbacks configurados no .env
+    // Quota rule: If primary model quota has been reached, skip directly to configured fallbacks in .env
     if (primaryCount >= maxPrimaryQuota) {
       switchedDueToQuota = true;
       candidateModels = [...configuredFallbacks];
       console.log(
-        `[Consultor IA] Limite de ${maxPrimaryQuota} chamadas diárias do modelo primário (${configuredModel}) atingido (${primaryCount}). Usando fallbacks configurados no .env:`,
+        `[AI Advisor] Daily limit of ${maxPrimaryQuota} calls for primary model (${configuredModel}) reached (${primaryCount}). Using fallbacks configured in .env:`,
         candidateModels
       );
     } else {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
 
-    // Carrega telemetria/concessionária (Supabase) e clima (Open-Meteo) para injetar no prompt
+    // Load telemetry/utility data (Supabase) and weather (Open-Meteo) to inject into prompt
     const [telemetry, utilityData, sunCurve, weatherHistory] = await Promise.all([
       getLatestTelemetry().catch(() => null),
       getLatestUtilityData().catch(() => null),
@@ -127,13 +136,13 @@ async function handleGenerate() {
 
     const uc = getGeneratorUc(utilityData);
     const gd = uc?.geracao_distribuida;
-    const fatura = uc?.resumo_ultima_fatura;
+    const lastBill = uc?.resumo_ultima_fatura;
     const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
     const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
-    const tarifaKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
-    const geracaoHojeKwh = telemetry?.total_today_kwh ?? 0;
-    const economiaHojeReais = geracaoHojeKwh * tarifaKwh;
+    const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+    const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
+    const todaySavingsBrl = todayGenerationKwh * tariffPerKwh;
 
     const { time: brasiliaTimeStr, isDaytime } = brasiliaClock();
     const currentPowerKw = telemetry?.total_power_kw ?? 0;
@@ -145,7 +154,7 @@ async function handleGenerate() {
     const peakKw = peakPoint.power_kw ?? (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
-    // Dados meteorológicos de hoje e dos últimos dias (Open-Meteo)
+    // Weather data for today and recent days (Open-Meteo)
     const todayWeather = weatherHistory[weatherHistory.length - 1];
     const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
     const avgRecentProduction =
@@ -153,113 +162,114 @@ async function handleGenerate() {
         ? (recentSunnyDays.reduce((acc, d) => acc + d.estimatedKwh, 0) / recentSunnyDays.length).toFixed(1)
         : "75.0";
 
-    const climaHojeCondicao = todayWeather?.condition || "Parcialmente Nublado";
-    const climaHojeHorasSol = todayWeather?.sunshineHours ?? 0;
-    const climaHojeHsp = todayWeather?.solarRadiationHsp ?? 0;
-    const climaHojeChuva = todayWeather?.precipitationMm ?? 0;
-    const climaHojeTempMax = todayWeather?.tempMax ?? 24;
+    const todayCondition = en.weather[todayWeather?.conditionKey ?? "partlyCloudy"];
+    const todaySunshineHours = todayWeather?.sunshineHours ?? 0;
+    const todayHsp = todayWeather?.solarRadiationHsp ?? 0;
+    const todayRainMm = todayWeather?.precipitationMm ?? 0;
+    const todayMaxTempC = todayWeather?.tempMax ?? 24;
 
-    const saldoCreditosKwh = gd?.ValorProximoSaldoVencer ?? 0;
-    const reservaTotalReais = Math.round(saldoCreditosKwh * tarifaKwh);
+    const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? 0;
+    const creditReserveBrl = Math.round(creditBalanceKwh * tariffPerKwh);
 
-    const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
-    const mesCompensadoKwh = lastMonthItem?.kwhCreditado ?? 0;
-    const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
-    const valorFaturaReais = fatura?.ValorFatura ?? 0;
+    const monthInjectedKwh = lastMonthItem?.KwhGerado ?? 0;
+    const monthCompensatedKwh = lastMonthItem?.kwhCreditado ?? 0;
+    const billedConsumptionKwh = lastBill?.KwhReal ?? 0;
+    const billAmountBrl = lastBill?.ValorFatura ?? 0;
 
-    // Prompt do consultor: análise interpretativa (não apenas leitura dos números) voltada aos proprietários
-    const systemPrompt = `Você é um Consultor Especialista em Engenharia de Energia Solar.
-Seu papel NÃO é apenas listar números que já aparecem na tela, mas sim fornecer uma ANÁLISE REAL, CRÍTICA E INTERPRETATIVA dos dados da usina para os proprietários da residência em Içara/SC.
-Escreva SEMPRE em Português do Brasil (PT-BR).
+    // Advisor prompt: interpretive analysis (not just reading numbers) tailored to system owners
+    const outputLanguage = isEn ? "fluent, professional US English" : "Brazilian Portuguese (pt-BR)";
+    const systemPrompt = `You are an expert solar energy engineering advisor.
+Your role is NOT to list numbers already shown on screen, but to provide a REAL, CRITICAL AND INTERPRETIVE ANALYSIS of the plant data for the owners of a home in Içara/SC, Brazil.
+Write ALL text values of the response in ${outputLanguage}.
 
-DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
-1. NÃO SEJA UM MERO LEITOR DE NÚMEROS:
-   - Evite frases redundantes como "A geração de hoje foi X, o pico foi Y, a economia foi Z".
-   - Conecte as causas e efeitos: analise como o CLIMA DE HOJE (horas de sol, irradiação HSP, nuvens ou chuva) determinou o comportamento da geração e o rendimento por hora de sol.
-   - Dê clareza sobre o momento ideal para uso de cargas na casa em função do clima e da curva de produção.
-2. CONTEXTO TEMPORAL E GERAÇÃO EM ANDAMENTO (MUITO IMPORTANTE):
-   - Horário atual da análise: ${brasiliaTimeStr} (Horário de Brasília).
+CORE ANALYSIS GUIDELINES:
+1. DO NOT JUST READ NUMBERS BACK:
+   - Avoid redundant sentences such as "Today's generation was X, the peak was Y, the savings were Z".
+   - Connect causes and effects: explain how TODAY'S WEATHER (sunshine hours, HSP irradiation, clouds or rain) shaped generation and the yield per sun hour.
+   - Make clear when it is best to run household loads, given the weather and the production curve.
+2. TIME CONTEXT AND ONGOING GENERATION (VERY IMPORTANT):
+   - Current analysis time: ${brasiliaTimeStr} (Brasília time).
    ${
      isDaytime
-       ? `- O DIA AINDA ESTÁ EM ANDAMENTO (período diurno). A usina está operando e gerando ${currentPowerKw.toFixed(1)} kW neste instante.
-   - O valor de ${geracaoHojeKwh.toFixed(1)} kWh é uma medição PARCIAL acumulada até as ${brasiliaTimeStr}, e NÃO o total definitivo do dia. O sol ainda não se pôs e a usina continuará gerando até o entardecer.
-   - NUNCA escreva como se o dia já tivesse terminado (evite frases como "restringiu a produção a X kWh hoje", "resultou em apenas X kWh hoje" ou "o dia fechou com"). Use termos como "produção acumulada até as ${brasiliaTimeStr}", "ritmo observado ao longo desta manhã/tarde", etc.
-   - NUNCA compare a geração parcial de um dia em andamento com a média total de um dia ensolarado inteiro (${avgRecentProduction} kWh) como se fosse a safra final encerrada. O dia ainda tem horas de sol pela frente.`
-       : `- PERÍODO NOTURNO (geração diurna encerrada): São ${brasiliaTimeStr} e o sol já se pôs. O valor de ${geracaoHojeKwh.toFixed(1)} kWh representa o fechamento consolidado e definitivo da produção de hoje.`
+       ? `- THE DAY IS STILL IN PROGRESS (daytime). The plant is running and producing ${currentPowerKw.toFixed(1)} kW right now.
+   - The ${todayGenerationKwh.toFixed(1)} kWh value is a PARTIAL total accumulated until ${brasiliaTimeStr}, NOT the final total for the day. The sun has not set and the plant will keep generating until dusk.
+   - NEVER write as if the day were over (avoid phrases like "limited production to X kWh today", "resulted in only X kWh today" or "the day closed with"). Use phrases like "production accumulated until ${brasiliaTimeStr}" or "the pace observed this morning/afternoon".
+   - NEVER compare the partial generation of an ongoing day with the full-day average of a sunny day (${avgRecentProduction} kWh) as if it were the final result. There are still sun hours ahead.`
+       : `- NIGHTTIME (daytime generation finished): it is ${brasiliaTimeStr} and the sun has set. The ${todayGenerationKwh.toFixed(1)} kWh value is the final, consolidated production for today.`
    }
-3. IDIOMA E TOM:
-   - Português do Brasil (PT-BR) correto, elegante, sóbrio e profissional.
-   - Trate o leitor como um adulto inteligente, lúcido e consciente do seu investimento patrimonial.
-   - NÃO use linguagem infantil nem informalidade forçada (evite "lar de vocês", "colocou no bolso", etc.).
-4. SEM JARGÕES BUROCRÁTICOS OU EM INGLÊS:
-   - NÃO use siglas de leis como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26". Explique simplesmente que os créditos contam com isenção integral na compensação da conta.
-   - NÃO use termos em inglês como "performance ratio", "edge-of-cloud", "payback", "strings". Explique tudo em português claro (ex: "irradiação solar", "potência instantânea", "horas de sol pleno").
-5. TRANSPARÊNCIA SOBRE CONSUMO:
-   - A casa não possui Smart Meter no quadro geral. O consumo instantâneo não é medido em tempo real. Não invente números de consumo da casa para hoje.
+3. LANGUAGE AND TONE:
+   - Correct, clear, sober and professional ${outputLanguage}.
+   - Treat the reader as an intelligent adult who understands their investment.
+   - DO NOT use childish language or forced informality.
+4. NO REGULATORY OR TECHNICAL JARGON:
+   - DO NOT cite regulation acronyms such as "GD I", "GD II", "Lei 14.300", "Fio B" or "Art. 26". Simply explain that the credits are fully exempt when offset against the bill.
+   - DO NOT use jargon such as "performance ratio", "edge-of-cloud", "payback" or "strings". Explain everything in plain words (e.g. "solar irradiation", "instantaneous power", "full sun hours").
+5. CONSUMPTION TRANSPARENCY:
+   - The house has no smart meter on the main panel, so instantaneous consumption is not measured. Do not invent household consumption figures for today.
 
-DADOS REAIS DA USINA (USE EXCLUSIVAMENTE ESTES DADOS):
-- Usina Solar: 16 kWp (${telemetry?.inverters_count ?? 3} inversores instalados) em Içara/SC.
-- Concessionária: Cooperaliança. Tarifa: R$ ${tarifaKwh.toFixed(3)}/kWh.
+REAL PLANT DATA (USE ONLY THIS DATA):
+- Solar plant: 16 kWp (${telemetry?.inverters_count ?? 3} inverters) in Içara/SC.
+- Utility: Cooperaliança. Tariff: R$ ${tariffPerKwh.toFixed(3)}/kWh.
 
-MEDIDAS DE HOJE:
-- Horário da análise: ${brasiliaTimeStr} (Horário de Brasília)
-- Estado operacional da usina: ${isDaytime ? `Em operação diurna ativa (gerando ${currentPowerKw.toFixed(1)} kW neste instante)` : "Operação diurna encerrada (período noturno)"}
-- Produção acumulada até as ${brasiliaTimeStr}: ${geracaoHojeKwh.toFixed(1)} kWh ${isDaytime ? "(parcial em andamento até este horário)" : "(total consolidado do dia)"} (Economia acumulada: R$ ${economiaHojeReais.toFixed(2)})
-- Pico de potência registrado hoje: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `às ${peakTime}` : ""} (de uma capacidade instalada de 16 kWp)
-- Condições climáticas medidas em Içara hoje:
-  * Tempo: ${climaHojeCondicao}
-  * Horas de sol pleno efetivo: ${climaHojeHorasSol} horas
-  * Irradiação solar (HSP): ${climaHojeHsp} kWh/m²
-  * Chuva acumulada: ${climaHojeChuva} mm
-  * Temperatura máxima: ${climaHojeTempMax}°C
-- Parâmetro comparativo da usina: Em dias ensolarados típicos (dia completo encerrado de 24h), a produção diária média fecha em aproximadamente ${avgRecentProduction} kWh.
+TODAY'S MEASUREMENTS:
+- Analysis time: ${brasiliaTimeStr} (Brasília time)
+- Plant status: ${isDaytime ? `Generating during daytime (${currentPowerKw.toFixed(1)} kW right now)` : "Daytime generation finished (nighttime)"}
+- Production accumulated until ${brasiliaTimeStr}: ${todayGenerationKwh.toFixed(1)} kWh ${isDaytime ? "(partial, day in progress)" : "(final total for the day)"} (accumulated savings: R$ ${todaySavingsBrl.toFixed(2)})
+- Peak power recorded today: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `at ${peakTime}` : ""} (out of 16 kWp installed capacity)
+- Weather measured in Içara today:
+  * Condition: ${todayCondition}
+  * Effective full sun hours: ${todaySunshineHours} h
+  * Solar irradiation (HSP): ${todayHsp} kWh/m²
+  * Accumulated rain: ${todayRainMm} mm
+  * Maximum temperature: ${todayMaxTempC}°C
+- Plant reference: on typical sunny days (full day completed), daily production averages about ${avgRecentProduction} kWh.
 
-HISTÓRICO E RESERVA NA COOPERALIANÇA:
-- Saldo total de créditos acumulados na cooperativa: ${saldoCreditosKwh.toLocaleString("pt-BR")} kWh (reserva estimada em R$ ${reservaTotalReais.toLocaleString("pt-BR")}).
-- Último fechamento faturado:
-  * Excedente injetado: ${mesInjetadoKwh.toLocaleString("pt-BR")} kWh
-  * Compensado na conta: ${mesCompensadoKwh.toLocaleString("pt-BR")} kWh
-  * Consumo faturado da residência: ${consumoFaturadoKwh.toLocaleString("pt-BR")} kWh
-  * Valor residual da fatura: R$ ${valorFaturaReais.toFixed(2)}
+COOPERALIANÇA HISTORY AND CREDIT RESERVE:
+- Total credit balance accumulated with the cooperative: ${creditBalanceKwh} kWh (estimated reserve of R$ ${creditReserveBrl}).
+- Last billed month:
+  * Surplus injected: ${monthInjectedKwh} kWh
+  * Offset on the bill: ${monthCompensatedKwh} kWh
+  * Billed household consumption: ${billedConsumptionKwh} kWh
+  * Remaining bill amount: R$ ${billAmountBrl.toFixed(2)}
 
-Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdown \`\`\`json):
+Return ONLY the following strict JSON (no \`\`\`json markdown fences):
 {
   "daily": {
-    "summary": "Texto analítico executivo (3 a 4 linhas) interpretando o desempenho de hoje frente às condições meteorológicas reais de Içara (horas de sol, chuva e irradiação). ${isDaytime ? `Atenção: são ${brasiliaTimeStr} e o dia ainda está em andamento (geração parcial até agora, usina ativa gerando ${currentPowerKw.toFixed(1)} kW). Interprete o ritmo de geração até o momento sem tratá-lo como safra final encerrada.` : 'Como a geração solar diurna já encerrou, faça o balanço consolidado final do dia.'} Forneça uma leitura perspicaz que o usuário não veria apenas olhando para os números brutos.",
+    "summary": "Executive analytical text (3 to 4 lines) interpreting today's performance against the real weather in Içara (sun hours, rain and irradiation). ${isDaytime ? `Note: it is ${brasiliaTimeStr} and the day is still in progress (partial generation so far, plant producing ${currentPowerKw.toFixed(1)} kW). Interpret the generation pace so far without treating it as the final result.` : "Since daytime generation has finished, give the final consolidated assessment of the day."} Provide an insight the user would not get from the raw numbers alone.",
     "recommendations": [
       {
-        "title": "Título conciso da recomendação prática",
-        "description": "Orientação inteligente conectando o clima/geração ao uso doméstico consciente em 1 frase.",
+        "title": "Concise title of the practical recommendation",
+        "description": "One sentence connecting weather/generation to mindful household usage.",
         "icon": "flashlight"
       },
       {
-        "title": "Título conciso sobre economia ou créditos",
-        "description": "Análise sobre a valorização do excedente e compensação tarifária em 1 frase.",
+        "title": "Concise title about savings or credits",
+        "description": "One sentence on the value of the surplus and bill offsetting.",
         "icon": "dollar"
       },
       {
-        "title": "Título conciso sobre operação técnica",
-        "description": "Orientação de conservação ou acompanhamento dos equipamentos em 1 frase.",
+        "title": "Concise title about technical operation",
+        "description": "One sentence of equipment care or monitoring guidance.",
         "icon": "tools"
       }
     ]
   },
   "monthly": {
-    "summary": "Texto analítico executivo (3 a 4 linhas) avaliando a robustez da reserva energética na Cooperaliança frente às variações climáticas sazonais. Destaque o colchão de segurança em kWh/R$ e a solidez financeira do sistema para os próximos ciclos de fatura.",
+    "summary": "Executive analytical text (3 to 4 lines) assessing the strength of the energy reserve at Cooperaliança against seasonal weather variation. Highlight the safety margin in kWh/R$ and the financial soundness of the system for the next billing cycles.",
     "recommendations": [
       {
-        "title": "Título conciso da recomendação estratégica",
-        "description": "Orientação estratégica sobre a cobertura de meses mais frios ou chuvosos em 1 frase.",
+        "title": "Concise title of the strategic recommendation",
+        "description": "One sentence of strategy on covering colder or rainier months.",
         "icon": "shield"
       },
       {
-        "title": "Título conciso financeiro",
-        "description": "Diagnóstico do retorno financeiro consolidado na fatura em 1 frase.",
+        "title": "Concise financial title",
+        "description": "One sentence diagnosing the consolidated financial return on the bill.",
         "icon": "dollar"
       },
       {
-        "title": "Título conciso preventivo",
-        "description": "Diretriz de manutenção ou verificação periódica em 1 frase.",
+        "title": "Concise preventive title",
+        "description": "One sentence of maintenance or periodic inspection guidance.",
         "icon": "tools"
       }
     ]
@@ -272,7 +282,7 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
 
     for (const modelToTry of candidateModels) {
       const modelStart = Date.now();
-      console.log(`[Consultor IA] Tentando gerar com ${modelToTry}...`);
+      console.log(`[AI Advisor] Attempting generation with ${modelToTry}...`);
       try {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent`,
@@ -299,24 +309,24 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
             modelSuccessfullyUsed = modelToTry;
-            console.log(`[Consultor IA] Sucesso com ${modelToTry} em ${elapsed}s!`);
+            console.log(`[AI Advisor] Success with ${modelToTry} in ${elapsed}s!`);
             break;
           }
         } else {
           const errText = await res.text();
-          lastError = new Error(`Modelo ${modelToTry} retornou ${res.status}: ${errText}`);
-          console.warn(`[Consultor IA] ${modelToTry} falhou (${res.status}) em ${elapsed}s. Tentando próximo...`);
+          lastError = new Error(`Model ${modelToTry} returned ${res.status}: ${errText}`);
+          console.warn(`[AI Advisor] ${modelToTry} failed (${res.status}) in ${elapsed}s. Trying next...`);
         }
       } catch (err) {
         const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         lastError = err;
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(`[Consultor IA] ${modelToTry} gerou erro/timeout (${message}) em ${elapsed}s. Tentando próximo...`);
+        console.warn(`[AI Advisor] ${modelToTry} errored/timed out (${message}) in ${elapsed}s. Trying next...`);
       }
     }
 
     if (!rawText) {
-      console.error("[Consultor IA] Todos os modelos falharam. Último erro:", lastError);
+      console.error("[AI Advisor] All models failed. Last error:", lastError);
       const cached = await getAdvisorCache();
       if (cached) {
         return NextResponse.json({
@@ -327,31 +337,35 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           maxPrimaryQuota,
           isCached: true,
           updatedAt: cached.updatedAt,
-          warning: "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
+          warning: isEn
+            ? "Google AI Studio experiencing temporary high demand. Displaying last recorded analysis."
+            : "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
         });
       }
       
-      // Se não houver cache anterior e a API do Google estiver indisponível temporariamente,
-      // entrega a análise técnica contextualizada sem quebrar a interface do usuário
+      // If no prior cache exists and Google API is temporarily unavailable,
+      // return contextual fallback analysis without breaking the user interface
       return NextResponse.json({
-        ...fallbackAdvisorAnalysis,
+        ...getFallbackAdvisorAnalysis(locale),
         modelUsed: candidateModels[0] || configuredModel,
         switchedDueToQuota,
         quotaCount: primaryCount,
         maxPrimaryQuota,
         isCached: false,
         updatedAt: new Date().toISOString(),
-        warning: "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
+        warning: isEn
+          ? "AI service temporarily unavailable from Google. Displaying preliminary technical analysis."
+          : "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
       });
     }
 
     const parsed: AdvisorResult = JSON.parse(rawText);
 
-    // Incrementa a cota registrada
+    // Increment registered quota
     const updatedQuota = await incrementQuota(modelSuccessfullyUsed);
     const currentPrimaryCount = updatedQuota.primary_count;
 
-    // Salva no cache persistente para evitar chamadas redundantes
+    // Save to persistent cache to prevent redundant calls
     await saveAdvisorCache(parsed, modelSuccessfullyUsed);
 
     return NextResponse.json({
@@ -364,9 +378,9 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Erro interno no Consultor IA:", error);
+    console.error("[AI Advisor] Internal error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro interno ao processar análise da IA" },
+      { error: error instanceof Error ? error.message : "Internal error processing AI analysis" },
       { status: 500 }
     );
   }

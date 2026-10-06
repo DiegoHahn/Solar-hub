@@ -1,7 +1,7 @@
-# Executa a sincronização da concessionária às 7h, 13h e 19h (o portal fica instável à noite)
-#   sudo systemctl enable --now solar-utility@<usuário>.timer
+# Runs utility synchronization at 07:00, 13:00, and 19:00 (utility portal can be unstable overnight)
+#   sudo systemctl enable --now solar-utility@<user>.timer
 [Unit]
-Description=Solar Hub - Sincronização da Cooperaliança
+Description=Solar Hub - Utility Sync Timer (Cooperaliança)
 
 [Timer]
 OnCalendar=*-*-* 07,13,19:00:00

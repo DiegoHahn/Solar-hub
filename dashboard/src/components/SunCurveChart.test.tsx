@@ -10,7 +10,7 @@ describe("SunCurveChart", () => {
   const nighttime = new Date(`${targetDate}T22:00:00-03:00`);
   const dayCurve = buildSunCurveGrid(telemetryDayFixture as unknown as SunCurveRow[], targetDate, nighttime);
 
-  it("renderiza o gráfico sem erros com os pontos da grade diária", () => {
+  it("renders chart without errors using daily grid points", () => {
     const { container } = render(<SunCurveChart data={dayCurve} nominalCapKw={16} />);
 
     expect(screen.getByText("Curva Solar de Hoje")).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe("SunCurveChart", () => {
     expect(rechartsContainer).toBeInTheDocument();
   });
 
-  it("retorna null ou trata array vazio sem quebrar", () => {
+  it("returns null or handles empty array without breaking", () => {
     const { container } = render(<SunCurveChart data={[]} />);
     expect(container.firstChild).toBeNull();
   });

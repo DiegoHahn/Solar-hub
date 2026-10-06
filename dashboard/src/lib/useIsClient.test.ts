@@ -10,12 +10,12 @@ function TestComponent() {
 }
 
 describe("useIsClient", () => {
-  it("retorna true após montagem no cliente", () => {
+  it("returns true after mounting on client", () => {
     const { result } = renderHook(() => useIsClient());
     expect(result.current).toBe(true);
   });
 
-  it("retorna false durante a renderização no servidor (SSR)", () => {
+  it("returns false during server-side rendering (SSR)", () => {
     const html = renderToString(React.createElement(TestComponent));
     expect(html).toContain("server");
   });

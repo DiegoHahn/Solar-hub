@@ -9,7 +9,7 @@ export default defineConfig([
   {
     files: ["**/*.test.{ts,tsx}", "src/test/**"],
     rules: {
-      // Mocks e fixtures de teste lidam com payloads crus do Supabase/APIs externas
+      // Test mocks and fixtures handle raw payloads from Supabase / external APIs
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
