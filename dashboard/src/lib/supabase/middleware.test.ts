@@ -72,4 +72,30 @@ describe("middleware updateSession", () => {
     expect(setCookie).toContain("solarhub_demo=");
     expect(setCookie).toMatch(/Max-Age=0/i);
   });
+
+  it("redirects an authenticated user opening /login to the dashboard", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { email: "autorizado@exemplo.com" } },
+    });
+
+    const res = await updateSession(new NextRequest("http://localhost:3000/login"));
+
+    expect(res.status).toBe(307);
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/");
+  });
+
+  it("lets server action requests to /login through right after sign-in", async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: { email: "autorizado@exemplo.com" } },
+    });
+
+    const req = new NextRequest("http://localhost:3000/login", {
+      method: "POST",
+      headers: { "next-action": "action-id" },
+    });
+    const res = await updateSession(req);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
 });

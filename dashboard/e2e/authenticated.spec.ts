@@ -21,7 +21,7 @@ async function getTodayCachedAnalysis(): Promise<{ daily: { summary: string } } 
 }
 
 test.describe("Authenticated flows with real data", () => {
-  test.skip(!testEmail || !testPassword, "Credenciais de teste não configuradas no .env.test.local");
+  test.skip(!testEmail || !testPassword, "Test credentials are not set in .env.test.local");
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");

@@ -93,8 +93,9 @@ export async function updateSession(request: NextRequest) {
     });
   }
 
-  // Authenticated and authorized user attempting to access login page
-  if (isLoginPage) {
+  // Only page navigations are redirected: the login form calls a server action (POST /login)
+  // right after signing in, and a redirect response would make that action fail.
+  if (isLoginPage && request.method === "GET") {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     const redirectResponse = NextResponse.redirect(url);
