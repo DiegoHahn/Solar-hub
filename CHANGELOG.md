@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.3...v1.2.4) (2026-10-06)
+
+
+### Bug Fixes
+
+* **dashboard:** restore dynamic performance ratio and cloud loss cards ([#22](https://github.com/DiegoHahn/Solar-hub/issues/22)) ([23aba42](https://github.com/DiegoHahn/Solar-hub/commit/23aba4238539844720cfb656f7295236c6bc2d35))
+
 ## [1.2.3](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.2...v1.2.3) (2026-10-06)
 
 
