@@ -271,6 +271,18 @@ export interface DailyGenerationEntry {
   isReal: boolean;
 }
 
+/** Total generated in the calendar month of `todayIso` (YYYY-MM-DD, Brasília time), from 1st to today. */
+export function currentMonthGenerationKwh(
+  byDay: Record<string, DailyGenerationEntry>,
+  todayIso: string,
+): number {
+  const monthPrefix = todayIso.slice(0, 8);
+  const total = Object.entries(byDay)
+    .filter(([date]) => date.startsWith(monthPrefix) && date <= todayIso)
+    .reduce((sum, [, entry]) => sum + entry.kwh, 0);
+  return Number(total.toFixed(1));
+}
+
 /**
  * Consolida a geração diária (kWh por dia, chave YYYY-MM-DD no fuso de Brasília).
  * 1. Usa a geração medida pela telemetria (view daily_generation).

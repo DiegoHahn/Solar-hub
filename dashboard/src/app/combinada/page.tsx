@@ -2,6 +2,8 @@ import { AiEnergyAdvisor } from "@/components/AiEnergyAdvisor";
 import { EnergyFlowSection } from "@/components/EnergyFlowSection";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { getDataSource } from "@/lib/dataSource";
+import { currentMonthGenerationKwh } from "@/lib/queries";
+import { toBrasiliaIsoDate } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +14,13 @@ export const metadata = {
 
 export default async function CombinadaPage() {
   const ds = await getDataSource();
-  const [telemetry, utilityData, weatherData] = await Promise.all([
+  const [telemetry, utilityData, weatherData, generationByDay] = await Promise.all([
     ds.getLatestTelemetry(),
     ds.getLatestUtilityData(),
     ds.getIcaraWeatherData(),
+    ds.getGenerationByDay(31),
   ]);
+  const monthSolarKwh = currentMonthGenerationKwh(generationByDay, toBrasiliaIsoDate(new Date()));
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -43,7 +47,7 @@ export default async function CombinadaPage() {
       />
 
       {/* 2. SEÇÃO MEIO: FLUXO DE ENERGIA & BALANÇO */}
-      <EnergyFlowSection telemetry={telemetry} utilityData={utilityData} />
+      <EnergyFlowSection telemetry={telemetry} utilityData={utilityData} monthSolarKwh={monthSolarKwh} />
 
       {/* 3. SEÇÃO ABAIXO: ÍNDICE CLIMÁTICO VS EFICIÊNCIA */}
       <WeatherEfficiencySection weatherData={weatherData} />
