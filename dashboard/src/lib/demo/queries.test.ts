@@ -136,6 +136,10 @@ describe("demo/queries", () => {
       }
 
       // Verify essential fields
+      const last = weather[weather.length - 1];
+      expect(last.isToday).toBe(true);
+      expect(weather.filter((d) => d.isToday)).toHaveLength(1);
+
       const sample = weather[0];
       expect(sample).toHaveProperty("date");
       expect(sample).toHaveProperty("tempMax");

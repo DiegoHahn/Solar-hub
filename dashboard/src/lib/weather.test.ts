@@ -8,7 +8,7 @@ vi.mock("./queries", () => ({
 }));
 
 import { getGenerationByDay, getStoredDailyWeather, saveDailyWeather } from "./queries";
-import { fallbackDailyWeather, parseWmoCode } from "./weather";
+import { fallbackDailyWeather, parseWmoCode, specificYield, type DailyWeather } from "./weather";
 import { getIcaraWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
@@ -25,6 +25,35 @@ describe("parseWmoCode", () => {
     [71, "cloudVariation", "cloud-sun"],
   ])("code %d -> %s (%s)", (code, conditionKey, icon) => {
     expect(parseWmoCode(code)).toEqual({ conditionKey, icon });
+  });
+});
+
+const day = (overrides: Partial<DailyWeather>): DailyWeather => ({
+  ...fallbackDailyWeather[0],
+  isReal: true,
+  ...overrides,
+});
+
+describe("specificYield", () => {
+  it("averages measured kWh per installed kWp per day", () => {
+    const result = specificYield([day({ estimatedKwh: 64 }), day({ estimatedKwh: 80 })]);
+
+    expect(result).toEqual({ kwhPerKwpDay: 4.5, measuredDays: 2 });
+  });
+
+  it("ignores estimated days and today", () => {
+    const result = specificYield([
+      day({ estimatedKwh: 64 }),
+      day({ estimatedKwh: 70, isReal: false }),
+      day({ estimatedKwh: 10, isToday: true }),
+    ]);
+
+    expect(result).toEqual({ kwhPerKwpDay: 4, measuredDays: 1 });
+  });
+
+  it("returns null when the period has no measured days", () => {
+    expect(specificYield([day({ isReal: false })])).toBeNull();
+    expect(specificYield([])).toBeNull();
   });
 });
 
