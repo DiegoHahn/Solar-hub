@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.2...v1.2.0) (2026-10-06)
+
+
+### Features
+
+* **i18n:** English locale with language toggle and English codebase ([#8](https://github.com/DiegoHahn/Solar-hub/issues/8)) ([9423ae3](https://github.com/DiegoHahn/Solar-hub/commit/9423ae384d638b31a7026ea7147b1b59a9bf3b27))
+
+
+### Bug Fixes
+
+* **dashboard:** use a neutral plant title ([#12](https://github.com/DiegoHahn/Solar-hub/issues/12)) ([bf26228](https://github.com/DiegoHahn/Solar-hub/commit/bf262288cbad0cefb92d9673aa2231f1b5005a72))
+
 ## [1.1.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.1...v1.1.2) (2026-10-06)
 
 
