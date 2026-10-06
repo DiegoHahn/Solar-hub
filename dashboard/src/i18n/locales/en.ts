@@ -394,6 +394,8 @@ export const en: Translations = {
     demoNotice: "New analysis generation is disabled in demo mode.",
     defaultError: "Could not connect to AI.",
     retryHint: "Click \"Regenerate\" to try again.",
+    unavailable: "The AI advisor is unavailable right now",
+    showingLastAnalysis: "A new analysis could not be generated. Showing the latest analysis from today.",
     primaryQuotaTooltip: "Daily call limit for the primary model reached. Using fallback model configured in .env and reserving quota for Raspberry Pi collector.",
     configuredModelTooltip: "Configured intelligent AI model from .env",
   },

@@ -5,7 +5,6 @@ import {
   getAdvisorCache,
   saveAdvisorCache,
   AdvisorResult,
-  getFallbackAdvisorAnalysis,
 } from "@/lib/aiQuota";
 import {
   getLatestTelemetry,
@@ -23,6 +22,7 @@ import { isDemoMode } from "@/lib/dataSource";
 import type { Locale } from "@/i18n";
 import { getServerLocale } from "@/i18n/server";
 import { en } from "@/i18n/locales/en";
+import { ptBR } from "@/i18n/locales/pt-BR";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
@@ -40,9 +40,9 @@ function respondFromDemo(locale: Locale): NextResponse {
   });
 }
 
-/** Responds with the daily analysis if already generated. */
-async function respondFromCache(): Promise<NextResponse | null> {
-  const [cached, quota] = await Promise.all([getAdvisorCache(), getQuotaState()]);
+/** Responds with today's analysis for the locale if already generated. */
+async function respondFromCache(locale: Locale): Promise<NextResponse | null> {
+  const [cached, quota] = await Promise.all([getAdvisorCache(locale), getQuotaState()]);
   if (!cached) return null;
 
   return NextResponse.json({
@@ -66,7 +66,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  return (await respondFromCache()) ?? handleGenerate(locale);
+  return (await respondFromCache(locale)) ?? handleGenerate(locale);
 }
 
 export async function POST(req: Request) {
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
   const force = body.force === true;
 
   if (!force) {
-    const cachedResponse = await respondFromCache();
+    const cachedResponse = await respondFromCache(locale);
     if (cachedResponse) return cachedResponse;
   }
 
@@ -327,7 +327,7 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
 
     if (!rawText) {
       console.error("[AI Advisor] All models failed. Last error:", lastError);
-      const cached = await getAdvisorCache();
+      const cached = await getAdvisorCache(locale);
       if (cached) {
         return NextResponse.json({
           ...cached.data,
@@ -337,26 +337,14 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
           maxPrimaryQuota,
           isCached: true,
           updatedAt: cached.updatedAt,
-          warning: isEn
-            ? "Google AI Studio experiencing temporary high demand. Displaying last recorded analysis."
-            : "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
+          warning: isEn ? en.aiAdvisor.showingLastAnalysis : ptBR.aiAdvisor.showingLastAnalysis,
         });
       }
-      
-      // If no prior cache exists and Google API is temporarily unavailable,
-      // return contextual fallback analysis without breaking the user interface
-      return NextResponse.json({
-        ...getFallbackAdvisorAnalysis(locale),
-        modelUsed: candidateModels[0] || configuredModel,
-        switchedDueToQuota,
-        quotaCount: primaryCount,
-        maxPrimaryQuota,
-        isCached: false,
-        updatedAt: new Date().toISOString(),
-        warning: isEn
-          ? "AI service temporarily unavailable from Google. Displaying preliminary technical analysis."
-          : "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
-      });
+
+      return NextResponse.json(
+        { error: isEn ? en.aiAdvisor.unavailable : ptBR.aiAdvisor.unavailable, unavailable: true },
+        { status: 503 },
+      );
     }
 
     const parsed: AdvisorResult = JSON.parse(rawText);
@@ -366,7 +354,7 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
     const currentPrimaryCount = updatedQuota.primary_count;
 
     // Save to persistent cache to prevent redundant calls
-    await saveAdvisorCache(parsed, modelSuccessfullyUsed);
+    await saveAdvisorCache(parsed, modelSuccessfullyUsed, locale);
 
     return NextResponse.json({
       ...parsed,

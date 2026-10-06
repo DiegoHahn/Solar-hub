@@ -11,7 +11,6 @@ import {
   saveDailyWeather,
 } from "@/lib/queries";
 import {
-  getFallbackAdvisorAnalysis,
   getAdvisorCache,
   incrementQuota,
   saveAdvisorCache,
@@ -254,12 +253,17 @@ describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () =>
       vi.setSystemTime(new Date(`${SENTINEL_DATE}T15:00:00Z`));
 
       try {
-        await saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash");
-        const cached = await getAdvisorCache();
+        const analysis = {
+          daily: { summary: "Integration test analysis", recommendations: [] },
+          monthly: { summary: "Integration test monthly analysis", recommendations: [] },
+        };
+        await saveAdvisorCache(analysis, "gemini-3.8-flash", "pt-BR");
+        const cached = await getAdvisorCache("pt-BR");
 
         expect(cached).not.toBeNull();
         expect(cached?.modelUsed).toBe("gemini-3.8-flash");
-        expect(cached?.data.daily.summary).toBe(getFallbackAdvisorAnalysis("pt-BR").daily.summary);
+        expect(cached?.data.daily.summary).toBe(analysis.daily.summary);
+        await expect(getAdvisorCache("en")).resolves.toBeNull();
       } finally {
         vi.useRealTimers();
       }

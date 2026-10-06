@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AiEnergyAdvisor } from "./AiEnergyAdvisor";
+import { ptBR } from "@/i18n/locales/pt-BR";
 
 const mockSuccessData = {
   daily: {
@@ -112,5 +113,38 @@ describe("AiEnergyAdvisor", () => {
       force: true,
       nominalKwp: 16,
     });
+  });
+
+  it("shows only the unavailable message when there is no analysis for today", async () => {
+    server.use(
+      http.get("/api/ai-advisor", () =>
+        HttpResponse.json({ error: ptBR.aiAdvisor.unavailable, unavailable: true }, { status: 503 }),
+      ),
+    );
+
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(new RegExp(ptBR.aiAdvisor.unavailable))).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Manter limpo")).not.toBeInTheDocument();
+  });
+
+  it("keeps today's analysis and reports the error when regeneration fails", async () => {
+    server.use(
+      http.post("/api/ai-advisor", () =>
+        HttpResponse.json({ error: ptBR.aiAdvisor.unavailable, unavailable: true }, { status: 503 }),
+      ),
+    );
+
+    render(<AiEnergyAdvisor nominalKwp={16} />);
+    await waitFor(() => {
+      expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Regerar/ }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(ptBR.aiAdvisor.unavailable);
+    expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
   });
 });

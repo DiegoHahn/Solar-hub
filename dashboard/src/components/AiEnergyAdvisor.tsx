@@ -60,11 +60,7 @@ export function AiEnergyAdvisor({
     let isMounted = true;
     async function loadInitial() {
       try {
-        const res = await fetch("/api/ai-advisor", {
-          headers: {
-            "Accept-Language": locale,
-          },
-        });
+        const res = await fetch("/api/ai-advisor");
         if (!res.ok) {
           const errJson = await res.json().catch(() => ({}));
           throw new Error(errJson.error || "Failed to load the AI advisor");
@@ -99,10 +95,7 @@ export function AiEnergyAdvisor({
     try {
       const res = await fetch("/api/ai-advisor", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept-Language": locale,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ force: true, nominalKwp }),
       });
       if (!res.ok) {
@@ -123,7 +116,7 @@ export function AiEnergyAdvisor({
 
   const modelLabel = data?.modelUsed
     ? data.modelUsed.replace(/^gemini-/, "Gemini ").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-    : "IA Solar";
+    : "Gemini";
 
   const quotaBadgeText =
     data?.quotaCount !== undefined
@@ -244,10 +237,12 @@ export function AiEnergyAdvisor({
         </div>
       </div>
 
-      {/* Warning notice if present */}
       {data?.warning && (
-        <div className="mt-2 text-[11px] text-amber-500/90 dark:text-amber-400/90">
-          ℹ️ {data.warning}
+        <div className="mt-2 text-[11px] text-amber-500/90 dark:text-amber-400/90">{data.warning}</div>
+      )}
+      {error && activePeriodData && (
+        <div className="mt-2 text-[11px] text-rose-500" role="alert">
+          {error}. {t.aiAdvisor.retryHint}
         </div>
       )}
 
