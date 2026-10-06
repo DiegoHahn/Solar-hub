@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.1...v1.1.2) (2026-10-06)
+
+
+### Correções
+
+* **dashboard:** current month generation in the energy flow ([#5](https://github.com/DiegoHahn/Solar-hub/issues/5)) ([188ccc4](https://github.com/DiegoHahn/Solar-hub/commit/188ccc42c8f94a27d94ae1e99fc4de8408190004))
+* **deps:** bump source-map-js to 1.2.2 (CVE-2026-93749) ([#6](https://github.com/DiegoHahn/Solar-hub/issues/6)) ([4de4d98](https://github.com/DiegoHahn/Solar-hub/commit/4de4d98b6eb97fefad72de44017f52dede430f14))
+
 ## [1.1.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.0...v1.1.1) (2026-10-02)
 
 
