@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMultiYearHistory,
   buildSunCurveGrid,
+  currentMonthGenerationKwh,
   mergeDailyGeneration,
   normalizeUnidadeConsumidora,
   type DailyGenerationRow,
@@ -167,6 +168,41 @@ describe("mergeDailyGeneration", () => {
       expect(merged[d].kwh).toBeGreaterThanOrEqual(0);
       expect(typeof merged[d].isReal).toBe("boolean");
     }
+  });
+});
+
+describe("currentMonthGenerationKwh", () => {
+  const view = (dailyGenFixture as { view: DailyGenerationRow[] }).view;
+  const byDay = mergeDailyGeneration(view, []);
+  const dates = Object.keys(byDay).sort();
+  const lastDay = dates[dates.length - 1];
+  const monthPrefix = lastDay.slice(0, 8);
+
+  it("sums only the days of the current month up to today", () => {
+    const expected = dates
+      .filter((d) => d.startsWith(monthPrefix))
+      .reduce((sum, d) => sum + byDay[d].kwh, 0);
+
+    expect(expected).toBeGreaterThan(0);
+    expect(currentMonthGenerationKwh(byDay, lastDay)).toBeCloseTo(expected, 1);
+  });
+
+  it("ignores days from the previous month", () => {
+    const [year, month] = lastDay.split("-").map(Number);
+    const nextMonthDay = month === 12 ? `${year + 1}-01-05` : `${year}-${String(month + 1).padStart(2, "0")}-05`;
+
+    expect(currentMonthGenerationKwh(byDay, nextMonthDay)).toBe(0);
+  });
+
+  it("ignores days after today", () => {
+    const firstOfMonth = `${monthPrefix}01`;
+    const upToFirst = byDay[firstOfMonth]?.kwh ?? 0;
+
+    expect(currentMonthGenerationKwh(byDay, firstOfMonth)).toBeCloseTo(upToFirst, 1);
+  });
+
+  it("returns zero when the month has no generation yet", () => {
+    expect(currentMonthGenerationKwh(byDay, "2099-01-15")).toBe(0);
   });
 });
 
