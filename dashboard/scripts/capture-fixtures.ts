@@ -10,7 +10,7 @@ function ensureFixturesDir() {
   }
 }
 
-/** Campos identificáveis e o valor fictício que substitui cada ocorrência distinta. */
+/** Sensitive/identifiable fields and the dummy generator that replaces distinct occurrences. */
 const SENSITIVE_FIELDS: Array<[RegExp, (index: number) => string]> = [
   [/^(cpf|cpfcnpj|inscricao|documento)$/i, () => "000.000.000-00"],
   [/(^|_)(datanascimento|nascimento)$/i, () => "01/01/1970 00:00:00"],
@@ -25,7 +25,7 @@ const SENSITIVE_FIELDS: Array<[RegExp, (index: number) => string]> = [
   [/(^|_)ip$/i, (i) => `10.0.0.${i + 1}`],
 ];
 
-/** Valores curtos (flags, zeros, "N/A") não identificam ninguém e colidiriam com dados numéricos. */
+/** Short values (flags, zeros, "N/A") are non-identifying and would collide with numeric values. */
 const MIN_SENSITIVE_LENGTH = 4;
 
 function collectSensitiveValues(node: unknown, found: Map<string, string>, counters: number[]) {
@@ -62,9 +62,9 @@ function escapeRegExp(text: string): string {
 }
 
 /**
- * Substitui, em todo o JSON, cada valor coletado dos campos identificáveis, inclusive quando ele se
- * repete em outros campos ou como chave de objeto. Os valores são coletados de `source` (o dado bruto,
- * antes de qualquer substituição manual); CPFs e IPs privados são mascarados em qualquer lugar.
+ * Replaces, across all JSON, each collected value from identifiable fields, including when repeated
+ * in other fields or as object keys. Values are gathered from `source` (raw data before manual substitution);
+ * CPFs and private IPs are masked everywhere.
  */
 function anonymize(data: unknown, source: unknown): string {
   const found = new Map<string, string>();

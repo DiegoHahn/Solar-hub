@@ -14,6 +14,8 @@ import monthlyHistoryFixture from "../test/fixtures/monthly-history.json";
 import dailyGenFixture from "../test/fixtures/daily-generation.json";
 import type { InverterMonthlyHistoryRow, GenerationPoint } from "@/lib/types";
 
+import { ptBR } from "@/i18n/locales/pt-BR";
+
 describe("GenerationPeriodSection", () => {
   const targetDate = "2026-09-29";
   const nighttime = new Date(`${targetDate}T22:00:00-03:00`);
@@ -47,9 +49,9 @@ describe("GenerationPeriodSection", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Dia" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Mês" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Ano" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.combined.periodDay })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.combined.periodMonth })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.combined.periodYear })).toBeInTheDocument();
   });
 
   it("switches to Month tab and displays accumulated monthly total", () => {
@@ -61,10 +63,10 @@ describe("GenerationPeriodSection", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Mês" }));
+    fireEvent.click(screen.getByRole("button", { name: ptBR.combined.periodMonth }));
 
-    expect(screen.getByText("Geração Mensal")).toBeInTheDocument();
-    expect(screen.getByText("Total bruto gerado por dia — mês atual")).toBeInTheDocument();
+    expect(screen.getByText(ptBR.combined.monthlyGeneration)).toBeInTheDocument();
+    expect(screen.getByText(ptBR.combined.monthlyGenerationSubtitle)).toBeInTheDocument();
 
     const expectedTotal = monthData.reduce((acc, d) => acc + d.kwh, 0);
     const formatted = expectedTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + " kWh";
@@ -80,20 +82,21 @@ describe("GenerationPeriodSection", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Ano" }));
+    fireEvent.click(screen.getByRole("button", { name: ptBR.combined.periodYear }));
 
-    expect(screen.getByText("Geração Anual — Últimos 12 Meses")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "12 Meses" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Todos os Anos" })).toBeInTheDocument();
+    expect(screen.getByText(ptBR.combined.annualGeneration12m)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.combined.months12 })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.combined.allYears })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Todos os Anos" }));
-    expect(screen.getByText("Comparativo Histórico por Ano")).toBeInTheDocument();
-    expect(screen.getByText("Total bruto gerado pela usina a cada ano")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: ptBR.combined.allYears }));
+    expect(screen.getByText(ptBR.combined.historicalComparative)).toBeInTheDocument();
+    expect(screen.getByText(ptBR.combined.historicalComparativeSub)).toBeInTheDocument();
 
     if (multiYear.availableYears.length > 0) {
       const year = multiYear.availableYears[0];
       fireEvent.click(screen.getByRole("button", { name: year }));
-      expect(screen.getByText(`Geração Anual — ${year}`)).toBeInTheDocument();
+      const expectedTitle = ptBR.combined.annualGenerationYear.replace("{year}", year);
+      expect(screen.getByText(expectedTitle)).toBeInTheDocument();
     }
   });
 
@@ -105,12 +108,12 @@ describe("GenerationPeriodSection", () => {
       />,
     );
 
-    expect(screen.getByText(/Nenhuma curva de geração registrada/)).toBeInTheDocument();
+    expect(screen.getByText(ptBR.combined.noCurveToday)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Mês" }));
-    expect(screen.getByText(/Nenhum histórico diário acumulado/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: ptBR.combined.periodMonth }));
+    expect(screen.getByText(ptBR.combined.noMonthlyHistory)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Ano" }));
-    expect(screen.getByText(/Nenhum histórico anual disponível/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: ptBR.combined.periodYear }));
+    expect(screen.getByText(ptBR.combined.noAnnualHistory)).toBeInTheDocument();
   });
 });

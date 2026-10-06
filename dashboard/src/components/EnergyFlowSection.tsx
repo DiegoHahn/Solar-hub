@@ -25,7 +25,7 @@ export function EnergyFlowSection({
   monthSolarKwh = 0,
 }: EnergyFlowSectionProps) {
   const { t, locale } = useI18n();
-  const [timeframe, setTimeframe] = useState<"hoje" | "mes">("hoje");
+  const [timeframe, setTimeframe] = useState<"today" | "month">("today");
 
   const uc = getGeneratorUc(utilityData);
   const gd = uc?.geracao_distribuida;
@@ -37,8 +37,8 @@ export function EnergyFlowSection({
   const reservaTotalReais = Math.round(saldoTotalAcumuladoKwh * tarifaKwh);
 
   // Today's inverter telemetry data
-  const geracaoHojeKwh = telemetry?.total_today_kwh ?? 0;
-  const economiaHojeReais = geracaoHojeKwh * tarifaKwh;
+  const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
+  const todaySavingsReais = todayGenerationKwh * tarifaKwh;
 
   // Monthly data (last invoice / Cooperaliança history)
   const mesInjetadoKwh = lastMonthItem?.KwhGerado ?? 0;
@@ -47,7 +47,7 @@ export function EnergyFlowSection({
   const geracaoMesEstimadaOuReal = monthSolarKwh > 0 ? monthSolarKwh : mesInjetadoKwh;
   const economiaMesReais = mesInjetadoKwh * tarifaKwh;
 
-  const isHoje = timeframe === "hoje";
+  const isToday = timeframe === "today";
 
   return (
     <Card className="p-4 sm:p-6">
@@ -62,14 +62,14 @@ export function EnergyFlowSection({
           </span>
         </div>
 
-        {/* Toggle Hoje / Mês */}
+        {/* Toggle: Today / Month */}
         <div className="inline-flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800 text-xs">
           <button
             type="button"
-            onClick={() => setTimeframe("hoje")}
+            onClick={() => setTimeframe("today")}
             className={cx(
               "rounded-md px-2.5 py-1 font-semibold transition-colors",
-              timeframe === "hoje"
+              timeframe === "today"
                 ? "bg-white text-gray-900 shadow-sm dark:bg-blue-600 dark:text-white"
                 : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             )}
@@ -78,10 +78,10 @@ export function EnergyFlowSection({
           </button>
           <button
             type="button"
-            onClick={() => setTimeframe("mes")}
+            onClick={() => setTimeframe("month")}
             className={cx(
               "rounded-md px-2.5 py-1 font-semibold transition-colors",
-              timeframe === "mes"
+              timeframe === "month"
                 ? "bg-white text-gray-900 shadow-sm dark:bg-blue-600 dark:text-white"
                 : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             )}
@@ -119,14 +119,14 @@ export function EnergyFlowSection({
 
           <div className="mt-4">
             <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
-              {formatNumber(isHoje ? geracaoHojeKwh : geracaoMesEstimadaOuReal, locale, {
+              {formatNumber(isToday ? todayGenerationKwh : geracaoMesEstimadaOuReal, locale, {
                 minimumFractionDigits: 1,
                 maximumFractionDigits: 1,
               })}{" "}
               <span className="text-sm font-semibold">kWh</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isHoje ? t.combined.physicalGenerationToday : t.combined.periodTotalGeneration}
+              {isToday ? t.combined.physicalGenerationToday : t.combined.periodTotalGeneration}
             </p>
           </div>
 
@@ -140,7 +140,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.generatedValueLabel}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                {formatCurrency(isHoje ? economiaHojeReais : economiaMesReais, locale)}
+                {formatCurrency(isToday ? todaySavingsReais : economiaMesReais, locale)}
               </strong>
             </div>
           </div>
@@ -170,14 +170,14 @@ export function EnergyFlowSection({
           <div className="mt-4">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
-                {isHoje ? "—" : `+${formatNumber(mesInjetadoKwh, locale)}`}
+                {isToday ? "—" : `+${formatNumber(mesInjetadoKwh, locale)}`}
               </span>
               <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                {isHoje ? t.combined.monthlyClosing : t.combined.kwhInjected}
+                {isToday ? t.combined.monthlyClosing : t.combined.kwhInjected}
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isHoje ? t.combined.consolidatedInUtility : t.combined.utilityExcessMeasured}
+              {isToday ? t.combined.consolidatedInUtility : t.combined.utilityExcessMeasured}
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export function EnergyFlowSection({
             {t.combined.todayGenerationKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-amber-600 dark:text-amber-400">
-            {formatNumber(geracaoHojeKwh, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kWh
+            {formatNumber(todayGenerationKwh, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kWh
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {t.combined.directInverterMeasurement}
@@ -294,10 +294,10 @@ export function EnergyFlowSection({
             {t.combined.estimatedSavingsKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-purple-600 dark:text-purple-400">
-            {formatCurrency(isHoje ? economiaHojeReais : economiaMesReais, locale)}
+            {formatCurrency(isToday ? todaySavingsReais : economiaMesReais, locale)}
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
-            {isHoje ? t.combined.economyToday : t.combined.economyMonth}
+            {isToday ? t.combined.economyToday : t.combined.economyMonth}
           </p>
         </div>
       </div>

@@ -29,7 +29,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
 
   return (
     <Card className="p-4 sm:p-5">
-      {/* Cabeçalho Unificado */}
+      {/* Unified Fleet Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-3.5 dark:border-gray-800">
         <div className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -51,7 +51,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
           </div>
         </div>
 
-        {/* Link para a página detalhada de Placas */}
+        {/* Link to detailed Panels page */}
         <Link
           href="/placas"
           className="inline-flex self-start sm:self-auto items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400"
@@ -61,7 +61,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
         </Link>
       </div>
 
-      {/* Grid com os 3 Inversores Compactados */}
+      {/* 3 Compact Inverter Cards Grid */}
       <div className="mt-3.5 grid grid-cols-1 divide-y divide-gray-100 sm:grid-cols-3 sm:divide-y-0 sm:divide-x sm:divide-gray-100 dark:divide-gray-800">
         {inverters.map((inv, idx) => {
           const nominalKw = getNominalKw(inv);
@@ -78,7 +78,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                 idx === 0 ? "sm:pr-4" : idx === inverters.length - 1 ? "sm:pl-4" : "sm:px-4"
               )}
             >
-              {/* Header do Inversor */}
+              {/* Inverter Header */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="truncate text-xs font-bold text-gray-900 dark:text-gray-200">
@@ -99,7 +99,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                 </span>
               </div>
 
-              {/* Potência Instantânea */}
+              {/* Instantaneous Power */}
               <div className="mt-2 flex items-baseline justify-between">
                 <div>
                   <span className="text-xl font-extrabold tabular-nums text-gray-900 dark:text-gray-50">
@@ -119,7 +119,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                 </span>
               </div>
 
-              {/* Mini Barra de Progresso */}
+              {/* Mini Progress Bar */}
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                 <div
                   className={cx(
@@ -132,7 +132,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                 />
               </div>
 
-              {/* Mini Estatísticas Rápidas (3 métricas em linha) */}
+              {/* Mini Quick Stats (3 inline metrics) */}
               <div className="mt-3 flex items-center justify-between gap-1 rounded-lg bg-gray-50/70 px-2.5 py-1.5 text-[11px] dark:bg-gray-900/60">
                 <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
                   <RiSunLine className="size-3 text-amber-500" />

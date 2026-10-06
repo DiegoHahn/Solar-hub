@@ -9,7 +9,7 @@ interface StatCardProps {
   hint?: string;
   icon: RemixiconComponentType;
   accent?: "blue" | "emerald" | "amber" | "violet" | "neutral";
-  /** Estado sem dado atual/confiável (ex: coletor offline) — reduz o destaque visual. */
+  /** State indicating missing or unreliable current data (e.g., collector offline) — dampens visual emphasis. */
   dim?: boolean;
 }
 
@@ -49,7 +49,7 @@ export function StatCard({
 
   return (
     <Card className="flex flex-col justify-between p-4 h-full min-h-[110px] transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-800">
-      {/* Topo do Card: Label à esquerda e Ícone à direita */}
+      {/* Card Top: Label on left, Icon on right */}
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-xs font-medium text-gray-500 dark:text-gray-400">
           {label}
@@ -64,7 +64,7 @@ export function StatCard({
         </div>
       </div>
 
-      {/* Valor Principal + Unidade */}
+      {/* Main Value + Unit */}
       <div className="mt-3">
         <div className="flex items-baseline gap-1.5 flex-nowrap">
           <span
@@ -82,7 +82,7 @@ export function StatCard({
           )}
         </div>
 
-        {/* Subtítulo / Hint explicativo */}
+        {/* Subtitle / Explanatory hint */}
         {hint && (
           <p className="mt-1 text-[11px] leading-tight text-gray-400 dark:text-gray-500">
             {hint}

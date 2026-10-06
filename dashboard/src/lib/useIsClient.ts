@@ -3,8 +3,8 @@ import { useSyncExternalStore } from "react";
 const subscribe = () => () => {};
 
 /**
- * `false` no SSR e na hidratação, `true` após montar no navegador.
- * Evita mismatch de hidratação em componentes que dependem do layout do cliente (ex.: ResponsiveContainer do Recharts).
+ * Returns `false` during SSR and initial hydration, then `true` once mounted on client.
+ * Prevents hydration mismatches in components dependent on client viewport (e.g. Recharts ResponsiveContainer).
  */
 export function useIsClient(): boolean {
   return useSyncExternalStore(

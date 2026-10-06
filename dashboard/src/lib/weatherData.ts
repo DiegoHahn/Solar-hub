@@ -160,7 +160,7 @@ export function toDailyWeather(
 ): DailyWeather {
   const [year, month, day] = row.date.split("-");
   const code = Number(row.weather_code);
-  const { condition, icon } = parseWmoCode(code);
+  const { condition, conditionKey, icon } = parseWmoCode(code);
   // 1 MJ/m² = 1/3.6 kWh/m² (Peak Sun Hours / HSP)
   const hsp = Number((Number(row.shortwave_radiation_mj) / 3.6).toFixed(2));
   const kwh = Number((generation ? generation.kwh : NOMINAL_KWP * hsp * PERFORMANCE_RATIO).toFixed(1));
@@ -172,6 +172,7 @@ export function toDailyWeather(
     formattedDate: row.date === todayIso ? "Hoje" : `${day}/${month}`,
     weatherCode: code,
     condition,
+    conditionKey,
     icon,
     tempMax: Number(row.temperature_max_c),
     tempMin: Number(row.temperature_min_c),

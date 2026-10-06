@@ -30,16 +30,6 @@ export function formatCurrency(
   }).format(value);
 }
 
-export function formatDate(
-  dateInput: Date | string,
-  locale: Locale = DEFAULT_LOCALE,
-  options?: Intl.DateTimeFormatOptions,
-): string {
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
-  const intlLocale = locale === "pt-BR" ? "pt-BR" : "en-US";
-  return new Intl.DateTimeFormat(intlLocale, options).format(date);
-}
-
 export function formatRelativeTime(
   dateInput: Date | string,
   locale: Locale = DEFAULT_LOCALE,

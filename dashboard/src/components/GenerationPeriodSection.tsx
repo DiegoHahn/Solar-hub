@@ -7,7 +7,7 @@ import { GenerationBarChart } from "@/components/GenerationBarChart";
 import type { SunCurvePoint, GenerationPoint, MultiYearHistory } from "@/lib/types";
 import { useI18n } from "@/i18n";
 
-type Period = "dia" | "mes" | "ano";
+type Period = "day" | "month" | "year";
 
 interface GenerationPeriodSectionProps {
   dayCurve: SunCurvePoint[];
@@ -23,26 +23,26 @@ export function GenerationPeriodSection({
   multiYearHistory,
 }: GenerationPeriodSectionProps) {
   const { t } = useI18n();
-  const [period, setPeriod] = useState<Period>("dia");
-  const [annualFilter, setAnnualFilter] = useState<string>("ultimos_12");
+  const [period, setPeriod] = useState<Period>("day");
+  const [annualFilter, setAnnualFilter] = useState<string>("last12");
 
   const periods: { key: Period; label: string }[] = [
-    { key: "dia", label: t.combined.periodDay },
-    { key: "mes", label: t.combined.periodMonth },
-    { key: "ano", label: t.combined.periodYear },
+    { key: "day", label: t.combined.periodDay },
+    { key: "month", label: t.combined.periodMonth },
+    { key: "year", label: t.combined.periodYear },
   ];
 
-  // Chart data for "Ano" (Year) tab
+  // Chart data for "Year" tab
   let annualChartData: GenerationPoint[] = yearData;
   let annualTitle = t.combined.periodYear;
   let annualSubtitle = t.combined.annualGeneration12mSub;
 
   if (multiYearHistory) {
-    if (annualFilter === "ultimos_12") {
+    if (annualFilter === "last12") {
       annualChartData = multiYearHistory.last12Months;
       annualTitle = t.combined.annualGeneration12m;
       annualSubtitle = t.combined.annualGeneration12mSub;
-    } else if (annualFilter === "comparativo") {
+    } else if (annualFilter === "comparative") {
       annualChartData = multiYearHistory.yearsTotals;
       annualTitle = t.combined.historicalComparative;
       annualSubtitle = t.combined.historicalComparativeSub;
@@ -55,7 +55,7 @@ export function GenerationPeriodSection({
 
   return (
     <div className="space-y-4">
-      {/* Main tab bar: Dia | Mês | Ano */}
+      {/* Main tab bar: Day | Month | Year */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-900/60">
           {periods.map((p) => (
@@ -75,15 +75,15 @@ export function GenerationPeriodSection({
           ))}
         </div>
 
-        {/* Annual sub-filter when "Ano" is active */}
-        {period === "ano" && multiYearHistory && (
+        {/* Annual sub-filter when "Year" is active */}
+        {period === "year" && multiYearHistory && (
           <div className="flex flex-wrap items-center gap-1">
             <button
               type="button"
-              onClick={() => setAnnualFilter("ultimos_12")}
+              onClick={() => setAnnualFilter("last12")}
               className={cx(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                annualFilter === "ultimos_12"
+                annualFilter === "last12"
                   ? "bg-amber-500 text-white shadow-xs font-semibold"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
               )}
@@ -93,10 +93,10 @@ export function GenerationPeriodSection({
 
             <button
               type="button"
-              onClick={() => setAnnualFilter("comparativo")}
+              onClick={() => setAnnualFilter("comparative")}
               className={cx(
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                annualFilter === "comparativo"
+                annualFilter === "comparative"
                   ? "bg-amber-500 text-white shadow-xs font-semibold"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
               )}
@@ -124,7 +124,7 @@ export function GenerationPeriodSection({
       </div>
 
       {/* Selected tab content */}
-      {period === "dia" &&
+      {period === "day" &&
         (dayCurve.length > 0 ? (
           <InverterCurveChart data={dayCurve} />
         ) : (
@@ -133,7 +133,7 @@ export function GenerationPeriodSection({
           </div>
         ))}
 
-      {period === "mes" &&
+      {period === "month" &&
         (monthData.length > 0 ? (
           <GenerationBarChart
             data={monthData}
@@ -147,7 +147,7 @@ export function GenerationPeriodSection({
           </div>
         ))}
 
-      {period === "ano" &&
+      {period === "year" &&
         (annualChartData.length > 0 ? (
           <GenerationBarChart
             data={annualChartData}

@@ -8,10 +8,13 @@ import { getServerI18n } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Análise Integrada | Solar Hub",
-  description: "Consultor de IA, fluxo de potência real e índice climático para Usina Solar em Içara/SC",
-};
+export async function generateMetadata() {
+  const { t } = await getServerI18n();
+  return {
+    title: `${t.combined.title} | Solar Hub`,
+    description: t.combined.subtitle,
+  };
+}
 
 export default async function CombinadaPage() {
   const { t } = await getServerI18n();

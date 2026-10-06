@@ -185,8 +185,8 @@ export function AiEnergyAdvisor({
               <span
                 title={
                   data?.switchedDueToQuota
-                    ? "Limite de chamadas diárias do modelo primário atingido. Usando modelo alternativo do .env e reservando cota para o Raspberry."
-                    : "Modelo inteligente configurado no .env"
+                    ? t.aiAdvisor.primaryQuotaTooltip
+                    : t.aiAdvisor.configuredModelTooltip
                 }
                 className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-purple-600 dark:text-purple-400"
               >

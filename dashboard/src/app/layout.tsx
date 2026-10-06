@@ -3,14 +3,17 @@ import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppShell } from "@/components/AppShell";
 import { isDemoMode } from "@/lib/dataSource";
-import { getServerLocale } from "@/i18n/server";
+import { getServerLocale, getServerI18n } from "@/i18n/server";
 import { I18nProvider } from "@/i18n/context";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Solar Hub",
-  description: "Monitoramento da usina solar e gestão energética com a Cooperaliança",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getServerI18n();
+  return {
+    title: "Solar Hub",
+    description: t.overview.subtitle,
+  };
+}
 
 export default async function RootLayout({
   children,

@@ -3,12 +3,28 @@
  * Data fetching logic resides in lib/weatherData.ts.
  */
 
+export type WeatherConditionKey =
+  | "clearSky"
+  | "sunny"
+  | "partlyCloudy"
+  | "overcast"
+  | "foggy"
+  | "drizzle"
+  | "continuousRain"
+  | "rainShowers"
+  | "thunderstorm"
+  | "cloudVariation"
+  | "heavyRain"
+  | "drizzleOpenings"
+  | "sunAndClouds";
+
 export interface DailyWeather {
   date: string; // YYYY-MM-DD
   dayOfWeek: string; // "Mon", "Tue", ...
   formattedDate: string; // "28/08"
   weatherCode: number;
   condition: string;
+  conditionKey?: WeatherConditionKey;
   icon: "sun" | "cloud-sun" | "cloud" | "rain" | "storm";
   tempMax: number;
   tempMin: number;
@@ -23,6 +39,7 @@ export interface DailyWeather {
 export interface CurrentWeather {
   temp: number;
   condition: string;
+  conditionKey?: WeatherConditionKey;
   icon: "sun" | "cloud-sun" | "cloud" | "rain" | "storm";
   cloudCover: number;
   uvIndex: number;
@@ -33,18 +50,19 @@ export interface CurrentWeather {
 /** Mapping of Open-Meteo WMO weather codes to condition descriptions and icons */
 export function parseWmoCode(code: number): {
   condition: string;
+  conditionKey: WeatherConditionKey;
   icon: "sun" | "cloud-sun" | "cloud" | "rain" | "storm";
 } {
-  if (code === 0) return { condition: "Céu Limpo", icon: "sun" };
-  if (code === 1) return { condition: "Ensolarado", icon: "sun" };
-  if (code === 2) return { condition: "Parcialmente Nublado", icon: "cloud-sun" };
-  if (code === 3) return { condition: "Nublado / Encoberto", icon: "cloud" };
-  if (code >= 45 && code <= 48) return { condition: "Nevoeiro", icon: "cloud" };
-  if (code >= 51 && code <= 55) return { condition: "Garoa / Chuvisco", icon: "rain" };
-  if (code >= 61 && code <= 65) return { condition: "Chuva Contínua", icon: "rain" };
-  if (code >= 80 && code <= 82) return { condition: "Pancadas de Chuva", icon: "rain" };
-  if (code >= 95 && code <= 99) return { condition: "Tempestade", icon: "storm" };
-  return { condition: "Variação de Nuvens", icon: "cloud-sun" };
+  if (code === 0) return { condition: "Céu Limpo", conditionKey: "clearSky", icon: "sun" };
+  if (code === 1) return { condition: "Ensolarado", conditionKey: "sunny", icon: "sun" };
+  if (code === 2) return { condition: "Parcialmente Nublado", conditionKey: "partlyCloudy", icon: "cloud-sun" };
+  if (code === 3) return { condition: "Nublado / Encoberto", conditionKey: "overcast", icon: "cloud" };
+  if (code >= 45 && code <= 48) return { condition: "Nevoeiro", conditionKey: "foggy", icon: "cloud" };
+  if (code >= 51 && code <= 55) return { condition: "Garoa / Chuvisco", conditionKey: "drizzle", icon: "rain" };
+  if (code >= 61 && code <= 65) return { condition: "Chuva Contínua", conditionKey: "continuousRain", icon: "rain" };
+  if (code >= 80 && code <= 82) return { condition: "Pancadas de Chuva", conditionKey: "rainShowers", icon: "rain" };
+  if (code >= 95 && code <= 99) return { condition: "Tempestade", conditionKey: "thunderstorm", icon: "storm" };
+  return { condition: "Variação de Nuvens", conditionKey: "cloudVariation", icon: "cloud-sun" };
 }
 
 

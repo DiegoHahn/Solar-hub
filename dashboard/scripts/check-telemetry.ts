@@ -11,9 +11,9 @@ async function main() {
 
   if (!supabaseUrl || !supabaseKey || !email || !password) {
     console.warn(
-      "Variáveis de ambiente do Supabase não configuradas no ambiente.\n" +
-        "   (Necessário: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_TEST_EMAIL, SUPABASE_TEST_PASSWORD).\n" +
-        "   Pulando verificação de telemetria sem falhar o job.",
+      "Supabase environment variables not configured in environment.\n" +
+        "   (Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_TEST_EMAIL, SUPABASE_TEST_PASSWORD).\n" +
+        "   Skipping telemetry check without failing job.",
     );
     process.exit(0);
   }
@@ -70,16 +70,16 @@ async function main() {
   console.log("TELEMETRY MONITORING REPORT");
   console.log("=========================================");
   console.log(
-    `Horário em Brasília: ${report.brasiliaTime} (Diurno: ${report.isDaytime ? "Sim" : "Não"})`,
+    `Brasília Time: ${report.brasiliaTime} (Daytime: ${report.isDaytime ? "Yes" : "No"})`,
   );
   console.log(
-    `Telemetria Solar: [${report.solar.status.toUpperCase()}] ${report.solar.message}`,
+    `Solar Telemetry:  [${report.solar.status.toUpperCase()}] ${report.solar.message}`,
   );
   if (report.solar.timestamp) {
     console.log(`    Latest record: ${report.solar.timestamp}`);
   }
   console.log(
-    `Concessionária:   [${report.utility.status.toUpperCase()}] ${report.utility.message}`,
+    `Utility Provider: [${report.utility.status.toUpperCase()}] ${report.utility.message}`,
   );
   if (report.utility.timestamp) {
     console.log(`    Last update: ${report.utility.timestamp}`);
@@ -87,7 +87,7 @@ async function main() {
   console.log("=========================================");
 
   if (!report.ok) {
-    console.error("\nALERTA: Problemas detectados na telemetria:");
+    console.error("\nALERT: Telemetry issues detected:");
     for (const err of report.errors) {
       console.error(` - ${err}`);
     }

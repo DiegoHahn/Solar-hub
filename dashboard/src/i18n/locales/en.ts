@@ -392,6 +392,8 @@ export const en: Translations = {
     demoNotice: "New analysis generation is disabled in demo mode.",
     defaultError: "Could not connect to AI.",
     retryHint: "Click \"Regenerate\" to try again.",
+    primaryQuotaTooltip: "Daily call limit for the primary model reached. Using fallback model configured in .env and reserving quota for Raspberry Pi collector.",
+    configuredModelTooltip: "Configured intelligent AI model from .env",
   },
   weather: {
     clearSky: "Clear Sky",
@@ -404,6 +406,9 @@ export const en: Translations = {
     rainShowers: "Rain Showers",
     thunderstorm: "Thunderstorm",
     cloudVariation: "Cloud Variation",
+    heavyRain: "Heavy Rain",
+    drizzleOpenings: "Drizzle / Openings",
+    sunAndClouds: "Sun with Clouds",
   },
   auth: {
     title: "Solar Hub",

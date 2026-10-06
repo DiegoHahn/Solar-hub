@@ -13,18 +13,18 @@ import { getIcaraWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
   it.each([
-    [0, "Céu Limpo", "sun"],
-    [1, "Ensolarado", "sun"],
-    [2, "Parcialmente Nublado", "cloud-sun"],
-    [3, "Nublado / Encoberto", "cloud"],
-    [45, "Nevoeiro", "cloud"],
-    [53, "Garoa / Chuvisco", "rain"],
-    [63, "Chuva Contínua", "rain"],
-    [81, "Pancadas de Chuva", "rain"],
-    [95, "Tempestade", "storm"],
-    [71, "Variação de Nuvens", "cloud-sun"],
-  ])("code %d -> %s (%s)", (code, condition, icon) => {
-    expect(parseWmoCode(code)).toEqual({ condition, icon });
+    [0, "Céu Limpo", "sun", "clearSky"],
+    [1, "Ensolarado", "sun", "sunny"],
+    [2, "Parcialmente Nublado", "cloud-sun", "partlyCloudy"],
+    [3, "Nublado / Encoberto", "cloud", "overcast"],
+    [45, "Nevoeiro", "cloud", "foggy"],
+    [53, "Garoa / Chuvisco", "rain", "drizzle"],
+    [63, "Chuva Contínua", "rain", "continuousRain"],
+    [81, "Pancadas de Chuva", "rain", "rainShowers"],
+    [95, "Tempestade", "storm", "thunderstorm"],
+    [71, "Variação de Nuvens", "cloud-sun", "cloudVariation"],
+  ])("code %d -> %s (%s, key: %s)", (code, condition, icon, conditionKey) => {
+    expect(parseWmoCode(code)).toEqual({ condition, icon, conditionKey });
   });
 });
 

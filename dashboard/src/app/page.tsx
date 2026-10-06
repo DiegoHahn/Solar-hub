@@ -64,7 +64,7 @@ export default async function Home() {
   const capacityKw = telemetry?.total_nominal_capacity_kw ?? 16.0;
   const currentPowerKw = telemetry?.total_power_kw ?? 0.0;
   
-  // Percentual real da usina (pode ultrapassar 100% no pico do meio-dia, chegando a 110%-120%)
+  // Actual plant capacity ratio (can exceed 100% during midday irradiance peaks, reaching 110%-120%)
   const capacityPct = capacityKw > 0 ? Math.round((currentPowerKw / capacityKw) * 100) : 0;
   const isPeakOverload = capacityPct > 100;
   const isGenerating = currentPowerKw > 0.05;
@@ -83,7 +83,7 @@ export default async function Home() {
   const telemetryAgeMin = telemetry ? minutesSince(telemetry.recorded_at) : null;
   const isStale = telemetryAgeMin !== null && telemetryAgeMin > STALE_THRESHOLD_MIN;
 
-  // Pico da curva solar de hoje
+  // Peak of today's solar production curve
   const peakPoint = sunCurve.reduce(
     (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
     sunCurve.find((p) => p.power_kw !== null) || { power_kw: currentPowerKw, time: "—" }
@@ -92,7 +92,7 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
-      {/* Header Superior: Nome + Badges de Status e Bandeira */}
+      {/* Top Header: Plant title + Status & tariff flag badges */}
       <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left gap-3">
         <div className="flex flex-col items-center sm:items-start">
           <div className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Alerta de Desatualização (última telemetria mais antiga que STALE_THRESHOLD_MIN) */}
+      {/* Stale Telemetry Alert (telemetry older than STALE_THRESHOLD_MIN) */}
       {isStale && (
         <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-500/10 dark:text-amber-400">
           <RiAlertLine className="size-5 shrink-0" aria-hidden="true" />
@@ -129,7 +129,7 @@ export default async function Home() {
         </Card>
       ) : (
       <>
-      {/* HERO CARD DINÂMICO (Glow, Medidor Central e Destaques) */}
+      {/* DYNAMIC HERO CARD (Glow, Circular Gauge, and Key Highlights) */}
       <Card
         className={cx(
           "relative overflow-hidden rounded-2xl border p-5 md:p-6 transition-all",
@@ -138,7 +138,7 @@ export default async function Home() {
             : "border-gray-200 dark:border-gray-900 bg-white dark:bg-[#090E1A]"
         )}
       >
-        {/* Glow de fundo */}
+        {/* Background glow */}
         {isGenerating && (
           <div
             aria-hidden="true"
@@ -146,7 +146,7 @@ export default async function Home() {
           />
         )}
 
-        {/* Topo do Hero: Status Vivo */}
+        {/* Hero Top: Live operational status */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-gray-900">
           <div className="flex items-center gap-2">
             {isPeakOverload ? (
@@ -189,9 +189,9 @@ export default async function Home() {
           </span>
         </div>
 
-        {/* Centro do Hero: Medidor Circular + Métricas de Impacto */}
+        {/* Hero Center: Circular Gauge + Impact Metrics */}
         <div className="mt-5 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-around">
-          {/* ProgressCircle com suporte a valores > 100% */}
+          {/* ProgressCircle supporting values > 100% */}
           <div className="flex flex-col items-center">
             <ProgressCircle
               value={Math.min(120, capacityPct)}
@@ -227,7 +227,7 @@ export default async function Home() {
             </span>
           </div>
 
-          {/* Destaques Rápidos ao lado do círculo */}
+          {/* Quick Metrics alongside circular gauge */}
           <div className="grid w-full grid-cols-1 gap-3 sm:max-w-xs">
             <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-900/60">
               <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -265,7 +265,7 @@ export default async function Home() {
         </div>
       </Card>
 
-      {/* GRID DE KPIs (2x2 no Celular / 4 colunas no Desktop) */}
+      {/* KPI GRID (2x2 Mobile / 4 Columns Desktop) */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <StatCard
           icon={RiSunLine}
@@ -307,13 +307,13 @@ export default async function Home() {
         />
       </div>
 
-      {/* CURVA SOLAR DE HOJE (Área Interativa com Gradiente) */}
+      {/* TODAY'S SOLAR CURVE (Interactive area with gradient) */}
       <SunCurveChart data={sunCurve} nominalCapKw={capacityKw} />
 
-      {/* SEÇÃO DOS INVERSORES FÍSICOS (AGRUPADOS EM UM CARD COMPACTO) */}
+      {/* PHYSICAL INVERTERS SECTION (Grouped in compact card) */}
       <InvertersGroupCard inverters={telemetry?.inverters_data ?? []} />
 
-      {/* ÍNDICE CLIMÁTICO VS EFICIÊNCIA SOLAR (VERSÃO ENXUTA / COMPACTA) */}
+      {/* WEATHER INDEX VS SOLAR EFFICIENCY SECTION */}
       <WeatherEfficiencySection weatherData={weatherData} compact={true} />
       </>
       )}

@@ -6,6 +6,8 @@ import { normalizeUnidadeConsumidora } from "@/lib/queries";
 import utilityFixture from "@/test/fixtures/utility-data.json";
 import type { UnidadeConsumidora } from "@/lib/types";
 
+import { ptBR } from "@/i18n/locales/pt-BR";
+
 describe("EnergyBalanceChart", () => {
   const genCode = findGeneratorUcCode(utilityFixture.unidades_consumidoras as Record<string, UnidadeConsumidora>)!;
   const normalized = normalizeUnidadeConsumidora({
@@ -21,21 +23,21 @@ describe("EnergyBalanceChart", () => {
   it("renders header, consolidated KPIs, and toggle tabs", () => {
     render(<EnergyBalanceChart data={balanco} />);
 
-    expect(screen.getByRole("heading", { name: /Balanço Energético/i })).toBeInTheDocument();
-    expect(screen.getByText("Últimos 12 meses faturados (Cooperaliança)")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: new RegExp(ptBR.utility.energyBalanceTitle, "i") })).toBeInTheDocument();
+    expect(screen.getByText(ptBR.utility.last12BilledMonths)).toBeInTheDocument();
 
-    expect(screen.getByRole("button", { name: "Injeção vs Rede" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Líquido (±)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.utility.injectionVsGrid })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: ptBR.utility.netTab })).toBeInTheDocument();
   });
 
   it("allows toggling between 'Injeção vs Rede' and 'Líquido (±)' tabs", () => {
     render(<EnergyBalanceChart data={balanco} />);
 
-    const netTab = screen.getByRole("button", { name: "Líquido (±)" });
+    const netTab = screen.getByRole("button", { name: ptBR.utility.netTab });
     fireEvent.click(netTab);
     expect(netTab).toHaveClass("bg-white");
 
-    const comparisonTab = screen.getByRole("button", { name: "Injeção vs Rede" });
+    const comparisonTab = screen.getByRole("button", { name: ptBR.utility.injectionVsGrid });
     fireEvent.click(comparisonTab);
     expect(comparisonTab).toHaveClass("bg-white");
   });

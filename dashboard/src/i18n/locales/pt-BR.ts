@@ -392,6 +392,8 @@ export const ptBR: Translations = {
     demoNotice: "A geração de novas análises está desativada no modo demonstração.",
     defaultError: "Não foi possível conectar à IA.",
     retryHint: "Clique em \"Regerar\" para tentar novamente.",
+    primaryQuotaTooltip: "Limite de chamadas diárias do modelo primário atingido. Usando modelo alternativo do .env e reservando cota para o Raspberry.",
+    configuredModelTooltip: "Modelo inteligente configurado no .env",
   },
   weather: {
     clearSky: "Céu Limpo",
@@ -404,6 +406,9 @@ export const ptBR: Translations = {
     rainShowers: "Pancadas de Chuva",
     thunderstorm: "Tempestade",
     cloudVariation: "Variação de Nuvens",
+    heavyRain: "Chuva Intensa",
+    drizzleOpenings: "Garoa / Aberturas",
+    sunAndClouds: "Sol com Nuvens",
   },
   auth: {
     title: "Solar Hub",

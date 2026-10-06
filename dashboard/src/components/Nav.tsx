@@ -69,7 +69,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
     return () => subscription.unsubscribe();
   }, [supabase, isDemo, t.nav.guestDemo]);
 
-  // Não renderiza navegação na tela de login ou callback de autenticação
+  // Do not render navigation in login or authentication callback screens
   if (pathname.startsWith("/login") || pathname.startsWith("/auth")) {
     return null;
   }
@@ -86,7 +86,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
 
   return (
     <>
-      {/* Desktop: sidebar lateral fixa */}
+      {/* Desktop: fixed sidebar */}
       <nav className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col justify-between border-r border-gray-200 bg-white px-4 py-6 md:flex dark:border-gray-900 dark:bg-[#030712]">
         <div>
           <span className="mb-8 flex items-center gap-2 px-2 text-lg font-semibold text-gray-900 dark:text-gray-50">
@@ -117,7 +117,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
           </ul>
         </div>
 
-        {/* Rodapé da Sidebar: Idioma, Usuário & Logout */}
+        {/* Sidebar Footer: Language, User email & Logout */}
         <div className="border-t border-gray-100 pt-4 dark:border-gray-900">
           <LanguageToggle className="w-full mb-3" />
           {userEmail && (
@@ -137,7 +137,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
         </div>
       </nav>
 
-      {/* Mobile: cabeçalho superior com logo e seletor de idioma */}
+      {/* Mobile: top header with logo and language toggle */}
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-2.5 backdrop-blur-sm md:hidden dark:border-gray-900 dark:bg-[#030712]/95">
         <span className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-50">
           <Image src="/logo.png" alt="" width={24} height={24} className="shrink-0" priority />
@@ -146,7 +146,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
         <LanguageToggle />
       </header>
 
-      {/* Mobile: barra inferior fixa */}
+      {/* Mobile: fixed bottom bar */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-gray-900 dark:bg-[#030712]">
         {navItems.map(({ href, label, Icon, IconActive }) => {
           const isActive = pathname === href;

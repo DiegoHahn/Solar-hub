@@ -36,21 +36,33 @@ interface CustomWeatherTooltipProps {
   locale?: Locale;
 }
 
-export function translateWeatherCondition(condition: string, t: ReturnType<typeof useI18n>["t"]): string {
+export function translateWeatherCondition(
+  conditionOrKey: string | undefined,
+  t: ReturnType<typeof useI18n>["t"],
+  conditionKey?: keyof ReturnType<typeof useI18n>["t"]["weather"],
+): string {
+  if (conditionKey && t.weather[conditionKey]) {
+    return t.weather[conditionKey];
+  }
+  const condition = conditionOrKey || "";
+  const key = condition as keyof ReturnType<typeof useI18n>["t"]["weather"];
+  if (t.weather[key]) {
+    return t.weather[key];
+  }
   const c = condition.toLowerCase();
-  if (c.includes("limpo")) return t.combined.weatherClearSky;
-  if (c.includes("ensolarado")) return t.combined.weatherSunny;
-  if (c.includes("parcialmente")) return t.combined.weatherPartlyCloudy;
-  if (c.includes("nublado") || c.includes("encoberto")) return t.combined.weatherOvercast;
-  if (c.includes("nevoeiro")) return t.combined.weatherFog;
-  if (c.includes("garoa / chuvisco")) return t.combined.weatherDrizzle;
-  if (c.includes("garoa") || c.includes("abertura")) return t.combined.weatherDrizzleOpenings;
-  if (c.includes("pancada")) return t.combined.weatherShowers;
-  if (c.includes("tempestade")) return t.combined.weatherThunderstorm;
-  if (c.includes("intensa")) return t.combined.weatherHeavyRain;
-  if (c.includes("sol com nuvens") || c.includes("sol c/ nuvens")) return t.combined.weatherSunAndClouds;
-  if (c.includes("chuva")) return t.combined.weatherRain;
-  if (c.includes("nuvens") || c.includes("variação")) return t.combined.weatherCloudVariation;
+  if (c.includes("limpo")) return t.weather.clearSky;
+  if (c.includes("ensolarado")) return t.weather.sunny;
+  if (c.includes("parcialmente")) return t.weather.partlyCloudy;
+  if (c.includes("nublado") || c.includes("encoberto")) return t.weather.overcast;
+  if (c.includes("nevoeiro")) return t.weather.foggy;
+  if (c.includes("garoa / chuvisco")) return t.weather.drizzle;
+  if (c.includes("garoa") || c.includes("abertura")) return t.weather.drizzleOpenings;
+  if (c.includes("pancada")) return t.weather.rainShowers;
+  if (c.includes("tempestade")) return t.weather.thunderstorm;
+  if (c.includes("intensa")) return t.weather.heavyRain;
+  if (c.includes("sol com nuvens") || c.includes("sol c/ nuvens")) return t.weather.sunAndClouds;
+  if (c.includes("chuva")) return t.weather.continuousRain;
+  if (c.includes("nuvens") || c.includes("variação")) return t.weather.cloudVariation;
   return condition;
 }
 
@@ -87,7 +99,7 @@ export function WeatherTooltip({ active, payload, onActivePoint, renderIcon, loc
   if (!active || !payload || !payload.length) return null;
   const p = payload[0].payload;
   const { dayOfWeek, formattedDate } = formatWeatherDate(p.date, locale);
-  const conditionLabel = translateWeatherCondition(p.condition, t);
+  const conditionLabel = translateWeatherCondition(p.condition, t, p.conditionKey);
 
   return (
     <div className="hidden md:block rounded-xl border border-gray-800 bg-gray-950/95 p-3 text-xs text-gray-100 shadow-2xl backdrop-blur-md">
@@ -241,7 +253,7 @@ export function WeatherEfficiencySection({
                   {formatWeatherDate(point.date, locale).dayOfWeek}, {formatWeatherDate(point.date, locale).formattedDate}
                 </span>
                 <span className="rounded bg-gray-200/80 px-1.5 py-0.2 text-[10px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300 truncate max-w-[110px] sm:max-w-none">
-                  {translateWeatherCondition(point.condition, t)}
+                  {translateWeatherCondition(point.condition, t, point.conditionKey)}
                 </span>
                 {point.date !== (displayedData[displayedData.length - 1]?.date) && (
                   <button
@@ -383,7 +395,7 @@ export function WeatherEfficiencySection({
                 yAxisId="kwh"
                 type="monotone"
                 dataKey="estimatedKwh"
-                name="Geração (kWh)"
+                name={t.combined.generationKwhPerDay}
                 stroke="#f59e0b"
                 strokeWidth={2}
                 fill="url(#solarAmberGrad)"
@@ -393,7 +405,7 @@ export function WeatherEfficiencySection({
               <Bar
                 yAxisId="kwh"
                 dataKey="estimatedKwh"
-                name="Geração (kWh)"
+                name={t.combined.generationKwhPerDay}
                 fill="#f59e0b"
                 radius={[4, 4, 0, 0]}
                 maxBarSize={range === "30d" && !compact ? 14 : 36}
@@ -404,7 +416,7 @@ export function WeatherEfficiencySection({
               yAxisId="hsp"
               type="monotone"
               dataKey="solarRadiationHsp"
-              name="Irradiação HSP (h)"
+              name={t.combined.solarIrradiationHsp}
               stroke="#06b6d4"
               strokeWidth={range === "90d" && !compact ? 1.5 : range === "30d" && !compact ? 2 : 3}
               dot={range === "7d" || compact ? { r: 4, fill: "#06b6d4" } : false}

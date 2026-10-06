@@ -396,6 +396,8 @@ export interface Translations {
     demoNotice: string;
     defaultError: string;
     retryHint: string;
+    primaryQuotaTooltip: string;
+    configuredModelTooltip: string;
   };
   weather: {
     clearSky: string;
@@ -408,6 +410,9 @@ export interface Translations {
     rainShowers: string;
     thunderstorm: string;
     cloudVariation: string;
+    heavyRain: string;
+    drizzleOpenings: string;
+    sunAndClouds: string;
   };
   auth: {
     title: string;

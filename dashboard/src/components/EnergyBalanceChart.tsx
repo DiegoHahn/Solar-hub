@@ -44,13 +44,13 @@ export function EnergyBalanceTooltip({
   active,
   payload,
   onActivePoint,
-  locale = "pt-BR",
-  surplusText = "Superávit",
-  deficitText = "Déficit",
-  injectedLabel = "Injetado na rede:",
-  gridLabel = "Consumo da rede:",
-  netLabel = "Balanço Líquido:",
-  balanceLabel = "Saldo Acumulado GD:",
+  locale = "en",
+  surplusText = "Surplus",
+  deficitText = "Deficit",
+  injectedLabel = "Injected to grid:",
+  gridLabel = "Grid consumption:",
+  netLabel = "Net Balance:",
+  balanceLabel = "Accumulated GD Balance:",
 }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {

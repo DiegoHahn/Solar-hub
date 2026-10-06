@@ -14,7 +14,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     exclude: ["src/**/*.integration.test.{ts,tsx}", "node_modules/**"],
-    // Datas são formatadas em America/Sao_Paulo; fixa o fuso para testes determinísticos em qualquer máquina/CI
+    // Dates are formatted in America/Sao_Paulo; pin timezone for deterministic tests across any machine/CI
     env: { TZ: "America/Sao_Paulo" },
     coverage: {
       provider: "v8",

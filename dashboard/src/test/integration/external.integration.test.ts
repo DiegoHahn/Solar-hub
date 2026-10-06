@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { getIcaraWeatherData } from "@/lib/weatherData";
 
-describe("Integração de APIs Externas — Open-Meteo Real", () => {
+describe("External API Integration — Real Open-Meteo", () => {
   const QUERY =
     "latitude=-28.7139&longitude=-49.3003&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=15&azimuth=155&timezone=America%2FSao_Paulo";
 
-  it("Open-Meteo Forecast responde status 200 com campos diários esperados", async () => {
+  it("Open-Meteo Forecast responds with status 200 and expected daily fields", async () => {
     const url = `https://api.open-meteo.com/v1/forecast?${QUERY}&past_days=7&forecast_days=1`;
     const res = await fetch(url);
 
@@ -23,7 +23,7 @@ describe("Integração de APIs Externas — Open-Meteo Real", () => {
     }
   });
 
-  it("Open-Meteo Archive responde status 200 para período histórico (70 a 80 dias atrás)", async () => {
+  it("Open-Meteo Archive responds with status 200 for historical window (70 to 80 days ago)", async () => {
     const now = new Date();
     const dayMs = 24 * 60 * 60 * 1000;
     const start = new Date(now.getTime() - 80 * dayMs).toISOString().slice(0, 10);
@@ -40,7 +40,7 @@ describe("Integração de APIs Externas — Open-Meteo Real", () => {
     expect(data.daily.shortwave_radiation_sum[0]).not.toBeNull();
   });
 
-  it("getIcaraWeatherData executa ponta a ponta retornando o clima da usina", async () => {
+  it("getIcaraWeatherData executes end-to-end returning plant weather history", async () => {
     const weather = await getIcaraWeatherData();
 
     expect(Array.isArray(weather)).toBe(true);

@@ -21,7 +21,7 @@ function isServerListening(port: number): Promise<boolean> {
 
 async function startServer(): Promise<ChildProcess> {
   if (await isServerListening(PORT)) {
-    // Um servidor já ativo não teria o DEMO_NOW desta captura e geraria telas no horário errado.
+    // An existing server would lack the DEMO_NOW injected for this capture and generate screenshots at the wrong timestamp.
     throw new Error(`Port ${PORT} is already in use; stop that server before capturing.`);
   }
 
@@ -40,7 +40,7 @@ async function startServer(): Promise<ChildProcess> {
   while (Date.now() - startTime < 30000) {
     await new Promise((r) => setTimeout(r, 1000));
     if (await isServerListening(PORT)) {
-      console.log(`[Screenshot] Servidor pronto em ${BASE_URL}`);
+      console.log(`[Screenshot] Server ready at ${BASE_URL}`);
       return proc;
     }
   }
@@ -57,7 +57,7 @@ async function capture() {
   const browser = await chromium.launch();
 
   try {
-    // 1. Desktop - 1440x900, Tema Escuro
+    // 1. Desktop - 1440x900, Dark Theme
     console.log("[Screenshot] Capturing desktop pages (1440x900)...");
     const desktopContext = await browser.newContext({
       viewport: { width: 1440, height: 900 },
@@ -66,20 +66,20 @@ async function capture() {
 
     const page = await desktopContext.newPage();
 
-    // Ativa demonstração
+    // Activate demo session
     await page.goto(`${BASE_URL}/demo`);
     await page.waitForURL(`${BASE_URL}/`);
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(1000); // Aguarda animações do Recharts
+    await page.waitForTimeout(1000); // Wait for Recharts animations
 
-    // 1.1 Início
+    // 1.1 Home / Overview
     console.log("  -> inicio.png");
     await page.screenshot({
       path: path.join(OUTPUT_DIR, "inicio.png"),
       fullPage: false,
     });
 
-    // 1.2 Placas & Inversores
+    // 1.2 Panels & Inverters
     console.log("  -> placas.png");
     await page.goto(`${BASE_URL}/placas`);
     await page.waitForLoadState("networkidle");
@@ -89,7 +89,7 @@ async function capture() {
       fullPage: false,
     });
 
-    // 1.3 Cooperativa
+    // 1.3 Utility Cooperative
     console.log("  -> cooperativa.png");
     await page.goto(`${BASE_URL}/cooperativa`);
     await page.waitForLoadState("networkidle");
@@ -99,7 +99,7 @@ async function capture() {
       fullPage: false,
     });
 
-    // 1.4 Análise Combinada
+    // 1.4 Combined Analysis
     console.log("  -> analise.png");
     await page.goto(`${BASE_URL}/combinada`);
     await page.waitForLoadState("networkidle");
@@ -111,8 +111,8 @@ async function capture() {
 
     await desktopContext.close();
 
-    // 2. Mobile - 390x844 (iPhone 14 / Viewport padrão mobile), Tema Escuro
-    console.log("[Screenshot] Capturando Mobile (390x844)...");
+    // 2. Mobile - 390x844 (iPhone 14 / standard mobile viewport), Dark Theme
+    console.log("[Screenshot] Capturing Mobile (390x844)...");
     const mobileContext = await browser.newContext({
       viewport: { width: 390, height: 844 },
       isMobile: true,
@@ -133,7 +133,7 @@ async function capture() {
     });
 
     await mobileContext.close();
-    console.log("[Screenshot] Todas as capturas foram salvas em docs/images/");
+    console.log("[Screenshot] All screenshots saved to docs/images/");
   } finally {
     await browser.close();
     serverProc.kill();

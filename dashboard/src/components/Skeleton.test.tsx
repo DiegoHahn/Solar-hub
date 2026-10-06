@@ -21,7 +21,7 @@ describe("Skeleton and Loading", () => {
     const statusEl = screen.getByRole("status");
     expect(statusEl).toBeInTheDocument();
     expect(statusEl).toHaveAttribute("aria-busy", "true");
-    expect(statusEl).toHaveAttribute("aria-label", "Carregando");
+    expect(statusEl).toHaveAttribute("aria-label", "Carregando...");
   });
 
   it("HomeLoading renders accessible loading page with status role", () => {
@@ -30,7 +30,7 @@ describe("Skeleton and Loading", () => {
     const statusEl = screen.getByRole("status");
     expect(statusEl).toBeInTheDocument();
     expect(statusEl).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByText("Carregando…")).toBeInTheDocument();
+    expect(screen.getByText("Carregando...")).toBeInTheDocument();
   });
 
   it("renders individual blocks without layout errors", () => {

@@ -37,7 +37,7 @@ describe("chart tooltips", () => {
     );
 
     expect(container.textContent).toContain(sunPoint.time);
-    expect(container.textContent).toContain("Potência Total");
+    expect(container.textContent).toContain("Total Power:");
     expect(onActivePoint).toHaveBeenCalledWith(sunPoint);
   });
 

@@ -42,9 +42,9 @@ export function SunCurveTooltip({
   nominalCapKw,
   onActivePoint,
   canUpdate = true,
-  locale = "pt-BR",
-  percentOfPlantText = "{percent}% da usina",
-  totalPowerText = "Potência Total:",
+  locale = "en",
+  percentOfPlantText = "{percent}% of plant",
+  totalPowerText = "Total Power:",
 }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint && canUpdate) {

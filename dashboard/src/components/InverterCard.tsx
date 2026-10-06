@@ -21,9 +21,9 @@ import { formatNumber } from "@/i18n/formatters";
 
 interface InverterCardProps {
   inverter: InverterReading;
-  /** Mostra detalhe das strings PV1/PV2 e telemetria avançada — usado na página Placas. */
+  /** Displays PV1/PV2 string details and advanced telemetry — used on Panels page. */
   detailed?: boolean;
-  /** Controla a expansão do diagnóstico por fora, para manter vários cards sincronizados. */
+  /** Controls external expansion state to coordinate multiple cards simultaneously. */
   showAdvanced?: boolean;
   onToggleAdvanced?: () => void;
 }
@@ -51,12 +51,12 @@ export function InverterCard({
   const nominalKw = getNominalKw(inverter);
   const nominalW = nominalKw * 1000;
 
-  // Percentual real de carga nominal
+  // Actual percentage of nominal load capacity
   const rawPct = nominalW > 0 ? Math.round((inverter.power_w / nominalW) * 100) : 0;
   const isOverload = rawPct > 100;
   const barFillWidth = Math.min(100, rawPct);
 
-  // Extração de sensores aprofundados dos GoodWe (via raw_sensors) e Solis (via raw_variables)
+  // Deep sensor extraction for GoodWe (via raw_sensors) and Solis (via raw_variables)
   const raw = inverter.raw_sensors || {};
   const rawVars = inverter.raw_variables || {};
 
@@ -87,7 +87,7 @@ export function InverterCard({
   const wifiSsid = inverter.wifi_ssid || rawVars.cover_sta_ssid || null;
   const wifiRssi = inverter.wifi_rssi || rawVars.cover_sta_rssi || null;
 
-  // Cálculo de potência CC total das strings deste inversor
+  // Total DC power calculation across PV strings for this inverter
   const pv1W = inverter.pv1?.w ?? 0;
   const pv2W = inverter.pv2?.w ?? 0;
   const totalDcW = pv1W + pv2W;
@@ -95,7 +95,7 @@ export function InverterCard({
 
   return (
     <Card className="relative flex flex-col justify-between overflow-hidden transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-800">
-      {/* Glow suave no topo quando o inversor está no pico */}
+      {/* Soft ambient glow when inverter reaches peak output */}
       {isOverload && (
         <div className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-amber-500/15 blur-xl" />
       )}
@@ -125,7 +125,7 @@ export function InverterCard({
           </span>
         </div>
 
-        {/* Potência Instantânea */}
+        {/* Instantaneous Power */}
         <div className="mt-3 flex items-baseline justify-between">
           <div>
             <span className="text-2xl font-bold tracking-tight tabular-nums text-gray-900 dark:text-gray-50">
@@ -134,7 +134,7 @@ export function InverterCard({
             <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">W</span>
           </div>
 
-          {/* Indicador de % da capacidade nominal */}
+          {/* Percentage of nominal capacity indicator */}
           <div className="text-right">
             {isOverload ? (
               <Badge variant="warning" className="animate-pulse text-[11px] font-semibold">
@@ -148,7 +148,7 @@ export function InverterCard({
           </div>
         </div>
 
-        {/* Barra de Progresso da Capacidade Nominal */}
+        {/* Nominal Capacity Progress Bar */}
         <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
           <div
             className={cx(
@@ -165,7 +165,7 @@ export function InverterCard({
           />
         </div>
 
-        {/* Micro Telemetria (Grid de métricas rápidas) */}
+        {/* Quick Micro Telemetry Grid */}
         <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-xs dark:border-gray-900">
           <div>
             <span className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
@@ -204,7 +204,7 @@ export function InverterCard({
           </div>
         </div>
 
-        {/* Strings PV (CC) */}
+        {/* PV Strings (DC) */}
         {detailed && (inverter.pv1 || inverter.pv2) && (
           <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-900">
             <div className="flex items-center justify-between text-xs">
@@ -256,7 +256,7 @@ export function InverterCard({
           </div>
         )}
 
-        {/* Diagnóstico Avançado (Expansível) */}
+        {/* Advanced Diagnostics (Collapsible) */}
         {detailed && (
           <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-900">
             <button
@@ -280,7 +280,7 @@ export function InverterCard({
 
             {showAdvanced && (
               <div className="mt-3 space-y-3 rounded-lg bg-gray-50/80 p-3 text-xs dark:bg-gray-900/80">
-                {/* 1. Gestão Térmica */}
+                {/* 1. Thermal Management */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                     {t.inverters.thermalSensors}
@@ -301,7 +301,7 @@ export function InverterCard({
                   </div>
                 </div>
 
-                {/* 2. Qualidade da Rede CA */}
+                {/* 2. AC Grid Quality */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                     {t.inverters.electricalGrid}
@@ -328,7 +328,7 @@ export function InverterCard({
                   </div>
                 </div>
 
-                {/* 3. Barramento e Saúde Operacional */}
+                {/* 3. Bus & Operational Health */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                     {t.inverters.operationalHealth}

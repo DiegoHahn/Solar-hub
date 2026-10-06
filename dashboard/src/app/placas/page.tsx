@@ -26,7 +26,7 @@ export default async function PlacasPage() {
   const inverters = telemetry?.inverters_data ?? [];
   const onlineCount = inverters.filter((i) => i.status === "online").length;
 
-  // Cálculos globais de arranjo fotovoltaico (CC) e rede (CA)
+  // Global calculations for PV array (DC) and grid feed-in (AC)
   const totalDcW = inverters.reduce((acc, inv) => {
     const pv1 = inv.pv1?.w ?? 0;
     const pv2 = inv.pv2?.w ?? 0;
@@ -77,7 +77,7 @@ export default async function PlacasPage() {
         </Card>
       ) : (
         <>
-          {/* Gráfico de Geração por Período */}
+          {/* Generation Chart by Period */}
           <GenerationPeriodSection
             dayCurve={sunCurve}
             monthData={monthlyGeneration}
@@ -85,10 +85,10 @@ export default async function PlacasPage() {
             multiYearHistory={multiYearHistory}
           />
 
-          {/* Cards dos 3 Inversores com Strings e Diagnóstico Modbus */}
+          {/* 3 Inverter Cards with PV Strings & Modbus Diagnostics */}
           <InverterCardsSection inverters={inverters} />
 
-          {/* Quadro de Engenharia e Parâmetros da Usina */}
+          {/* Engineering & Plant Operating Parameters Grid */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -101,7 +101,7 @@ export default async function PlacasPage() {
               </div>
             </div>
 
-            {/* 4 Mini Cards de Indicadores Elétricos */}
+            {/* 4 Mini Electrical Metric Cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Card className="p-3.5">
                 <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
