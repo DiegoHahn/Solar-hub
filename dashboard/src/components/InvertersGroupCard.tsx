@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
@@ -11,12 +13,15 @@ import {
 import { cx } from "@/lib/utils";
 import type { InverterReading } from "@/lib/types";
 import { getNominalKw } from "@/lib/inverter";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 
 interface InvertersGroupCardProps {
   inverters: InverterReading[];
 }
 
 export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
+  const { t, locale } = useI18n();
   const onlineCount = inverters.filter((inv) => inv.status === "online").length;
   const totalPowerW = inverters.reduce((acc, inv) => acc + (inv.power_w || 0), 0);
   const totalNominalW = inverters.reduce((acc, inv) => acc + getNominalKw(inv) * 1000, 0);
@@ -33,15 +38,15 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-gray-900 sm:text-base dark:text-gray-100">
-                Parque de Inversores
+                {t.inverters.inverterFleetTitle}
               </h2>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {onlineCount} de {inverters.length} online
+                {onlineCount} {t.inverters.onlineOfTotal.replace("{total}", String(inverters.length))}
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Potência combinada: <strong className="text-gray-800 dark:text-gray-200">{totalPowerW.toLocaleString("pt-BR")} W</strong> ({totalPct}% de {totalNominalW / 1000} kW nominal)
+              {t.inverters.combinedPower} <strong className="text-gray-800 dark:text-gray-200">{formatNumber(totalPowerW, locale)} W</strong> ({totalPct}% {t.inverters.ofNominal.replace("{nominal}", String(totalNominalW / 1000))})
             </p>
           </div>
         </div>
@@ -51,7 +56,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
           href="/placas"
           className="inline-flex self-start sm:self-auto items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400"
         >
-          Ver strings PV & histórico
+          {t.inverters.viewStringsHistory}
           <RiArrowRightUpLine className="size-3.5" />
         </Link>
       </div>
@@ -90,7 +95,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                       isOnline ? "bg-emerald-500" : "bg-gray-400"
                     )}
                   />
-                  {isOnline ? "Ativo" : "Standby"}
+                  {isOnline ? t.inverters.activeStatus : t.inverters.standbyStatus}
                 </span>
               </div>
 
@@ -98,7 +103,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
               <div className="mt-2 flex items-baseline justify-between">
                 <div>
                   <span className="text-xl font-extrabold tabular-nums text-gray-900 dark:text-gray-50">
-                    {inv.power_w.toLocaleString("pt-BR")}
+                    {formatNumber(inv.power_w, locale)}
                   </span>
                   <span className="ml-1 text-xs font-semibold text-gray-500 dark:text-gray-400">W</span>
                 </div>
@@ -110,7 +115,7 @@ export function InvertersGroupCard({ inverters }: InvertersGroupCardProps) {
                       : "text-emerald-600 dark:text-emerald-400"
                   )}
                 >
-                  {rawPct}% de {nominalKw} kW
+                  {rawPct}% {t.inverters.ofNominalKw.replace("{nominal}", String(nominalKw))}
                 </span>
               </div>
 

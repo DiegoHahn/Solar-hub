@@ -1,7 +1,7 @@
 import { brasiliaClock } from "./dates";
 
-export const SOLAR_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutos
-export const UTILITY_MAX_AGE_MS = 26 * 60 * 60 * 1000; // 26 horas
+export const SOLAR_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+export const UTILITY_MAX_AGE_MS = 26 * 60 * 60 * 1000; // 26 hours
 
 export interface SolarTelemetryRecord {
   recorded_at: string;
@@ -46,13 +46,13 @@ export function evaluateTelemetryHealth(
     solarResult = {
       status: "skipped_night",
       message:
-        "Horário noturno em Brasília (fora de 06h–19h). Telemetria solar em repouso.",
+        "Nighttime in Brasília (outside 06:00–19:00). Solar telemetry idle.",
       timestamp: input.solarTelemetry?.recorded_at,
     };
   } else if (!input.solarTelemetry) {
     solarResult = {
       status: "missing",
-      message: "Nenhum registro de telemetria solar encontrado na base de dados.",
+      message: "No solar telemetry records found in database.",
     };
     errors.push(solarResult.message);
   } else {
@@ -63,7 +63,7 @@ export function evaluateTelemetryHealth(
     if (ageMs > SOLAR_MAX_AGE_MS) {
       solarResult = {
         status: "alert",
-        message: `Telemetria solar desatualizada: último registro há ${ageMinutes} min (limite: 30 min durante o dia).`,
+        message: `Solar telemetry outdated: last recorded ${ageMinutes}m ago (limit: 30m during daytime).`,
         ageMinutes,
         timestamp: input.solarTelemetry.recorded_at,
       };
@@ -71,7 +71,7 @@ export function evaluateTelemetryHealth(
     } else {
       solarResult = {
         status: "ok",
-        message: `Telemetria solar atualizada (último registro há ${ageMinutes} min).`,
+        message: `Solar telemetry up to date (last recorded ${ageMinutes}m ago).`,
         ageMinutes,
         timestamp: input.solarTelemetry.recorded_at,
       };
@@ -82,7 +82,7 @@ export function evaluateTelemetryHealth(
   if (!input.utilityData) {
     utilityResult = {
       status: "missing",
-      message: "Nenhum registro de dados da concessionária encontrado na base de dados.",
+      message: "No utility records found in database.",
     };
     errors.push(utilityResult.message);
   } else {
@@ -93,7 +93,7 @@ export function evaluateTelemetryHealth(
     if (ageMs > UTILITY_MAX_AGE_MS) {
       utilityResult = {
         status: "alert",
-        message: `Dados da concessionária desatualizados: última atualização há ${ageHours} h (limite: 26 h).`,
+        message: `Utility data outdated: last updated ${ageHours}h ago (limit: 26h).`,
         ageHours,
         timestamp: input.utilityData.updated_at,
       };
@@ -101,7 +101,7 @@ export function evaluateTelemetryHealth(
     } else {
       utilityResult = {
         status: "ok",
-        message: `Dados da concessionária atualizados (última atualização há ${ageHours} h).`,
+        message: `Utility data up to date (last updated ${ageHours}h ago).`,
         ageHours,
         timestamp: input.utilityData.updated_at,
       };

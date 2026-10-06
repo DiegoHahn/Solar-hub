@@ -14,10 +14,13 @@ import { InvertersGroupCard } from "@/components/InvertersGroupCard";
 import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection";
 import { SunCurveChart } from "@/components/SunCurveChart";
 import { getDataSource } from "@/lib/dataSource";
-import { formatRelativeTime, minutesSince } from "@/lib/formatRelativeTime";
+import { minutesSince } from "@/lib/formatRelativeTime";
 import { getGeneratorUc, maskUcCode } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
+import { getServerI18n } from "@/i18n/server";
+import { formatNumber, formatCurrency, formatRelativeTime, interpolate } from "@/i18n/formatters";
+import type { Translations } from "@/i18n/types";
 import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +36,18 @@ function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
   return "neutral";
 }
 
+function translateBandeira(bandeira: string | undefined, t: Translations): string {
+  if (!bandeira) return "";
+  const b = bandeira.toLowerCase();
+  if (b.includes("verde")) return t.utility.flagGreen;
+  if (b.includes("amarela")) return t.utility.flagYellow;
+  if (b.includes("vermelha")) return t.utility.flagRed;
+  if (b.includes("escassez")) return t.utility.flagWaterScarcity;
+  return bandeira;
+}
+
 export default async function Home() {
-  const ds = await getDataSource();
+  const [{ t, locale }, ds] = await Promise.all([getServerI18n(), getDataSource()]);
   const [telemetry, utilityData, sunCurve, weatherData] = await Promise.all([
     ds.getLatestTelemetry(),
     ds.getLatestUtilityData(),
@@ -59,10 +72,7 @@ export default async function Home() {
   const { isDaytime } = brasiliaClock();
 
   const geradoHojeKwh = telemetry?.total_today_kwh ?? 0.0;
-  const economiaHojeReais = (geradoHojeKwh * tarifaKwh).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  const economiaHojeReais = formatCurrency(geradoHojeKwh * tarifaKwh, locale);
 
   const onlineInvertersCount =
     telemetry?.inverters_data?.filter((i) => i.status === "online").length ?? 0;
@@ -87,7 +97,7 @@ export default async function Home() {
         <div className="flex flex-col items-center sm:items-start">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-              Usina Solar
+              {t.overview.plantTitle}
             </h1>
             <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
               16.0 kWp
@@ -99,7 +109,7 @@ export default async function Home() {
         </div>
 
         <div className="flex items-center gap-2">
-          {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{bandeira}</Badge>}
+          {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{translateBandeira(bandeira, t)}</Badge>}
         </div>
       </div>
 
@@ -107,17 +117,14 @@ export default async function Home() {
       {isStale && (
         <div className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-500/10 dark:text-amber-400">
           <RiAlertLine className="size-5 shrink-0" aria-hidden="true" />
-          Coletor sem enviar dados {formatRelativeTime(telemetry!.recorded_at)}. Os
-          números abaixo podem estar desatualizados.
+          {t.overview.staleTelemetryAlert} {formatRelativeTime(telemetry!.recorded_at, locale)}.
         </div>
       )}
 
       {!telemetry ? (
         <Card>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Nenhuma leitura da usina ainda. Inicie o coletor (
-            <code className="text-gray-700 dark:text-gray-300">python collector_inverters.py</code>
-            ) para começar a ver os dados aqui.
+            {t.overview.noTelemetryYet}
           </p>
         </Card>
       ) : (
@@ -148,7 +155,7 @@ export default async function Home() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-75" />
                   <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
                 </span>
-                Pico Solar Ativo ({capacityPct}%)
+                {t.overview.activePeak} ({capacityPct}%)
               </span>
             ) : isGenerating ? (
               <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-500 dark:text-emerald-400">
@@ -156,24 +163,24 @@ export default async function Home() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                 </span>
-                Usina em Operação
+                {t.overview.plantOperating}
               </span>
             ) : isDaytime ? (
               <span className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-500 dark:text-blue-400">
                 <span className="size-2 rounded-full bg-blue-400" />
-                Sem Geração (Chuva / Tempo Fechado)
+                {t.overview.noGenerationWeather}
               </span>
             ) : (
               <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
                 <span className="size-2 rounded-full bg-gray-400" />
-                Repouso Noturno (Standby)
+                {t.overview.nighttimeStandby}
               </span>
             )}
           </div>
 
           <span className="text-xs text-gray-400 dark:text-gray-500">
             {telemetry
-              ? new Date(telemetry.recorded_at).toLocaleTimeString("pt-BR", {
+              ? new Date(telemetry.recorded_at).toLocaleTimeString(locale === "pt-BR" ? "pt-BR" : "en-US", {
                   timeZone: "America/Sao_Paulo",
                   hour: "2-digit",
                   minute: "2-digit",
@@ -196,19 +203,27 @@ export default async function Home() {
             >
               <div className="flex flex-col items-center text-center">
                 <span className="text-3xl font-bold tracking-tight tabular-nums text-gray-900 dark:text-gray-50">
-                  {currentPowerKw.toLocaleString("pt-BR", {
+                  {formatNumber(currentPowerKw, locale, {
                     minimumFractionDigits: 1,
                     maximumFractionDigits: 2,
                   })}
                 </span>
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  kW instantâneo
+                  {interpolate(t.overview.instantKw, {
+                    kw: formatNumber(currentPowerKw, locale, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 2,
+                    }),
+                  })}
                 </span>
               </div>
             </ProgressCircle>
 
             <span className="mt-2 text-xs font-medium text-amber-500 dark:text-amber-400">
-              {capacityPct}% da capacidade ({capacityKw} kWp)
+              {interpolate(t.overview.ofCapacity, {
+                pct: capacityPct,
+                cap: capacityKw,
+              })}
             </span>
           </div>
 
@@ -217,30 +232,33 @@ export default async function Home() {
             <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-900/60">
               <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <RiHistoryLine className="size-4 text-blue-500" />
-                Geração Total (Vida)
+                {t.overview.lifetimeGeneration}
               </span>
               <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                {(totalLifetimeKwh / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MWh
+                {formatNumber(totalLifetimeKwh / 1000, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MWh
               </span>
             </div>
 
             <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-900/60">
               <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <RiSunLine className="size-4 text-amber-500" />
-                Rendimento Hoje (HSP)
+                {t.overview.yieldHsp}
               </span>
               <span className="text-sm font-semibold tabular-nums text-amber-500">
-                {rendimentoHsp.replace(".", ",")} kWh/kWp
+                {formatNumber(Number(rendimentoHsp), locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh/kWp
               </span>
             </div>
 
             <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-900/60">
               <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <RiBuilding2Line className="size-4 text-violet-500" />
-                Inversores Conectados
+                {t.overview.connectedInverters}
               </span>
               <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                {onlineInvertersCount} de {telemetry?.inverters_count ?? 3} ativos
+                {interpolate(t.overview.activeOfTotal, {
+                  active: onlineInvertersCount,
+                  total: telemetry?.inverters_count ?? 3,
+                })}
               </span>
             </div>
           </div>
@@ -251,37 +269,40 @@ export default async function Home() {
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <StatCard
           icon={RiSunLine}
-          label="Gerado Hoje"
-          value={geradoHojeKwh.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
-          unit="kWh"
-          hint={`Economia de ${economiaHojeReais}`}
+          label={t.overview.generationToday}
+          value={formatNumber(geradoHojeKwh, locale, { minimumFractionDigits: 1 })}
+          unit={t.common.kwh}
+          hint={interpolate(t.overview.savingsOf, { val: economiaHojeReais })}
           accent="amber"
         />
 
         <StatCard
           icon={RiWallet3Line}
-          label="Saldo de Créditos"
-          value={saldoCreditos.toLocaleString("pt-BR")}
-          unit="kWh"
-          hint={`~R$ ${saldoReais.toLocaleString("pt-BR")} em reserva`}
+          label={t.overview.accumulatedBalance}
+          value={formatNumber(saldoCreditos, locale)}
+          unit={t.common.kwh}
+          hint={`~${formatCurrency(saldoReais, locale)} ${t.overview.inReserve}`}
           accent="emerald"
         />
 
         <StatCard
           icon={RiFlashlightLine}
-          label="Pico da Usina"
-          value={peakKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
-          unit="kW"
-          hint={`${Math.round((peakKw / capacityKw) * 100)}% de 16 kWp`}
+          label={t.overview.peakPower}
+          value={formatNumber(peakKw, locale, { minimumFractionDigits: 1 })}
+          unit={t.common.kw}
+          hint={interpolate(t.overview.peakPowerHint, {
+            pct: Math.round((peakKw / capacityKw) * 100),
+            cap: capacityKw,
+          })}
           accent="blue"
         />
 
         <StatCard
           icon={RiBuilding2Line}
-          label="Tarifa Vigente"
-          value={`R$ ${tarifaKwh.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
-          unit="/kWh"
-          hint={`${bandeira} · Rural`}
+          label={t.overview.currentTariff}
+          value={formatCurrency(tarifaKwh, locale)}
+          unit={`/${t.common.kwh}`}
+          hint={`${translateBandeira(bandeira, t)} · ${t.utility.ruralSubgroup}`}
           accent="violet"
         />
       </div>

@@ -21,8 +21,8 @@ function splitCoopDate(raw: string | undefined): string[] {
 }
 
 /**
- * Converte o payload cru da Cooperaliança nas estruturas usadas pelo dashboard
- * (balanço energético, extrato GD) e preenche lacunas quando endpoints do portal vêm vazios.
+ * Converts raw Cooperaliança API payload into domain structures consumed by the dashboard
+ * (energy balance, GD extract) and fills gaps when portal endpoints return empty.
  */
 export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeConsumidora {
   const uc: UnidadeConsumidora = { ...raw };
@@ -41,7 +41,7 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
       };
     });
 
-    // Remove do final do histórico meses não faturados/em aberto que a Cooperaliança envia zerados
+    // Drops unbilled/open future months sent as all-zero from end of history
     while (
       rawBalanco.length > 1 &&
       rawBalanco[rawBalanco.length - 1].injetado_kwh === 0 &&
@@ -69,10 +69,10 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
     });
   }
 
-  // Normaliza geracao_distribuida garantindo saldo e potência se o objeto vier vazio
+  // Normalizes geracao_distribuida ensuring balance and capacity if object is empty
   const gd = uc.geracao_distribuida;
   if (!gd || Object.keys(gd).length === 0 || !gd.ValorProximoSaldoVencer) {
-    // Extrai o saldo mais recente do extrato ou do gráfico de 12 meses
+    // Extracts latest balance from GD extract or 12-month chart
     const histItems = hist12 || [];
     const fallbackSaldo = extrato?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo ?? 9900;
 
@@ -87,7 +87,7 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
     gd.ProximoSaldoVencer = gd.ProximoSaldoVencer.split(" ")[0];
   }
 
-  // Normaliza resumo_ultima_fatura caso o endpoint do portal venha vazio
+  // Normalizes resumo_ultima_fatura if portal endpoint returned empty
   const resumo = uc.resumo_ultima_fatura;
   if (!resumo || Object.keys(resumo).length === 0 || resumo.ValorFatura === undefined) {
     const faturas = uc.historico_faturas_60_meses || [];
@@ -153,10 +153,10 @@ const SLOT_MINUTES = 30;
 const SLOT_MATCH_WINDOW_MS = 20 * 60 * 1000;
 
 /**
- * Monta a grade diária fixa de 30 em 30 minutos das 05:00 às 20:00 no fuso de Brasília.
- * Esse intervalo abrange 100% da janela solar de Içara/SC no dia mais longo do ano
- * (solstício de verão em 21/dez: nascer do sol às 05:14 e pôr do sol às 19:16).
- * Slots futuros (após `now`) recebem null para manter o eixo X fixo sem desenhar dados falsos.
+ * Builds fixed 30-minute daily grid from 05:00 to 20:00 in Brasília timezone.
+ * This interval covers 100% of the solar window in Içara/SC on the longest day of the year
+ * (summer solstice on Dec 21: sunrise at 05:14 and sunset at 19:16).
+ * Future slots (after `now`) are set to null to preserve a fixed X-axis without drawing false lines.
  */
 export function buildSunCurveGrid(
   rows: SunCurveRow[],
@@ -242,13 +242,13 @@ export async function getTodaySunCurve(): Promise<SunCurvePoint[]> {
       .limit(300);
 
     if (error) {
-      console.error("Erro ao buscar curva diária do Supabase:", error);
+      console.error("Error querying daily curve from Supabase:", error);
       return [];
     }
 
     return buildSunCurveGrid((data ?? []) as unknown as SunCurveRow[], todayIso, now);
   } catch (err) {
-    console.error("Erro ao buscar curva diária do Supabase:", err);
+    console.error("Error querying daily curve from Supabase:", err);
     return [];
   }
 }
@@ -267,7 +267,7 @@ export interface InverterDailyHistoryRow {
 
 export interface DailyGenerationEntry {
   kwh: number;
-  /** false quando o valor vem de um fechamento estimado (ex.: calibrado pela irradiação) */
+  /** false when value originates from an estimated closure (e.g. calibrated from irradiance) */
   isReal: boolean;
 }
 
@@ -284,11 +284,11 @@ export function currentMonthGenerationKwh(
 }
 
 /**
- * Consolida a geração diária (kWh por dia, chave YYYY-MM-DD no fuso de Brasília).
- * 1. Usa a geração medida pela telemetria (view daily_generation).
- * 2. Sobrescreve com o histórico fechado quando existir, priorizando `plant_total`,
- *    depois `goodwe_combined + inv_1`, depois cada um isoladamente; o dia só é real
- *    se as linhas usadas no valor forem medidas.
+ * Consolidates daily generation (kWh per day, key YYYY-MM-DD in Brasília timezone).
+ * 1. Uses generation measured by telemetry (view daily_generation).
+ * 2. Overwrites with closed history when present, prioritizing `plant_total`,
+ *    then `goodwe_combined + inv_1`, then each individually; a day is only real
+ *    if the underlying telemetry rows were measured.
  */
 export function mergeDailyGeneration(
   generationRows: DailyGenerationRow[],
@@ -321,7 +321,7 @@ export function mergeDailyGeneration(
   return byDay;
 }
 
-/** Geração diária dos últimos `daysBack` dias, indicando se cada valor é medido ou estimado. */
+/** Daily generation for the past `daysBack` days, indicating whether each value is measured or estimated. */
 export async function getGenerationByDay(daysBack: number = 90): Promise<Record<string, DailyGenerationEntry>> {
   try {
     const startIso = brasiliaIsoDaysAgo(daysBack);
@@ -335,12 +335,12 @@ export async function getGenerationByDay(daysBack: number = 90): Promise<Record<
       supabase.from("daily_generation").select("date, kwh").gte("date", startIso),
     ]);
 
-    if (histRes.error) console.error("Erro ao buscar inverter_daily_history:", histRes.error);
-    if (genRes.error) console.error("Erro ao buscar daily_generation:", genRes.error);
+    if (histRes.error) console.error("Error querying inverter_daily_history:", histRes.error);
+    if (genRes.error) console.error("Error querying daily_generation:", genRes.error);
 
     return mergeDailyGeneration(genRes.data ?? [], histRes.data ?? []);
   } catch (err) {
-    console.error("Erro ao buscar geração diária:", err);
+    console.error("Error querying daily generation:", err);
     return {};
   }
 }
@@ -358,7 +358,7 @@ export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
         };
       });
   } catch (err) {
-    console.error("Erro ao calcular geração mensal:", err);
+    console.error("Error calculating monthly generation:", err);
     return [];
   }
 }
@@ -366,9 +366,9 @@ export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
 const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 /**
- * Monta o histórico plurianual de geração bruta a partir de `inverter_monthly_history`.
- * Os meses a partir de `dailyFromMonth` (YYYY-MM) são somados dos dados diários, pois o
- * último mês importado na tabela mensal pode estar incompleto e os seguintes não existem nela.
+ * Builds multi-year gross generation history from `inverter_monthly_history`.
+ * Months from `dailyFromMonth` (YYYY-MM) onward are summed from daily telemetry,
+ * as the latest month imported into monthly table might be partial and subsequent months do not exist in it yet.
  */
 export function buildMultiYearHistory(
   monthlyRows: InverterMonthlyHistoryRow[],
@@ -428,7 +428,7 @@ export function buildMultiYearHistory(
     yearTotalsMap[yStr] += kwh;
   }
 
-  const availableYears = Object.keys(yearMonthMap).sort((a, b) => b.localeCompare(a)); // mais recente primeiro
+  const availableYears = Object.keys(yearMonthMap).sort((a, b) => b.localeCompare(a)); // most recent first
 
   const byYear: Record<string, GenerationPoint[]> = {};
   for (const yr of availableYears) {
@@ -473,7 +473,7 @@ export async function getMultiYearHistory(): Promise<MultiYearHistory> {
       .order("month", { ascending: true });
 
     if (monthlyRes.error) {
-      console.error("Erro ao obter inverter_monthly_history:", monthlyRes.error);
+      console.error("Error querying inverter_monthly_history:", monthlyRes.error);
     }
     const monthlyRows = monthlyRes.data ?? [];
 
@@ -485,7 +485,7 @@ export async function getMultiYearHistory(): Promise<MultiYearHistory> {
 
     return buildMultiYearHistory(monthlyRows, dailyEntries, dailyFromMonth, todayIso);
   } catch (err) {
-    console.error("Erro ao obter histórico plurianual:", err);
+    console.error("Error querying multi-year history:", err);
     return { last12Months: [], yearsTotals: [], byYear: {}, availableYears: [] };
   }
 }
@@ -495,7 +495,7 @@ export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
   return multi.last12Months;
 }
 
-/** Clima diário armazenado a partir de `startIso` (inclusive), em ordem cronológica. */
+/** Daily weather stored from `startIso` (inclusive), in chronological order. */
 export async function getStoredDailyWeather(startIso: string): Promise<DailyWeatherRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -507,13 +507,13 @@ export async function getStoredDailyWeather(startIso: string): Promise<DailyWeat
     .order("date", { ascending: true });
 
   if (error) {
-    console.error("Erro ao ler daily_weather:", error);
+    console.error("Error reading daily_weather:", error);
     return [];
   }
   return (data ?? []) as DailyWeatherRow[];
 }
 
-/** Grava (upsert por data) dias de clima vindos da Open-Meteo. */
+/** Upserts weather days received from Open-Meteo by date. */
 export async function saveDailyWeather(rows: DailyWeatherRow[]): Promise<void> {
   if (rows.length === 0) return;
   const supabase = await createClient();
@@ -524,5 +524,5 @@ export async function saveDailyWeather(rows: DailyWeatherRow[]): Promise<void> {
       rows.map((r) => ({ ...r, updated_at: now })),
       { onConflict: "date" },
     );
-  if (error) console.error("Erro ao salvar daily_weather:", error);
+  if (error) console.error("Error saving daily_weather:", error);
 }

@@ -6,6 +6,8 @@ import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
 import { getDataSource } from "@/lib/dataSource";
 import { getGeneratorUc, maskUcCode, holderFirstName } from "@/lib/utility";
+import { formatCurrency, formatNumber } from "@/i18n";
+import { getServerI18n } from "@/i18n/server";
 import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +15,9 @@ export const dynamic = "force-dynamic";
 function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
   if (!bandeira) return "neutral";
   const b = bandeira.toLowerCase();
-  if (b.includes("verde")) return "success";
-  if (b.includes("amarela")) return "warning";
-  if (b.includes("vermelha")) return "error";
+  if (b.includes("verde") || b.includes("green")) return "success";
+  if (b.includes("amarela") || b.includes("yellow")) return "warning";
+  if (b.includes("vermelha") || b.includes("red")) return "error";
   return "neutral";
 }
 
@@ -25,6 +27,7 @@ function formatDateOnly(val: string | undefined | null): string {
 }
 
 export default async function CooperativaPage() {
+  const { t, locale } = await getServerI18n();
   const ds = await getDataSource();
   const utilityData = await ds.getLatestUtilityData();
   const uc = getGeneratorUc(utilityData);
@@ -34,13 +37,11 @@ export default async function CooperativaPage() {
     return (
       <main className="mx-auto max-w-4xl px-4 py-8 md:py-10">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-          Cooperativa
+          {t.utility.title}
         </h1>
         <Card className="mt-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Nenhum dado da Cooperaliança ainda. Rode o coletor (
-            <code className="text-gray-700 dark:text-gray-300">python collector/utility.py --pdf</code>
-            ) para sincronizar faturas e créditos.
+            {t.utility.noUtilityDataNotice.replace("{command}", "python collector/utility.py --pdf")}
           </p>
         </Card>
       </main>
@@ -50,13 +51,14 @@ export default async function CooperativaPage() {
   const gd = uc.geracao_distribuida;
   const fatura = uc.resumo_ultima_fatura;
   const tarifaKwh = utilityData.tarifa_referencia?.tarifa_kwh ?? 0;
+  const reserveValue = Math.round((gd?.ValorProximoSaldoVencer ?? 0) * tarifaKwh);
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-            Cooperativa
+            {t.utility.title}
           </h1>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {utilityData.distribuidora} · UC {maskUcCode(utilityData.generator_uc)} · {holderFirstName(utilityData.titular)}
@@ -67,7 +69,7 @@ export default async function CooperativaPage() {
         </div>
       </div>
 
-      {/* SALDO DE CRÉDITOS GD (destaque principal) */}
+      {/* DG CREDIT BALANCE (Hero Card) */}
       <Card className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.07] via-transparent to-transparent p-5 dark:border-emerald-500/30 md:p-6">
         <div
           aria-hidden="true"
@@ -77,58 +79,61 @@ export default async function CooperativaPage() {
           <div>
             <p className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
               <RiWallet3Line className="size-4" />
-              Saldo de créditos acumulados
+              {t.utility.accumulatedCreditBalance}
             </p>
             <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900 dark:text-gray-50">
-              {(gd?.ValorProximoSaldoVencer ?? 0).toLocaleString("pt-BR")}
+              {formatNumber(gd?.ValorProximoSaldoVencer ?? 0, locale)}
               <span className="ml-1 text-lg font-medium text-gray-400 dark:text-gray-500">kWh</span>
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              ~R$ {Math.round((gd?.ValorProximoSaldoVencer ?? 0) * tarifaKwh).toLocaleString("pt-BR")} em reserva GD
+              {t.utility.inReserveGd.replace("{value}", formatNumber(reserveValue, locale))}
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
             <RiCalendarEventLine className="size-4 shrink-0" />
-            Vencimento parcial em {formatDateOnly(gd?.ProximoSaldoVencer) || "Próx. ciclo"}
+            {t.utility.partialExpiry.replace(
+              "{date}",
+              formatDateOnly(gd?.ProximoSaldoVencer) || t.utility.nextCycle
+            )}
           </div>
         </div>
       </Card>
 
-      {/* GRID DE KPIs */}
+      {/* KPI GRID */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <StatCard
           icon={RiFileTextLine}
-          label="Fatura Atual"
-          value={fatura?.ValorFatura !== undefined ? `R$ ${Number(fatura.ValorFatura).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
-          hint={fatura?.KwhReal !== undefined ? `${fatura.KwhReal.toLocaleString("pt-BR")} kWh · ${formatDateOnly(fatura.AnoMes)}` : undefined}
+          label={t.utility.currentInvoice}
+          value={fatura?.ValorFatura !== undefined ? formatCurrency(Number(fatura.ValorFatura), locale) : "—"}
+          hint={fatura?.KwhReal !== undefined ? `${formatNumber(fatura.KwhReal, locale)} kWh · ${formatDateOnly(fatura.AnoMes)}` : undefined}
           accent="amber"
         />
         <StatCard
           icon={RiCalendarEventLine}
-          label="Próximo Vencimento"
+          label={t.utility.nextDueDate}
           value={formatDateOnly(fatura?.DataLProxima)}
-          hint="Data de leitura"
+          hint={t.utility.readingDate}
           accent="blue"
         />
         <StatCard
           icon={RiBuilding2Line}
-          label="Potência Instalada"
-          value={(gd?.PotenciaInstalada ?? 16.0).toLocaleString("pt-BR")}
+          label={t.utility.installedPower}
+          value={formatNumber(gd?.PotenciaInstalada ?? 16.0, locale, { minimumFractionDigits: 1 })}
           unit="kWp"
-          hint={`${gd?.PercentualFatUcGeradora ?? 100}% direcionado a esta UC`}
+          hint={t.utility.directedToThisUc.replace("{percent}", String(gd?.PercentualFatUcGeradora ?? 100))}
           accent="emerald"
         />
         <StatCard
           icon={RiWallet3Line}
-          label="Tarifa Vigente"
-          value={`R$ ${tarifaKwh.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
+          label={t.utility.effectiveTariff}
+          value={`R$ ${tarifaKwh.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
           unit="/kWh"
           hint={bandeira ?? "Rural B2"}
           accent="violet"
         />
       </div>
 
-      {/* BALANÇO ENERGÉTICO (Injeção vs Compensação vs Saldo) */}
+      {/* ENERGY BALANCE */}
       {uc.balanco_energetico && (
         <EnergyBalanceChart
           data={uc.balanco_energetico}
@@ -136,7 +141,7 @@ export default async function CooperativaPage() {
         />
       )}
 
-      {/* EXTRATO GD COM SCROLL INTERNO E FILTROS */}
+      {/* DISTRIBUTED GENERATION STATEMENT */}
       {uc.extrato_gd && <GdExtractList entries={uc.extrato_gd} />}
     </main>
   );

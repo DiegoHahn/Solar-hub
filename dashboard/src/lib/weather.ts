@@ -1,22 +1,22 @@
 /**
- * Tipos e utilitários de clima (Open-Meteo) sem dependência de servidor, usados também em client components
- * A busca dos dados fica em lib/weatherData.ts
+ * Weather types and utilities (Open-Meteo) without server dependencies, also used in client components.
+ * Data fetching logic resides in lib/weatherData.ts.
  */
 
 export interface DailyWeather {
   date: string; // YYYY-MM-DD
-  dayOfWeek: string; // "Seg", "Ter", ...
+  dayOfWeek: string; // "Mon", "Tue", ...
   formattedDate: string; // "28/08"
   weatherCode: number;
   condition: string;
   icon: "sun" | "cloud-sun" | "cloud" | "rain" | "storm";
   tempMax: number;
   tempMin: number;
-  sunshineHours: number; // horas de sol
-  solarRadiationHsp: number; // Horas de Sol Pleno (kWh/m²) convertidas de MJ/m²
+  sunshineHours: number; // sunshine hours
+  solarRadiationHsp: number; // Peak Sun Hours (HSP / kWh/m²) converted from MJ/m²
   precipitationMm: number;
-  estimatedKwh: number; // Geração solar real/estimada para usina de 16 kWp
-  isReal?: boolean; // true se veio da telemetria dos inversores (e não da estimativa por irradiação)
+  estimatedKwh: number; // Real or estimated solar generation for 16 kWp plant
+  isReal?: boolean; // true if from inverter telemetry (rather than solar irradiation estimation)
   realKwh?: number;
 }
 
@@ -30,7 +30,7 @@ export interface CurrentWeather {
   updatedAt: string;
 }
 
-/** Mapeamento de códigos WMO da Open-Meteo para condições em português e ícones */
+/** Mapping of Open-Meteo WMO weather codes to condition descriptions and icons */
 export function parseWmoCode(code: number): {
   condition: string;
   icon: "sun" | "cloud-sun" | "cloud" | "rain" | "storm";
@@ -48,7 +48,7 @@ export function parseWmoCode(code: number): {
 }
 
 
-/** Série fixa observada em Içara/SC (28/08 a 04/09/2026), usada quando a chamada à Open-Meteo falha */
+/** Fixed series observed in Içara/SC, used when Open-Meteo API is unreachable */
 export const fallbackDailyWeather: DailyWeather[] = [
   {
     date: "2026-08-28",

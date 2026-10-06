@@ -7,15 +7,17 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recha
 import { Card } from "@/components/Card";
 import { RiSunLine } from "@remixicon/react";
 import type { GenerationPoint } from "@/lib/types";
+import { useI18n, formatNumber, type Locale } from "@/i18n";
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ payload: GenerationPoint }>;
   unitLabel: string;
   onActivePoint?: (point: GenerationPoint) => void;
+  locale?: Locale;
 }
 
-export function GenerationTooltip({ active, payload, unitLabel, onActivePoint }: CustomTooltipProps) {
+export function GenerationTooltip({ active, payload, unitLabel, onActivePoint, locale = "pt-BR" }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload;
@@ -31,7 +33,7 @@ export function GenerationTooltip({ active, payload, unitLabel, onActivePoint }:
     <div className="hidden md:block rounded-lg border border-gray-200 bg-white/95 p-3 shadow-xl backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95 text-xs">
       <p className="font-semibold text-gray-900 dark:text-gray-100">{point.label}</p>
       <p className="mt-1 tabular-nums text-gray-500 dark:text-gray-400">
-        {point.kwh.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} {unitLabel}
+        {formatNumber(point.kwh, locale, { maximumFractionDigits: 1 })} {unitLabel}
       </p>
     </div>
   );
@@ -52,6 +54,7 @@ export function GenerationBarChart({
   unitLabel,
   color = "#f59e0b",
 }: GenerationBarChartProps) {
+  const { t, locale } = useI18n();
   const isMounted = useIsClient();
   const [inspectedPoint, setInspectedPoint] = useState<GenerationPoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
@@ -84,29 +87,29 @@ export function GenerationBarChart({
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
         </div>
 
-        {/* Resumo do Total (Desktop) */}
+        {/* Desktop Total Summary */}
         <div className="hidden sm:block text-right">
-          <span className="text-xs text-gray-400">Total acumulado:</span>
+          <span className="text-xs text-gray-400">{t.combined.accumulatedTotal}</span>
           <p className="text-sm font-bold text-amber-500 tabular-nums">
-            {totalPeriodo.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} {unitLabel}
+            {formatNumber(totalPeriodo, locale, { maximumFractionDigits: 0 })} {unitLabel}
           </p>
         </div>
       </div>
 
-      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (Sticky Header) */}
+      {/* MOBILE EXCLUSIVE INSPECTION PANEL (Sticky Header) */}
       <div className="block sm:hidden mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3 text-xs transition-all">
         {inspectedPoint ? (
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                {title.includes("Mensal")
-                  ? `Dia ${inspectedPoint.label}:`
+                {title.toLowerCase().includes("mensal") || title.toLowerCase().includes("monthly")
+                  ? t.combined.dayPrefix.replace("{label}", inspectedPoint.label)
                   : inspectedPoint.label.length === 4
-                    ? `Ano ${inspectedPoint.label}:`
-                    : `Mês de ${inspectedPoint.label}:`}
+                    ? t.combined.yearPrefix.replace("{label}", inspectedPoint.label)
+                    : t.combined.monthPrefix.replace("{label}", inspectedPoint.label)}
               </span>
               <span className="text-xl font-extrabold text-amber-500 tabular-nums">
-                {inspectedPoint.kwh.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
+                {formatNumber(inspectedPoint.kwh, locale, { maximumFractionDigits: 1 })}
                 <span className="ml-1 text-xs font-semibold text-amber-500/80">{unitLabel}</span>
               </span>
             </div>
@@ -116,14 +119,14 @@ export function GenerationBarChart({
               onTouchEnd={handleReset}
               className="relative z-10 shrink-0 cursor-pointer rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 hover:bg-amber-500/20 active:bg-amber-500/30 dark:text-amber-400"
             >
-              ✕ Voltar
+              {t.common.back}
             </button>
           </div>
         ) : (
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total acumulado:</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.combined.accumulatedTotal}</span>
             <span className="text-lg font-bold text-amber-500 tabular-nums">
-              {totalPeriodo.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+              {formatNumber(totalPeriodo, locale, { maximumFractionDigits: 0 })}
               <span className="ml-1 text-xs font-medium text-amber-500/80">{unitLabel}</span>
             </span>
           </div>
@@ -155,7 +158,7 @@ export function GenerationBarChart({
               />
               <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <Tooltip
-                content={<GenerationTooltip unitLabel={unitLabel} onActivePoint={setInspectedPoint} />}
+                content={<GenerationTooltip unitLabel={unitLabel} locale={locale} onActivePoint={setInspectedPoint} />}
                 cursor={{ fill: "rgba(245,158,11,0.08)" }}
               />
               <Bar dataKey="kwh" fill={color} radius={[3, 3, 0, 0]} />

@@ -14,7 +14,7 @@ except ImportError:
 
 @pytest.fixture
 def local_server(monkeypatch, tmp_path):
-    """Sobe uma instância real do servidor HTTP em porta livre do sistema operacional."""
+    """Spins up a real HTTP server instance on a free OS port."""
     latest_file = str(tmp_path / "latest.json")
     history_file = str(tmp_path / "history.json")
 
@@ -48,7 +48,7 @@ def test_api_health(local_server):
     data = res.json()
     assert data["status"] == "ok"
     assert "time" in data
-    # A API é só local: nenhuma origem externa é autorizada
+    # The API is local only: no external CORS origins authorized
     assert "Access-Control-Allow-Origin" not in res.headers
 
 
@@ -58,7 +58,7 @@ def test_api_latest_empty_and_with_data(local_server, monkeypatch):
     res_empty = requests.get(url, timeout=3)
     assert res_empty.status_code == 404
 
-    sample_data = {"plant_name": "Usina Teste", "total_power_w": 2500.0}
+    sample_data = {"plant_name": "Test Plant", "total_power_w": 2500.0}
     monkeypatch.setattr(inverters, "_LATEST_IN_MEMORY", sample_data)
 
     res_with_data = requests.get(url, timeout=3)
@@ -68,12 +68,12 @@ def test_api_latest_empty_and_with_data(local_server, monkeypatch):
 
 def test_api_latest_fallback_from_disk(local_server):
     url = f"{local_server['base_url']}/api/latest"
-    sample = {"plant_name": "Do Disco", "total_power_w": 1800.0}
+    sample = {"plant_name": "From Disk", "total_power_w": 1800.0}
     Path(local_server["latest_file"]).write_text(json.dumps(sample), encoding="utf-8")
 
     res = requests.get(url, timeout=3)
     assert res.status_code == 200
-    assert res.json()["plant_name"] == "Do Disco"
+    assert res.json()["plant_name"] == "From Disk"
 
 
 def test_api_history_empty_and_with_data(local_server, monkeypatch):

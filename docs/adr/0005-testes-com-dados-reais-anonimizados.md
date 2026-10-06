@@ -1,38 +1,38 @@
-# 5. Testes com Dados Reais Anonimizados e Mocks Mínimos
+# 5. Testing with Anonymized Real Data and Minimal Mocks
 
-* **Status:** Aceito
-* **Data:** 2026-09-29 (registro retroativo)
-* **Decisores:** Diego Hahn
+* **Status:** Accepted
+* **Date:** 2026-09-29 (retroactive record)
+* **Decision Makers:** Diego Hahn
 
-## Contexto
+## Context
 
-A confiabilidade de uma suíte de testes em sistemas IoT e de telemetria energética costuma ser afetada por dois extremos:
+The reliability of test suites in IoT and energy telemetry architectures is frequently degraded by two extremes:
 
-1. **Abuso de dublês sintéticos (*over-mocking*):** Estruturas de dados manuais tendem a simplificar a realidade. Cenários reais com campos ausentes, nulos imprevistos, discrepâncias de precisão em ponto flutuante, estruturas aninhadas em colunas JSONB e comportamentos de fuso horário passam despercebidos quando os mocks não refletem os payloads reais.
-2. **Dependência de hardware físico nos testes:** Testar o coletor diretamente contra os inversores físicos e a concessionária tornaria o pipeline de CI inviável: os equipamentos físicos dependem de incidência de luz solar (desligam-se à noite), conexões de rede locais e credenciais sigilosas.
+1. **Over-mocking and synthetic fixtures:** Hand-crafted test doubles invariably oversimplify real conditions. Missing fields, unforeseen null values, floating-point precision discrepancies, deeply nested JSONB structures, and timezone conversions slip through unnoticed when mocks fail to mirror true production payloads.
+2. **Physical hardware coupling in test suites:** Running automated tests directly against physical inverters and utility portals renders CI pipelines brittle: field hardware depends on real-time solar irradiance (shutting off completely at night), local network presence, and privileged credentials.
 
-## Decisão
+## Decision
 
-Adotamos a abordagem de testes baseada em dados reais anonimizados e redução de mocks:
+We adopted a testing strategy grounded in anonymized real-world fixtures and minimized mock usage:
 
-1. **Fixtures anonimizadas:** Um script de captura (`dashboard/scripts/capture-fixtures.ts`) extrai conjuntos de dados reais do banco e dos inversores, aplicando sanitização irreversível antes do versionamento:
-   - Substituição de CPF, endereços, nomes de titulares, e-mails e UCs por placeholders padronizados (`000.000.000-00`, `Titular Teste`, `00000000000`, `teste@solarhub.local`);
-   - Mascaramento de números de série, dataloggers, MACs de Wi-Fi e endereços IP de inversores por identificadores de teste (`SN-1`, `02:00:00:00:00:0x`, `10.0.0.x`).
-2. **Servidores HTTP locais em vez de mocks de chamadas:** Nos testes do coletor Python, as requisições de envio ao Supabase não são substituídas por mocks de funções (`unittest.mock`), mas disparadas contra um servidor HTTP real em loopback (`pytest-httpserver`). Isso valida os cabeçalhos de autenticação, formato dos payloads JSON, códigos de resposta HTTP (200, 201, 401, 500) e o mecanismo de buffer offline em arquivo JSON (`offline_queue.json`).
-3. **Integração contra o Supabase:** Os testes de integração executam contra uma instância do Supabase com as políticas de Row Level Security (RLS) ativas, operando sob uma conta de testes com os mesmos privilégios do usuário final.
-4. **Mocks restritos a custos e serviços externos:** O uso de mocks sintéticos fica delimitado a:
-   - Injeção controlada de falhas de rede e simulação de corrupção de pacotes;
-   - Chamadas à API do Google Gemini (para preservar a cota diária de IA nos testes locais e de CI).
-5. **Travas obrigatórias de cobertura (≥ 80%):** Tanto o backend Python (`pytest-cov`) quanto o dashboard TypeScript (`vitest` + `v8`) mantêm limites mínimos de 80% de cobertura de linhas.
+1. **Anonymized production fixtures:** An automated capture script (`dashboard/scripts/capture-fixtures.ts`) extracts representative telemetry records from production inverters and the database, enforcing irreversible sanitization before committing to git:
+   - Replaces CPF tax IDs, street addresses, account holder names, emails, and utility consumer units with standardized test placeholders (`000.000.000-00`, `Test Account Holder`, `00000000000`, `test@solarhub.local`);
+   - Masks inverter serial numbers, logger identifiers, Wi-Fi MACs, and internal IP addresses with deterministic test markers (`SN-1`, `02:00:00:00:00:0x`, `10.0.0.x`).
+2. **Local loopback HTTP servers over function mocking:** In Python collector tests, Supabase ingest requests are not replaced with synthetic function mocks (`unittest.mock`), but dispatched against a real local loopback HTTP server (`pytest-httpserver`). This verifies HTTP headers, JSON serialization structures, status codes (200, 201, 401, 500), and the offline JSON buffer mechanism (`offline_queue.json`).
+3. **Integration testing against live Supabase:** Integration test suites run against a dedicated Supabase instance enforcing full Row Level Security (RLS) policies, operating under a test account with authentic end-user authorization constraints.
+4. **Targeted mocks reserved for costs and non-deterministic services:** Synthetic mocks are strictly limited to:
+   - Controlled fault injection (socket timeouts, malformed byte streams, connection drops);
+   - Google Gemini API calls (to avoid depleting API quotas during local development and CI runs).
+5. **Enforced test coverage thresholds (≥ 80%):** Both the Python backend (`pytest-cov`) and the TypeScript frontend (`vitest` + `v8`) enforce strict ≥ 80% line and branch coverage gates in CI.
 
-## Consequências
+## Consequences
 
-### Positivas
+### Positive
 
-* **Fidelidade aos dados de produção:** Validação com estruturas de dados equivalentes às que trafegam nos inversores e nas faturas da concessionária.
-* **Reprodutibilidade e velocidade:** A suíte completa executa em segundos em qualquer ambiente de desenvolvimento ou runner do GitHub Actions sem depender de hardware físico ou de sol.
-* **Prevenção de vazamento de dados pessoais:** Nenhuma informação pessoal identificável (PII) ou credencial real entra nas fixtures ou nos testes.
+* **High fidelity to production conditions:** Tests validate against payload structures identical to those generated by live inverters and utility bills.
+* **Speed and reproducibility:** Complete test suites run in seconds in any local developer setup or GitHub Actions runner without hardware or daylight dependencies.
+* **Zero PII exposure:** No Personally Identifiable Information (PII) or real credentials enter fixtures or test logs.
 
-### Negativas e Mitigações
+### Negative and Mitigations
 
-* **Manutenção das fixtures:** Mudanças de layout de resposta de inversores exigem atualizar as fixtures versionadas. *Mitigação:* Script de captura que permite gerar novas fixtures anonimizadas de forma automatizada.
+* **Fixture maintenance:** Inverter firmware updates altering telemetry structures require re-running fixture capture. *Mitigation:* The automated capture script allows regenerating sanitized fixtures with minimal manual effort.

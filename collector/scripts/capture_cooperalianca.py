@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Script para captura e anonimização estrutural das respostas da API da Cooperaliança.
+"""Script for capturing and structurally anonymizing Cooperaliança utility API responses.
 
-Executado exclusivamente no Orange Pi (ou máquina conectada à rede com .env válido).
-Salva as respostas reais anonimizadas em collector/tests/fixtures/cooperalianca/*.json.
+Executed exclusively on the Orange Pi edge device (or machine connected with valid .env).
+Saves real anonymized responses to collector/tests/fixtures/cooperalianca/*.json.
 """
 
 import json
@@ -11,7 +11,7 @@ import sys
 import unicodedata
 from pathlib import Path
 
-# Adiciona diretório pai ao sys.path para importar utility
+# Add parent directory to sys.path to import utility module
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from utility import (
@@ -113,7 +113,7 @@ def save_fixture(filename, data):
     out_path = FIXTURES_DIR / filename
     clean_json = anonymize(data)
     out_path.write_text(clean_json + "\n", encoding="utf-8")
-    print(f"  Salvo e anonimizado: {out_path.relative_to(Path.cwd())}")
+    print(f"  Saved and anonymized: {out_path.relative_to(Path.cwd())}")
 
 
 def main():
@@ -121,21 +121,21 @@ def main():
     senha = ENV.get("COOPERALIANCA_SENHA")
 
     if not cpf or not senha or not UCS:
-        print("COOPERALIANCA_CPF, COOPERALIANCA_SENHA ou COOPERALIANCA_UCS ausentes no .env")
+        print("COOPERALIANCA_CPF, COOPERALIANCA_SENHA or COOPERALIANCA_UCS missing in .env")
         sys.exit(1)
 
     headers = portal_headers()
-    print("Conectando ao portal da Cooperaliança...")
+    print("Connecting to Cooperaliança portal...")
     auth = login_cooperalianca(cpf, senha, headers)
     if not auth:
-        print("Falha na autenticação.")
+        print("Authentication failed.")
         sys.exit(1)
 
     headers["Authorization"] = f"Bearer {auth['Token']}"
     save_fixture("Auth.json", {**auth, "Token": "TOKEN-JWT-TESTE-VALIDO"})
 
     uc_principal = UCS[0]
-    print(f"Capturando endpoints para UC {uc_principal}...")
+    print(f"Capturing endpoints for consumer unit (UC) {uc_principal}...")
 
     perfil = safe_api_get(
         f"{API_BASE}PerfilUsuario/BuscarPerfilUsuario?codigoUc={uc_principal}", headers, default={}
@@ -177,7 +177,7 @@ def main():
     )
     save_fixture("BuscaDadosHistoricoGeracaoConsumo.json", consumo_gd)
 
-    print("\nTodas as respostas foram capturadas e anonimizadas com sucesso!")
+    print("\nAll responses captured and anonymized successfully!")
 
 
 if __name__ == "__main__":

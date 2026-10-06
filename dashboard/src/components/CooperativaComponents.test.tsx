@@ -11,7 +11,7 @@ import utilityFixture from "../test/fixtures/utility-data.json";
 import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
 import type { UtilityDataRow, SolarTelemetryRow, UnidadeConsumidora, HistoricoConsumoMes } from "@/lib/types";
 
-describe("Componentes de Cooperativa", () => {
+describe("Utility Cooperative Components", () => {
   const genCode = findGeneratorUcCode(utilityFixture.unidades_consumidoras as Record<string, UnidadeConsumidora>)!;
   const normalizedUc = normalizeUnidadeConsumidora({
     ...utilityFixture.unidades_consumidoras[genCode as keyof typeof utilityFixture.unidades_consumidoras],
@@ -29,7 +29,7 @@ describe("Componentes de Cooperativa", () => {
   const telemetry = telemetryDayFixture[0] as unknown as SolarTelemetryRow;
 
   describe("StatCard", () => {
-    it("renderiza label, valor, unidade e dica", () => {
+    it("renders label, value, unit, and hint", () => {
       render(
         <StatCard
           label="Economia Mensal"
@@ -47,7 +47,7 @@ describe("Componentes de Cooperativa", () => {
       expect(screen.getByText("Estimativa baseada na tarifa")).toBeInTheDocument();
     });
 
-    it("aplica estilo esmaecido quando dim é verdadeiro", () => {
+    it("applies dimmed styling when dim is true", () => {
       const { container } = render(
         <StatCard
           label="Offline"
@@ -63,7 +63,7 @@ describe("Componentes de Cooperativa", () => {
   });
 
   describe("EnergyFlowSection", () => {
-    it("renderiza o cabeçalho e métricas do fluxo de hoje por padrão", () => {
+    it("renders header and metrics for today's energy flow by default", () => {
       render(<EnergyFlowSection telemetry={telemetry} utilityData={utilityData} monthSolarKwh={850} />);
 
       expect(screen.getByText("Fluxo de Energia Real")).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe("Componentes de Cooperativa", () => {
       expect(screen.getByText(kwhHoje)).toBeInTheDocument();
     });
 
-    it("permite alternar para a visão de mês atual", () => {
+    it("allows switching to current month view", () => {
       render(<EnergyFlowSection telemetry={telemetry} utilityData={utilityData} monthSolarKwh={850} />);
 
       fireEvent.click(screen.getByRole("button", { name: "Mês Atual" }));
@@ -87,7 +87,7 @@ describe("Componentes de Cooperativa", () => {
   describe("GdExtractList", () => {
     const entries = normalizedUc.extrato_gd || [];
 
-    it("renderiza a lista de lançamentos de extrato com dados da fixture", () => {
+    it("renders statement entries list with fixture data", () => {
       render(<GdExtractList entries={entries} />);
 
       expect(screen.getByText("Extrato de Geração Distribuída")).toBeInTheDocument();
@@ -98,7 +98,7 @@ describe("Componentes de Cooperativa", () => {
       expect(screen.getByRole("button", { name: /Compensada/i })).toBeInTheDocument();
     });
 
-    it("filtra por tipo ao clicar no botão Injetada e Compensada", () => {
+    it("filters by type when clicking Injected and Compensated buttons", () => {
       render(<GdExtractList entries={entries} />);
 
       fireEvent.click(screen.getByRole("button", { name: /Injetada/i }));
@@ -110,7 +110,7 @@ describe("Componentes de Cooperativa", () => {
       expect(compensadaItems.length).toBeGreaterThan(0);
     });
 
-    it("filtra por texto de busca", () => {
+    it("filters by search query", () => {
       render(<GdExtractList entries={entries} />);
 
       const searchInput = screen.getByPlaceholderText(/Filtrar por mês/i);
@@ -122,7 +122,7 @@ describe("Componentes de Cooperativa", () => {
     const PAGE_SIZE = 15;
     const renderedEntries = () => screen.queryAllByText(/^Energia (injetada|compensada)$/).length;
 
-    it("mostra nos chips de GD I e GD II a quantidade de lançamentos de cada grupo e filtra por eles", () => {
+    it("shows entry counts in DG I and DG II chips and filters by them", () => {
       render(<GdExtractList entries={entries} />);
 
       for (const [grupo, label] of [[1, /GD I ·/], [2, /GD II ·/]] as const) {
@@ -138,7 +138,7 @@ describe("Componentes de Cooperativa", () => {
       expect(renderedEntries()).toBeGreaterThan(0);
     });
 
-    it("limpa a busca pelo botão ao lado do campo", () => {
+    it("clears search via button next to input field", () => {
       render(<GdExtractList entries={entries} />);
       const searchInput = screen.getByPlaceholderText(/Filtrar por mês/i);
 
@@ -149,7 +149,7 @@ describe("Componentes de Cooperativa", () => {
       expect(renderedEntries()).toBeGreaterThan(0);
     });
 
-    it("carrega mais lançamentos pelo botão e pela rolagem da lista", () => {
+    it("loads more entries via button and list scroll", () => {
       const { container } = render(<GdExtractList entries={entries} />);
       const initial = renderedEntries();
       expect(initial).toBeLessThan(entries.length);
@@ -176,14 +176,14 @@ describe("Componentes de Cooperativa", () => {
       { mes: "Mar/26", kwh: 115, valor: 90.0 },
     ];
 
-    it("renderiza o gráfico de barras do histórico de consumo", () => {
+    it("renders consumption history bar chart", () => {
       render(<ConsumptionHistoryChart data={sampleHistory} />);
 
       expect(screen.getByText("Histórico de Consumo")).toBeInTheDocument();
       expect(screen.getByText(/Últimos 3 meses faturados/i)).toBeInTheDocument();
     });
 
-    it("retorna null se os dados forem vazios", () => {
+    it("returns null if data array is empty", () => {
       const { container } = render(<ConsumptionHistoryChart data={[]} />);
       expect(container.firstChild).toBeNull();
     });

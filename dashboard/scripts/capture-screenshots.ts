@@ -22,13 +22,13 @@ function isServerListening(port: number): Promise<boolean> {
 async function startServer(): Promise<ChildProcess> {
   if (await isServerListening(PORT)) {
     // Um servidor já ativo não teria o DEMO_NOW desta captura e geraria telas no horário errado.
-    throw new Error(`A porta ${PORT} já está em uso; encerre o servidor antes de capturar.`);
+    throw new Error(`Port ${PORT} is already in use; stop that server before capturing.`);
   }
 
   const today = new Date().toISOString().slice(0, 10);
   const demoNow = process.env.DEMO_NOW || `${today}T13:30:00-03:00`;
 
-  console.log(`[Screenshot] Iniciando servidor Next.js na porta ${PORT} com DEMO_NOW=${demoNow}...`);
+  console.log(`[Screenshot] Starting Next.js on port ${PORT} with DEMO_NOW=${demoNow}...`);
   const proc = spawn("npx", ["next", "start", "-p", String(PORT)], {
     cwd: path.resolve(__dirname, ".."),
     env: { ...process.env, DEMO_NOW: demoNow },
@@ -45,7 +45,7 @@ async function startServer(): Promise<ChildProcess> {
     }
   }
 
-  throw new Error("Timeout ao aguardar inicialização do Next.js na porta " + PORT);
+  throw new Error("Timed out waiting for Next.js on port " + PORT);
 }
 
 async function capture() {
@@ -58,7 +58,7 @@ async function capture() {
 
   try {
     // 1. Desktop - 1440x900, Tema Escuro
-    console.log("[Screenshot] Capturando páginas Desktop (1440x900)...");
+    console.log("[Screenshot] Capturing desktop pages (1440x900)...");
     const desktopContext = await browser.newContext({
       viewport: { width: 1440, height: 900 },
       colorScheme: "dark",
@@ -141,6 +141,6 @@ async function capture() {
 }
 
 capture().catch((err) => {
-  console.error("Erro na captura de screenshots:", err);
+  console.error("Screenshot capture failed:", err);
   process.exit(1);
 });

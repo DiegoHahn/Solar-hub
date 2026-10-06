@@ -1,7 +1,7 @@
-# Unit de template: o nome após o @ é o usuário dono do clone em /home/<usuário>/Solar-hub
-#   sudo systemctl enable --now solar-inverters@<usuário>.service
+# Template unit: the name after @ is the user owning the clone in /home/<user>/Solar-hub
+#   sudo systemctl enable --now solar-inverters@<user>.service
 [Unit]
-Description=Solar Hub - Coletor de Telemetria Solar (24/7)
+Description=Solar Hub - Solar Inverter Telemetry Edge Collector (24/7)
 After=network-online.target
 Wants=network-online.target
 
@@ -16,7 +16,7 @@ RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
-# Hardening de segurança
+# Security hardening
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

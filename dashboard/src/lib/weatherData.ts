@@ -9,10 +9,10 @@ import { fallbackDailyWeather, parseWmoCode, type DailyWeather } from "@/lib/wea
 import type { DailyWeatherRow } from "@/lib/types";
 
 const HISTORY_DAYS = 90;
-/** Janela sempre rebuscada: nela a Open-Meteo ainda troca previsão por dado observado. */
+/** Sliding refresh window: period in which Open-Meteo replaces forecasts with observed data. */
 const REFRESH_DAYS = 7;
 const NOMINAL_KWP = 16.0;
-/** Fator de desempenho usado para estimar a geração a partir da irradiação (HSP). */
+/** Performance ratio used to estimate PV generation from Peak Sun Hours (HSP). */
 const PERFORMANCE_RATIO = 0.81;
 
 const DAILY_FIELDS =
@@ -61,7 +61,7 @@ async function fetchDaily(url: string): Promise<OpenMeteoDaily | null> {
   }
 }
 
-/** Converte a resposta da Open-Meteo em linhas; dias com qualquer valor nulo são descartados. */
+/** Converts Open-Meteo daily response into rows; days with any null field are dropped. */
 export function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["source"]): DailyWeatherRow[] {
   const rows: DailyWeatherRow[] = [];
   daily.time.forEach((date, i) => {
@@ -88,7 +88,7 @@ export function toWeatherRows(daily: OpenMeteoDaily, source: DailyWeatherRow["so
   return rows;
 }
 
-/** Datas ISO de `startIso` (inclusive) até `endIso` (exclusive). */
+/** ISO dates from `startIso` (inclusive) to `endIso` (exclusive). */
 export function isoDateRange(startIso: string, endIso: string): string[] {
   const dates: string[] = [];
   const cursor = new Date(`${startIso}T00:00:00Z`);
@@ -101,9 +101,9 @@ export function isoDateRange(startIso: string, endIso: string): string[] {
 }
 
 /**
- * Busca na Open-Meteo o que precisa ser atualizado. Com o histórico já armazenado, só a janela
- * recente; senão, os 90 dias do forecast, completando pela Archive API os dias em que o forecast
- * não traz radiação (ele deixa de informá-la para datas com mais de ~60 dias).
+ * Fetches necessary weather updates from Open-Meteo. If history is already stored, only the recent
+ * sliding window is refreshed; otherwise, fetches the full 90-day forecast, supplementing older dates
+ * missing solar radiation with the Open-Meteo Archive API.
  */
 async function fetchWeatherUpdates(
   location: PlantLocation,
@@ -161,7 +161,7 @@ export function toDailyWeather(
   const [year, month, day] = row.date.split("-");
   const code = Number(row.weather_code);
   const { condition, icon } = parseWmoCode(code);
-  // 1 MJ/m² = 1/3.6 kWh/m² (horas de sol pleno)
+  // 1 MJ/m² = 1/3.6 kWh/m² (Peak Sun Hours / HSP)
   const hsp = Number((Number(row.shortwave_radiation_mj) / 3.6).toFixed(2));
   const kwh = Number((generation ? generation.kwh : NOMINAL_KWP * hsp * PERFORMANCE_RATIO).toFixed(1));
   const isReal = Boolean(generation?.isReal);
@@ -185,10 +185,9 @@ export function toDailyWeather(
 }
 
 /**
- * Clima dos últimos 90 dias (Open-Meteo) cruzado com a geração da usina.
- * O clima fica armazenado em daily_weather: a cada chamada só a janela recente é rebuscada e
- * apenas os dias alterados são regravados. Dias sem geração registrada recebem uma estimativa
- * pela irradiação.
+ * Weather for the past 90 days (Open-Meteo) combined with plant solar generation data.
+ * Weather is cached in `daily_weather`: on each call only the recent window is re-polled and only
+ * changed days are re-saved. Days without recorded telemetry receive an irradiance-based estimate.
  */
 export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
   try {
@@ -214,7 +213,7 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
     if (rows.length === 0) return fallbackDailyWeather;
     return rows.map((row) => toDailyWeather(row, todayIso, generationByDay[row.date]));
   } catch (err) {
-    console.error("Erro ao montar dados de clima:", err);
+    console.error("Error building weather dataset:", err);
     return fallbackDailyWeather;
   }
 }

@@ -1,0 +1,42 @@
+{
+  "daily": {
+    "summary": "The photovoltaic plant in Içara/SC exhibited a clean power curve throughout the day, achieving high conversion yield during peak solar hours. Seamless synchronization between Solis and GoodWe inverters ensured continuous power delivery to the residence and steady surplus export to the Cooperaliança grid, accumulating energy credits.",
+    "recommendations": [
+      {
+        "title": "Optimal Consumption Window",
+        "description": "Schedule heavy electrical loads (washing, HVAC, pumps) between 10:00 and 14:00 to maximize self-consumption from peak solar irradiation and minimize nighttime grid reliance.",
+        "icon": "flashlight"
+      },
+      {
+        "title": "Voltage and Grid Stability",
+        "description": "Average inverter AC voltage remained stable at 220V, with zero overvoltage trips on the utility distribution network.",
+        "icon": "shield"
+      },
+      {
+        "title": "Daily Net Energy Balance",
+        "description": "With today's generated surplus, net energy self-sufficiency was preserved with a comfortable safety margin for evening consumption.",
+        "icon": "dollar"
+      }
+    ]
+  },
+  "monthly": {
+    "summary": "Cumulative monthly generation has reached over 95% of the seasonal target for the 16 kWp array in Southern Santa Catarina. The accumulated net metering credit balance at Cooperaliança provides full consumption coverage for the main generator unit as well as linked remote beneficiaries.",
+    "recommendations": [
+      {
+        "title": "Net Metering Credit Strategy",
+        "description": "Surplus energy exported from the primary generator unit secures credit compensation across remote consumer units enrolled in the utility compensation scheme.",
+        "icon": "dollar"
+      },
+      {
+        "title": "Preventive Maintenance",
+        "description": "Inverters operate with nominal thermal efficiency and zero fault logs. Module cleaning is recommended semi-annually or following prolonged dry spells.",
+        "icon": "tools"
+      },
+      {
+        "title": "Monthly Capacity Factor",
+        "description": "The ratio between generated energy and installed nominal capacity remains consistent with historical baselines for this period.",
+        "icon": "compass"
+      }
+    ]
+  }
+}

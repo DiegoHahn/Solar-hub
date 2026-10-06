@@ -7,7 +7,7 @@ import telemetryFixture from "@/test/fixtures/telemetry-day.json";
 describe("InvertersGroupCard", () => {
   const inverters = telemetryFixture[0].inverters_data as unknown as InverterReading[];
 
-  it("renderiza o cabeçalho consolidado com o total de inversores online e potência", () => {
+  it("renders consolidated header with total online inverters and power", () => {
     render(<InvertersGroupCard inverters={inverters} />);
 
     expect(screen.getByText("Parque de Inversores")).toBeInTheDocument();
@@ -16,7 +16,7 @@ describe("InvertersGroupCard", () => {
     expect(screen.getByRole("link", { name: /Ver strings PV & histórico/i })).toHaveAttribute("href", "/placas");
   });
 
-  it("renderiza os cards individuais para cada inversor da usina", () => {
+  it("renders individual cards for each inverter in the plant", () => {
     render(<InvertersGroupCard inverters={inverters} />);
 
     expect(screen.getByText("Inversor 1 (Solis 6kW)")).toBeInTheDocument();
@@ -27,14 +27,14 @@ describe("InvertersGroupCard", () => {
     expect(activeIndicators.length).toBe(3);
   });
 
-  it("exibe métricas rápidas de temperatura, tensão e energia gerada hoje", () => {
+  it("displays quick metrics for temperature, voltage, and energy generated today", () => {
     render(<InvertersGroupCard inverters={inverters} />);
 
     expect(screen.getAllByText(/kWh/).length).toBeGreaterThanOrEqual(3);
     expect(screen.getAllByText(/V/).length).toBeGreaterThanOrEqual(3);
   });
 
-  it("trata inversores offline e potência zero sem falhar na divisão", () => {
+  it("handles offline inverters and zero power without divide-by-zero errors", () => {
     const offlineInverters: InverterReading[] = inverters.map((inv) => ({
       ...inv,
       status: "offline",

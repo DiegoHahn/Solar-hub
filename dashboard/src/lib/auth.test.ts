@@ -9,25 +9,25 @@ describe("auth helpers", () => {
   });
 
   describe("isEmailAllowed", () => {
-    it("deve permitir e-mail listado exatamente", () => {
+    it("allows email explicitly listed", () => {
       process.env.ALLOWED_EMAILS = "diego@example.com,outro@example.com";
       expect(isEmailAllowed("diego@example.com")).toBe(true);
       expect(isEmailAllowed("outro@example.com")).toBe(true);
     });
 
-    it("deve ser case-insensitive e tolerar espaços", () => {
+    it("is case-insensitive and trims whitespace", () => {
       process.env.ALLOWED_EMAILS = "  Diego@Example.com , OUTRO@example.com ";
       expect(isEmailAllowed("diego@example.com")).toBe(true);
       expect(isEmailAllowed("DIEGO@EXAMPLE.COM")).toBe(true);
       expect(isEmailAllowed("  diego@example.com  ")).toBe(true);
     });
 
-    it("deve rejeitar e-mail não listado", () => {
+    it("rejects unlisted email", () => {
       process.env.ALLOWED_EMAILS = "diego@example.com";
       expect(isEmailAllowed("invasor@example.com")).toBe(false);
     });
 
-    it("deve operar em fail-closed se ALLOWED_EMAILS estiver vazia ou ausente", () => {
+    it("operates in fail-closed mode when ALLOWED_EMAILS is empty or unset", () => {
       process.env.ALLOWED_EMAILS = "";
       expect(isEmailAllowed("diego@example.com")).toBe(false);
 
@@ -35,7 +35,7 @@ describe("auth helpers", () => {
       expect(isEmailAllowed("diego@example.com")).toBe(false);
     });
 
-    it("deve rejeitar valores nulos ou vazios", () => {
+    it("rejects null or empty values", () => {
       process.env.ALLOWED_EMAILS = "diego@example.com";
       expect(isEmailAllowed("")).toBe(false);
       expect(isEmailAllowed(null)).toBe(false);
@@ -44,30 +44,30 @@ describe("auth helpers", () => {
   });
 
   describe("maskEmail", () => {
-    it("deve mascarar e-mails comuns preservando extremidades e domínio", () => {
+    it("masks standard emails preserving endpoints and domain", () => {
       expect(maskEmail("diego@example.com")).toBe("d***o@example.com");
       expect(maskEmail("usuario@empresa.com.br")).toBe("u***o@empresa.com.br");
     });
 
-    it("deve mascarar nomes curtos", () => {
+    it("masks short usernames", () => {
       expect(maskEmail("ab@example.com")).toBe("***@example.com");
     });
 
-    it("deve tratar valores inválidos ou nulos com segurança", () => {
-      expect(maskEmail(null)).toBe("desconhecido");
-      expect(maskEmail("")).toBe("desconhecido");
+    it("handles invalid or null values safely", () => {
+      expect(maskEmail(null)).toBe("unknown");
+      expect(maskEmail("")).toBe("unknown");
       expect(maskEmail("invalido")).toBe("***");
     });
   });
 
   describe("getSafeRedirectUrl", () => {
-    it("deve aceitar caminhos relativos válidos", () => {
+    it("accepts valid relative paths", () => {
       expect(getSafeRedirectUrl("/")).toBe("/");
       expect(getSafeRedirectUrl("/cooperativa")).toBe("/cooperativa");
       expect(getSafeRedirectUrl("/placas?tab=2")).toBe("/placas?tab=2");
     });
 
-    it("deve rejeitar vetores de open redirect e retornar /", () => {
+    it("rejects open redirect vectors and defaults to /", () => {
       expect(getSafeRedirectUrl("@evil.com")).toBe("/");
       expect(getSafeRedirectUrl("/@evil.com")).toBe("/");
       expect(getSafeRedirectUrl("//evil.com")).toBe("/");
@@ -78,7 +78,7 @@ describe("auth helpers", () => {
       expect(getSafeRedirectUrl("javascript:alert(1)")).toBe("/");
     });
 
-    it("deve retornar / para entradas nulas ou vazias", () => {
+    it("returns / for null or empty inputs", () => {
       expect(getSafeRedirectUrl(null)).toBe("/");
       expect(getSafeRedirectUrl(undefined)).toBe("/");
       expect(getSafeRedirectUrl("")).toBe("/");

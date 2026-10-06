@@ -13,12 +13,12 @@ describe("EnergyBalanceChart", () => {
   } as unknown as UnidadeConsumidora);
   const balanco = normalized.balanco_energetico!;
 
-  it("não renderiza nada se os dados forem vazios", () => {
+  it("renders nothing if data array is empty", () => {
     const { container } = render(<EnergyBalanceChart data={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renderiza o cabeçalho, KPIs consolidados e abas de alternância", () => {
+  it("renders header, consolidated KPIs, and toggle tabs", () => {
     render(<EnergyBalanceChart data={balanco} />);
 
     expect(screen.getByRole("heading", { name: /Balanço Energético/i })).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe("EnergyBalanceChart", () => {
     expect(screen.getByRole("button", { name: "Líquido (±)" })).toBeInTheDocument();
   });
 
-  it("permite alternar entre as abas 'Injeção vs Rede' e 'Líquido (±)'", () => {
+  it("allows toggling between 'Injeção vs Rede' and 'Líquido (±)' tabs", () => {
     render(<EnergyBalanceChart data={balanco} />);
 
     const netTab = screen.getByRole("button", { name: "Líquido (±)" });
@@ -40,20 +40,20 @@ describe("EnergyBalanceChart", () => {
     expect(comparisonTab).toHaveClass("bg-white");
   });
 
-  it("exibe o saldoAtual informado no cabeçalho e rodapé prioritariamente", () => {
+  it("displays provided saldoAtual in header and footer with priority", () => {
     render(<EnergyBalanceChart data={balanco} saldoAtual={9900} />);
     expect(screen.getByText("9.900")).toBeInTheDocument();
     expect(screen.getByText("Saldo atual: 9.900 kWh")).toBeInTheDocument();
   });
 
-  it("remove mês não faturado zerado do final do array de dados", () => {
+  it("removes trailing unbilled zeroed month from end of data array", () => {
     const dataWithTrailingZero = [
       { mes: "08/2026", injetado_kwh: 1400, compensado_kwh: 600, liquido_kwh: 800, saldo_kwh: 9000 },
       { mes: "09/2026", injetado_kwh: 1450, compensado_kwh: 550, liquido_kwh: 900, saldo_kwh: 9900 },
       { mes: "10/2026", injetado_kwh: 0, compensado_kwh: 0, liquido_kwh: 0, saldo_kwh: 0 },
     ];
     render(<EnergyBalanceChart data={dataWithTrailingZero} />);
-    // O último saldo exibido deve ser o de 09/2026 (9.900) e não 0
+    // The last displayed balance must be 09/2026 (9,900) and not 0
     expect(screen.getByText("9.900")).toBeInTheDocument();
     expect(screen.getByText("Saldo atual: 9.900 kWh")).toBeInTheDocument();
   });

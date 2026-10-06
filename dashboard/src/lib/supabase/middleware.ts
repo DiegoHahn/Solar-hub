@@ -49,13 +49,13 @@ export async function updateSession(request: NextRequest) {
   if (!user) {
     if (isDemo) {
       if (isApiRoute && !isAiAdvisorRoute) {
-        return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+        return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
       }
       return supabaseResponse;
     }
 
     if (isApiRoute) {
-      return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+      return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
     }
     if (!isLoginPage && !isAuthCallback) {
       const url = request.nextUrl.clone();
@@ -65,15 +65,15 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Usuário autenticado, mas com e-mail fora da allowlist
+  // Authenticated user, but email is not on allowlist
   if (!isAuthCallback && !isEmailAllowed(user.email)) {
     console.warn(
-      `[Auth] Acesso negado para o e-mail: ${maskEmail(user.email)}. Não autorizado.`
+      `[Auth] Access denied for email: ${maskEmail(user.email)}. Unauthorized.`
     );
     await supabase.auth.signOut();
 
     if (isApiRoute) {
-      return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 
     const url = request.nextUrl.clone();
@@ -93,7 +93,7 @@ export async function updateSession(request: NextRequest) {
     });
   }
 
-  // Usuário autenticado e autorizado tentando acessar a página de login
+  // Authenticated and authorized user attempting to access login page
   if (isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";

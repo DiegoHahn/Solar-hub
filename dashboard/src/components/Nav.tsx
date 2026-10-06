@@ -18,36 +18,39 @@ import {
   RiUserLine,
 } from "@remixicon/react";
 import { cx } from "@/lib/utils";
-
-const navItems = [
-  { href: "/", label: "Início", Icon: RiHome5Line, IconActive: RiHome5Fill },
-  { href: "/placas", label: "Placas", Icon: RiSunLine, IconActive: RiSunFill },
-  {
-    href: "/cooperativa",
-    label: "Cooperativa",
-    Icon: RiBuilding2Line,
-    IconActive: RiBuilding2Fill,
-  },
-  {
-    href: "/combinada",
-    label: "Análise",
-    Icon: RiBarChartGroupedLine,
-    IconActive: RiBarChartGroupedFill,
-  },
-];
+import { useI18n } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export function Nav({ isDemo = false }: { isDemo?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useI18n();
   const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const navItems = [
+    { href: "/", label: t.nav.overview, Icon: RiHome5Line, IconActive: RiHome5Fill },
+    { href: "/placas", label: t.nav.inverters, Icon: RiSunLine, IconActive: RiSunFill },
+    {
+      href: "/cooperativa",
+      label: t.nav.utility,
+      Icon: RiBuilding2Line,
+      IconActive: RiBuilding2Fill,
+    },
+    {
+      href: "/combinada",
+      label: t.nav.combined,
+      Icon: RiBarChartGroupedLine,
+      IconActive: RiBarChartGroupedFill,
+    },
+  ];
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) {
         setUserEmail(user.email);
       } else if (isDemo) {
-        setUserEmail("Visitante (Demo)");
+        setUserEmail(t.nav.guestDemo);
       }
     });
 
@@ -57,14 +60,14 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
       if (session?.user?.email) {
         setUserEmail(session.user.email);
       } else if (isDemo) {
-        setUserEmail("Visitante (Demo)");
+        setUserEmail(t.nav.guestDemo);
       } else {
         setUserEmail(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, isDemo]);
+  }, [supabase, isDemo, t.nav.guestDemo]);
 
   // Não renderiza navegação na tela de login ou callback de autenticação
   if (pathname.startsWith("/login") || pathname.startsWith("/auth")) {
@@ -114,8 +117,9 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
           </ul>
         </div>
 
-        {/* Rodapé da Sidebar: Usuário & Logout */}
+        {/* Rodapé da Sidebar: Idioma, Usuário & Logout */}
         <div className="border-t border-gray-100 pt-4 dark:border-gray-900">
+          <LanguageToggle className="w-full mb-3" />
           {userEmail && (
             <div className="mb-2 flex items-center gap-2 px-2 text-xs text-gray-500 dark:text-gray-400">
               <RiUserLine className="size-3.5 shrink-0" />
@@ -128,10 +132,19 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-500/10 dark:hover:text-red-400"
           >
             <RiLogoutBoxRLine className="size-4 shrink-0" />
-            Sair do Painel
+            {t.nav.signOutPanel}
           </button>
         </div>
       </nav>
+
+      {/* Mobile: cabeçalho superior com logo e seletor de idioma */}
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-2.5 backdrop-blur-sm md:hidden dark:border-gray-900 dark:bg-[#030712]/95">
+        <span className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-50">
+          <Image src="/logo.png" alt="" width={24} height={24} className="shrink-0" priority />
+          Solar Hub
+        </span>
+        <LanguageToggle />
+      </header>
 
       {/* Mobile: barra inferior fixa */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-gray-900 dark:bg-[#030712]">
@@ -160,7 +173,7 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
           className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-400"
         >
           <RiLogoutBoxRLine className="size-6" aria-hidden="true" />
-          Sair
+          {t.nav.logout}
         </button>
       </nav>
     </>

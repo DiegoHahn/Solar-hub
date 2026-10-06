@@ -1,40 +1,40 @@
-# Contribuindo
+# Contributing
 
-O projeto segue o **GitHub Flow**: o `main` está sempre pronto para produção e toda mudança entra por pull request.
+The project follows the **GitHub Flow**: `main` is always production-ready and all changes are introduced via pull requests.
 
-## Fluxo
+## Workflow
 
-1. Crie uma branch a partir do `main` atualizado, com o prefixo do tipo de mudança:
+1. Create a feature branch from an up-to-date `main`, using the prefix corresponding to the change type:
 
    ```bash
    git switch main && git pull
-   git switch -c feat/historico-anual
+   git switch -c feat/yearly-history
    ```
 
-   Prefixos: `feat/`, `fix/`, `test/`, `docs/`, `refactor/`, `chore/`, `ci/`.
+   Branch prefixes: `feat/`, `fix/`, `test/`, `docs/`, `refactor/`, `chore/`, `ci/`.
 
-2. Faça commits pequenos no padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/):
+2. Keep commits atomic and adhere to the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
    ```text
-   feat(placas): comparação da geração anual por inversor
-   fix(collector): reconexão ao logger Solis após timeout
+   feat(inverters): yearly generation comparison per inverter
+   fix(collector): reconnect to Solis logger after socket timeout
    ```
 
-3. Abra o pull request para o `main`. O CI roda lint, typecheck, testes com cobertura mínima, build e análise de segurança (Trivy e Semgrep); a Vercel publica um preview do dashboard no próprio PR.
+3. Open a pull request targeting `main`. The CI pipeline runs linting, typechecking, tests with strict coverage gates, production builds, and security scans (Trivy and Semgrep); Vercel deploys an isolated preview environment directly on the PR.
 
-4. Com os checks verdes e as conversas resolvidas, o PR é integrado por **squash merge**. O título do PR vira a mensagem do commit no `main`, por isso também segue o Conventional Commits. A branch é apagada automaticamente.
+4. Once all status checks pass and code review comments are resolved, the PR is merged via **squash and merge**. The PR title becomes the commit message on `main`, preserving Conventional Commits history. The feature branch is automatically deleted.
 
-O `main` é protegido: não aceita push direto, force push nem merge com checks falhando.
+Direct pushes to `main`, force pushes, and merges with failing checks are blocked by repository branch protection rulesets.
 
-## Checagens locais
+## Local Quality Checks
 
-O hook `pre-push` roda os testes e a cobertura antes de cada push. Ative uma vez por clone:
+A `pre-push` hook runs automated test suites and coverage verification prior to each push. Enable it once per local clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Para rodar manualmente:
+To execute checks manually:
 
 ```bash
 cd dashboard && npm run lint && npm run typecheck && npm run test:coverage
@@ -43,9 +43,9 @@ cd collector && ruff check . && ruff format --check . && pytest
 
 ## Releases
 
-As versões seguem o [Semantic Versioning](https://semver.org/lang/pt-BR/) e são geradas pelo [release-please](https://github.com/googleapis/release-please) a partir dos commits do `main`: ele mantém um PR de release com o `CHANGELOG.md` e a próxima versão (`fix` e `perf` → patch, `feat` → minor, `!`/`BREAKING CHANGE` → major). Os demais tipos (`refactor`, `test`, `docs`, `ci`, `chore`, `style`) ficam no histórico do git, mas não geram versão. O PR de release acumula as mudanças até ser integrado, o que cria a tag e a GitHub Release.
+Releases follow [Semantic Versioning](https://semver.org/) and are automated by [release-please](https://github.com/googleapis/release-please) based on commits merged into `main`: it maintains an automated release PR with an updated `CHANGELOG.md` and version bump (`fix` and `perf` → patch, `feat` → minor, `!` / `BREAKING CHANGE` → major). Other commit types (`refactor`, `test`, `docs`, `ci`, `chore`, `style`) are preserved in Git history without triggering a version increment. When the release PR is merged, GitHub Releases and git tags are created automatically.
 
-## Deploy
+## Deployment
 
-- **Dashboard:** a Vercel publica o `main` automaticamente a cada merge.
-- **Coletor:** o dispositivo edge acompanha o `main`; após o merge de mudanças em `collector/`, atualize com `git pull` e reinicie o serviço (`systemctl restart solar-inverters@<usuário>`).
+- **Dashboard:** Vercel automatically deploys `main` to production on every merge.
+- **Edge Collector:** The physical edge device tracks `main`; following merged changes in `collector/`, pull the latest code and restart the systemd service (`systemctl restart solar-inverters@<user>`).

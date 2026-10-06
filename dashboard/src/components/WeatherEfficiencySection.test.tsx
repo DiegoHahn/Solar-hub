@@ -11,7 +11,7 @@ describe("WeatherEfficiencySection", () => {
     toDailyWeather(row, todayIso, undefined),
   );
 
-  it("renderiza o cabeçalho completo, badges e estatísticas agregadas na versão padrão", () => {
+  it("renders full header, badges, and aggregated statistics in default view", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);
 
     expect(screen.getByRole("heading", { name: "Índice Climático vs. Eficiência Solar" })).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe("WeatherEfficiencySection", () => {
     expect(screen.getByText(/Sol \(HSP\)/i)).toBeInTheDocument();
   });
 
-  it("permite alternar entre os filtros de 7, 30 e 90 dias", () => {
+  it("allows toggling between 7, 30, and 90 day filters", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);
 
     const btn30 = screen.getByRole("button", { name: "30 Dias" });
@@ -40,7 +40,7 @@ describe("WeatherEfficiencySection", () => {
     expect(btn7).toHaveClass("bg-white");
   });
 
-  it("renderiza a versão compacta para o dashboard inicial", () => {
+  it("renders compact version for overview dashboard", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={true} />);
 
     expect(screen.getByRole("heading", { name: "Sol vs. Geração (Últimos 7 dias)" })).toBeInTheDocument();

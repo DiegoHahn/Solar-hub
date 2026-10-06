@@ -1,11 +1,11 @@
 import type { UnidadeConsumidora, UtilityDataRow } from "@/lib/types";
 
 /**
- * Identifica a UC geradora (onde a usina está instalada) entre as unidades consumidoras do titular:
- * a que tem potência instalada de GD ou, na falta desse dado, a que tem lançamentos de energia injetada.
+ * Identifies the generator Consumer Unit (where the solar plant is installed) among the account units:
+ * the unit with installed GD capacity, or falling back to the unit with energy injection records.
  */
-export function findGeneratorUcCode(unidades: Record<string, UnidadeConsumidora> | undefined): string | null {
-  const entries = Object.entries(unidades ?? {});
+export function findGeneratorUcCode(consumerUnits: Record<string, UnidadeConsumidora> | undefined): string | null {
+  const entries = Object.entries(consumerUnits ?? {});
 
   const byPower = entries.find(([, uc]) => (uc.geracao_distribuida?.PotenciaInstalada ?? 0) > 0);
   if (byPower) return byPower[0];
@@ -18,19 +18,19 @@ export function findGeneratorUcCode(unidades: Record<string, UnidadeConsumidora>
   return byInjection ? byInjection[0] : null;
 }
 
-/** Unidade consumidora geradora já resolvida em `getLatestUtilityData`. */
+/** Generator Consumer Unit already resolved in `getLatestUtilityData`. */
 export function getGeneratorUc(utilityData: UtilityDataRow | null | undefined): UnidadeConsumidora | undefined {
   const code = utilityData?.generator_uc;
   return code ? utilityData.unidades_consumidoras[code] : undefined;
 }
 
-/** Código da UC com apenas os 4 últimos dígitos visíveis (ex.: "••••1234"). */
+/** Masks Consumer Unit code leaving only the last 4 digits visible (e.g., "••••1234"). */
 export function maskUcCode(code: string | null | undefined): string {
   if (!code) return "—";
   return code.length > 4 ? `••••${code.slice(-4)}` : code;
 }
 
-/** Primeiro nome do titular, para exibição na interface. */
+/** Account holder first name, capitalized for UI display. */
 export function holderFirstName(name: string | null | undefined): string {
   const first = (name ?? "").trim().split(/\s+/)[0] ?? "";
   return first ? first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() : "";

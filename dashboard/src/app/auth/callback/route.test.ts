@@ -24,7 +24,7 @@ describe("GET /auth/callback", () => {
     vi.clearAllMocks();
   });
 
-  it("redireciona para login quando code não é fornecido", async () => {
+  it("redirects to login when code is not provided", async () => {
     const req = new Request("http://localhost:3000/auth/callback");
     const res = await GET(req);
 
@@ -32,7 +32,7 @@ describe("GET /auth/callback", () => {
     expect(res.headers.get("location")).toBe("http://localhost:3000/login?error=auth_callback_failed");
   });
 
-  it("redireciona para o destino seguro e apaga o cookie solarhub_demo no login com sucesso", async () => {
+  it("redirects to safe destination and clears solarhub_demo cookie on successful login", async () => {
     mockExchangeCode.mockResolvedValueOnce({
       data: { user: { email: "autorizado@exemplo.com" } },
       error: null,
@@ -44,13 +44,13 @@ describe("GET /auth/callback", () => {
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("http://localhost:3000/placas");
 
-    // Verifica que o cookie solarhub_demo é apagado (maxAge: 0)
+    // Verify that solarhub_demo cookie is cleared (maxAge: 0)
     const setCookie = res.headers.get("set-cookie");
     expect(setCookie).toContain("solarhub_demo=");
     expect(setCookie).toMatch(/Max-Age=0/i);
   });
 
-  it("faz signOut e redireciona com erro se o email não estiver na allowlist", async () => {
+  it("signs out and redirects with error if email is not in allowlist", async () => {
     mockExchangeCode.mockResolvedValueOnce({
       data: { user: { email: "invasor@externo.local" } },
       error: null,
@@ -64,7 +64,7 @@ describe("GET /auth/callback", () => {
     expect(res.headers.get("location")).toBe("http://localhost:3000/login?error=unauthorized_email");
   });
 
-  it("redireciona para login com erro se exchangeCodeForSession falhar", async () => {
+  it("redirects to login with error if exchangeCodeForSession fails", async () => {
     mockExchangeCode.mockResolvedValueOnce({
       data: null,
       error: new Error("Código inválido"),

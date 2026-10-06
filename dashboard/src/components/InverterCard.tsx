@@ -16,6 +16,8 @@ import {
 } from "@remixicon/react";
 import type { InverterReading } from "@/lib/types";
 import { getNominalKw, readNumericSensor } from "@/lib/inverter";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 
 interface InverterCardProps {
   inverter: InverterReading;
@@ -32,6 +34,7 @@ export function InverterCard({
   showAdvanced: controlledShowAdvanced,
   onToggleAdvanced,
 }: InverterCardProps) {
+  const { t, locale } = useI18n();
   const [internalShowAdvanced, setInternalShowAdvanced] = useState(false);
   const isControlled = controlledShowAdvanced !== undefined;
   const showAdvanced = isControlled ? controlledShowAdvanced : internalShowAdvanced;
@@ -118,7 +121,7 @@ export function InverterCard({
             ) : (
               <span className="size-2 rounded-full bg-gray-400 dark:bg-gray-600" />
             )}
-            {isOnline ? "Online" : "Standby"}
+            {isOnline ? t.inverters.online : t.inverters.standby}
           </span>
         </div>
 
@@ -126,7 +129,7 @@ export function InverterCard({
         <div className="mt-3 flex items-baseline justify-between">
           <div>
             <span className="text-2xl font-bold tracking-tight tabular-nums text-gray-900 dark:text-gray-50">
-              {inverter.power_w.toLocaleString("pt-BR")}
+              {formatNumber(inverter.power_w, locale)}
             </span>
             <span className="ml-1 text-sm font-medium text-gray-500 dark:text-gray-400">W</span>
           </div>
@@ -135,11 +138,11 @@ export function InverterCard({
           <div className="text-right">
             {isOverload ? (
               <Badge variant="warning" className="animate-pulse text-[11px] font-semibold">
-                {rawPct}% (Pico)
+                {rawPct}% ({t.inverters.peak})
               </Badge>
             ) : (
               <span className="text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400">
-                {rawPct}% de {nominalKw} kW
+                {rawPct}% {t.inverters.ofNominalKw.replace("{nominal}", String(nominalKw))}
               </span>
             )}
           </div>
@@ -167,10 +170,10 @@ export function InverterCard({
           <div>
             <span className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
               <RiSunLine className="size-3.5 text-amber-500" />
-              Hoje
+              {t.common.today}
             </span>
             <p className="mt-0.5 font-semibold tabular-nums text-gray-700 dark:text-gray-200">
-              {inverter.energy_today_kwh.toLocaleString("pt-BR")}{" "}
+              {formatNumber(inverter.energy_today_kwh, locale)}{" "}
               <span className="text-[10px] font-normal text-gray-400">kWh</span>
             </p>
           </div>
@@ -178,7 +181,7 @@ export function InverterCard({
           <div>
             <span className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
               <RiTempHotLine className="size-3.5 text-rose-500" />
-              Temp
+              {t.inverters.temp}
             </span>
             <p className="mt-0.5 font-semibold tabular-nums text-gray-700 dark:text-gray-200">
               {inverter.temperature_c ? `${inverter.temperature_c.toFixed(1)}°C` : "—"}
@@ -188,7 +191,7 @@ export function InverterCard({
           <div>
             <span className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
               <RiFlashlightLine className="size-3.5 text-blue-500" />
-              Rede CA
+              {t.inverters.acGrid}
             </span>
             <p className="mt-0.5 font-semibold tabular-nums text-gray-700 dark:text-gray-200">
               {inverter.vgrid ? `${Math.round(inverter.vgrid)}V` : "—"}{" "}
@@ -205,7 +208,7 @@ export function InverterCard({
         {detailed && (inverter.pv1 || inverter.pv2) && (
           <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-900">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-gray-500 dark:text-gray-400">Strings PV (CC)</span>
+              <span className="font-medium text-gray-500 dark:text-gray-400">{t.inverters.pvStringsDc}</span>
               {efficiencyPct && (
                 <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                   η {efficiencyPct}% CC➔CA
@@ -223,7 +226,7 @@ export function InverterCard({
                     </span>
                   </div>
                   <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                    {inverter.pv1.w.toLocaleString("pt-BR")}{" "}
+                    {formatNumber(inverter.pv1.w, locale)}{" "}
                     <span className="text-[11px] font-normal text-gray-400">W</span>
                   </p>
                   <p className="text-[11px] tabular-nums text-gray-400">
@@ -241,7 +244,7 @@ export function InverterCard({
                     </span>
                   </div>
                   <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-                    {inverter.pv2.w.toLocaleString("pt-BR")}{" "}
+                    {formatNumber(inverter.pv2.w, locale)}{" "}
                     <span className="text-[11px] font-normal text-gray-400">W</span>
                   </p>
                   <p className="text-[11px] tabular-nums text-gray-400">
@@ -263,10 +266,10 @@ export function InverterCard({
             >
               <span className="flex items-center gap-1.5">
                 <RiCpuLine className="size-3.5 text-indigo-500" />
-                Diagnóstico & Telemetria Modbus
+                {t.inverters.modbusDiagnostics}
               </span>
               <span className="flex items-center gap-1 text-[11px] text-gray-400">
-                {showAdvanced ? "Ocultar" : "Expandir"}
+                {showAdvanced ? t.inverters.collapse : t.inverters.expand}
                 {showAdvanced ? (
                   <RiArrowUpSLine className="size-4" />
                 ) : (
@@ -280,17 +283,17 @@ export function InverterCard({
                 {/* 1. Gestão Térmica */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                    Sensores Térmicos
+                    {t.inverters.thermalSensors}
                   </p>
                   <div className="mt-1.5 grid grid-cols-2 gap-2">
                     <div className="rounded-md bg-white p-2 dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-                      <span className="text-[10px] text-gray-400">Circuito Interno</span>
+                      <span className="text-[10px] text-gray-400">{t.inverters.internalCircuit}</span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
                         {inverter.temperature_c ? `${inverter.temperature_c.toFixed(1)}°C` : "—"}
                       </p>
                     </div>
                     <div className="rounded-md bg-white p-2 dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-                      <span className="text-[10px] text-gray-400">Dissipador Externo</span>
+                      <span className="text-[10px] text-gray-400">{t.inverters.externalHeatsink}</span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
                         {heatsinkTemp ? `${heatsinkTemp.toFixed(1)}°C` : "N/A"}
                       </p>
@@ -301,23 +304,23 @@ export function InverterCard({
                 {/* 2. Qualidade da Rede CA */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                    Rede Elétrica (Cooperaliança)
+                    {t.inverters.electricalGrid}
                   </p>
                   <div className="mt-1.5 grid grid-cols-3 gap-1.5">
                     <div className="rounded-md bg-white p-1.5 text-center dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-                      <span className="text-[10px] text-gray-400">Freq. CA</span>
+                      <span className="text-[10px] text-gray-400">{t.inverters.acFreq}</span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
                         {inverter.fgrid ? `${inverter.fgrid.toFixed(1)} Hz` : "60.0 Hz"}
                       </p>
                     </div>
                     <div className="rounded-md bg-white p-1.5 text-center dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-                      <span className="text-[10px] text-gray-400">Fator Pot.</span>
+                      <span className="text-[10px] text-gray-400">{t.inverters.powerFactorShort}</span>
                       <p className="font-semibold text-emerald-600 dark:text-emerald-400">
                         {powerFactor ? powerFactor.toFixed(3) : "1.000"}
                       </p>
                     </div>
                     <div className="rounded-md bg-white p-1.5 text-center dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-                      <span className="text-[10px] text-gray-400">Pot. Aparente</span>
+                      <span className="text-[10px] text-gray-400">{t.inverters.apparentPower}</span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
                         {apparentPower ? `${apparentPower} VA` : `${inverter.power_w} VA`}
                       </p>
@@ -328,22 +331,22 @@ export function InverterCard({
                 {/* 3. Barramento e Saúde Operacional */}
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                    Saúde Operacional & Isolamento
+                    {t.inverters.operationalHealth}
                   </p>
                   <div className="mt-1.5 grid grid-cols-2 gap-2">
                     <div className="rounded-md bg-white p-2 dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
                       <span className="flex items-center gap-1 text-[10px] text-gray-400">
                         <RiTimeLine className="size-3" />
-                        Horas Totais de Vida
+                        {t.inverters.totalOperatingHours}
                       </span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
-                        {hoursTotal ? `${hoursTotal.toLocaleString("pt-BR")} h` : "—"}
+                        {hoursTotal ? `${formatNumber(hoursTotal, locale)} h` : "—"}
                       </p>
                     </div>
                     <div className="rounded-md bg-white p-2 dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
                       <span className="flex items-center gap-1 text-[10px] text-gray-400">
                         <RiShieldCheckLine className="size-3 text-emerald-500" />
-                        Barramento CC / Fuga
+                        {t.inverters.dcBusLeakage}
                       </span>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">
                         {vbus ? `${vbus.toFixed(1)}V` : "—"}{" "}
@@ -358,22 +361,22 @@ export function InverterCard({
                 {/* 4. Hardware & Firmware */}
                 <div className="border-t border-gray-200/60 pt-2 text-[11px] text-gray-500 dark:border-gray-800 dark:text-gray-400">
                   <div className="flex justify-between py-0.5">
-                    <span>Modelo:</span>
+                    <span>{t.inverters.modelLabel}</span>
                     <span className="font-mono font-medium text-gray-700 dark:text-gray-300">
                       {modelName}
                     </span>
                   </div>
                   <div className="flex justify-between py-0.5">
-                    <span>Serial:</span>
+                    <span>{t.inverters.serialLabel}</span>
                     <span className="font-mono text-gray-600 dark:text-gray-400">{serialNum}</span>
                   </div>
                   <div className="flex justify-between py-0.5">
-                    <span>Firmware:</span>
+                    <span>{t.inverters.firmwareLabel}</span>
                     <span className="font-mono text-gray-600 dark:text-gray-400">{firmwareVer}</span>
                   </div>
                   {wifiSsid && (
                     <div className="flex justify-between py-0.5">
-                      <span>Rede Wi-Fi:</span>
+                      <span>{t.inverters.wifiNetworkLabel}</span>
                       <span className="font-medium text-gray-700 dark:text-gray-300">
                         {wifiSsid} ({wifiRssi})
                       </span>

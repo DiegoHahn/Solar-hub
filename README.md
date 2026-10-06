@@ -12,93 +12,94 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-8E75B2?style=for-the-badge&logo=google)](https://ai.google.dev/)
 
-[Visão Geral](#1-visão-geral) • [Demonstração](#demonstração) • [Arquitetura](#2-arquitetura-do-sistema) • [Protocolos dos Inversores](#3-protocolos-e-engenharia-reversa-iot) • [Stack Tecnológica](#4-stack-tecnológica) • [Instalação](#6-instalação-e-execução) • [Segurança](#7-segurança-e-autenticação) • [Testes](#8-testes-e-integração-contínua) • [Monitoramento](#9-monitoramento-da-telemetria) • [Fluxo de Desenvolvimento](#10-fluxo-de-desenvolvimento)
+[Versão em Português](README.pt-BR.md) • [Overview](#1-overview) • [Live Demo](#live-demo) • [Architecture](#2-system-architecture) • [IoT & Inverter Protocols](#3-protocols-and-iot-reverse-engineering) • [Tech Stack](#4-technology-stack) • [Repository Structure](#5-repository-structure) • [Setup & Installation](#6-setup-and-installation) • [Security & Auth](#7-security-and-authentication) • [Testing & CI](#8-testing-and-continuous-integration) • [Telemetry Monitoring](#9-telemetry-health-monitoring) • [Development Workflow](#10-development-workflow)
 
 </div>
 
 ---
 
-**Demonstração ao vivo:** [solar-hub-diego-2112.vercel.app/demo](https://solar-hub-diego-2112.vercel.app/demo) — dados fictícios, sem login.
+**Live Interactive Demo:** [solar-hub-diego-2112.vercel.app/demo](https://solar-hub-diego-2112.vercel.app/demo) — mock data, no login required, with live language toggle (EN / PT).
 
-## 1. Visão Geral
+## 1. Overview
 
-O **Solar Hub** é uma plataforma de telemetria fotovoltaica e inteligência energética projetada para unificar usinas solares multimarcas (**Solis** + **GoodWe**) e concessionárias de energia em um dashboard analítico unificado em tempo real.
+**Solar Hub** is an enterprise-grade solar telemetry and energy intelligence platform engineered to unify multi-vendor photovoltaic plants (**Solis** + **GoodWe**) and utility grid data into a cohesive, real-time analytics dashboard.
 
-O projeto resolve o problema de fragmentação de dados em usinas com múltiplos inversores de fabricantes distintos, substituindo portais proprietários dispersos por uma **arquitetura Edge-to-Cloud** resiliente, com telemetria direta via rede local, zero dependência de clouds externas para coleta, e análise preditiva com Inteligência Artificial.
+The system addresses data fragmentation across distributed inverters from disparate manufacturers, replacing proprietary vendor cloud silos with a resilient **Edge-to-Cloud architecture**. It provides direct local network acquisition, zero dependency on third-party cloud APIs for collection, automated net metering reconciliations, and predictive AI energy analysis.
 
-### Destaques de Engenharia
-* **Coleta Edge 100% Local:** Comunicação direta com os inversores na rede local via Modbus TCP, UDP e Solarman V5 frame parsing.
-* **Zero Armazenamento Desnecessário em Disco:** Telemetria em memória com push direto via HTTPS/REST para nuvem, ideal para placas embarcadas (Orange Pi / Raspberry Pi) sem desgaste de armazenamento eMMC/SD.
-* **Fila de Tolerância a Falhas:** Buffer offline local caso a internet caia, sincronizando snapshots retroativos assim que a conexão restabelece.
-* **Automação Contábil GD:** Scraper/integrador automatizado com a concessionária de energia (**Cooperaliança**), extraindo histórico de faturas de 60 meses, extrato detalhado de créditos GD I e GD II e demonstrativo financeiro.
-* **Interface de Alta Fidelidade:** Dashboard em Next.js 16 (App Router + Turbopack), SSR com `@supabase/ssr`, Tailwind CSS, visual Glassmorphism e gráficos interativos com Recharts.
-* **Consultor Energético IA:** Módulo de análise inteligente integrado com o **Google Gemini**, avaliando perdas de eficiência, projeção de economia e saúde dos inversores.
+### Engineering Highlights
+* **100% Local Edge Acquisition:** Direct local-network querying via Modbus TCP, UDP, and Solarman V5 frame parsing.
+* **Flash-Wear Elimination:** In-memory telemetry buffering with direct HTTPS/REST push to PostgreSQL, preserving eMMC/SD storage life on embedded single-board computers (Orange Pi / Raspberry Pi).
+* **Fault-Tolerant Offline Resiliency:** Local queue buffer captures snapshots during network blackouts and drains sequentially upon WAN reconnection.
+* **Automated Utility Metering Reconciliations:** Headless collector queries utility cooperative systems (**Cooperaliança**), retrieving 60-month invoice history, distributed generation credit balances (DG I & DG II), and real-time tariff structures.
+* **High-Fidelity Dashboard:** Built on Next.js 16 (App Router + Turbopack), React 19, `@supabase/ssr`, Tailwind CSS glassmorphic aesthetics, and responsive Recharts visual curves.
+* **Full Bilingual Support (i18n):** Real-time language switching between English (`en`) and Brazilian Portuguese (`pt-BR`) with localized date, currency, and metric formatters.
+* **Gemini AI Energy Advisor:** Integrated with Google Gemini models to assess thermal clipping, cloud irradiance variances, financial payback metrics, and inverter operational health.
 
 ---
 
-## Demonstração
+## Live Demo
 
-Telas capturadas do [modo demonstração](https://solar-hub-diego-2112.vercel.app/demo), que roda com dados fictícios e abre sem login:
+Screenshots captured from the [interactive demo environment](https://solar-hub-diego-2112.vercel.app/demo):
 
 <div align="center">
-  <img src="docs/images/inicio.png" alt="Visão Geral do Dashboard Solar Hub" width="850" />
+  <img src="docs/images/inicio.png" alt="Solar Hub Overview Dashboard" width="850" />
 </div>
 
 <br />
 
-| Placas e inversores | Cooperativa |
+| Inverters & PV Strings | Utility Cooperative (Net Metering) |
 | :---: | :---: |
-| <img src="docs/images/placas.png" alt="Placas e inversores" width="420" /> | <img src="docs/images/cooperativa.png" alt="Cooperativa" width="420" /> |
-| **Análise e Consultor IA** | **Mobile** |
-| <img src="docs/images/analise.png" alt="Análise Integrada com IA" width="420" /> | <img src="docs/images/mobile-inicio.png" alt="Dashboard Mobile" width="210" /> |
+| <img src="docs/images/placas.png" alt="Inverters and PV Strings" width="420" /> | <img src="docs/images/cooperativa.png" alt="Utility Billing and Energy Credits" width="420" /> |
+| **Combined Analysis & AI Advisor** | **Mobile Experience** |
+| <img src="docs/images/analise.png" alt="Combined Analysis with AI Advisor" width="420" /> | <img src="docs/images/mobile-inicio.png" alt="Mobile Dashboard View" width="210" /> |
 
 ---
 
-## 2. Arquitetura do Sistema
+## 2. System Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Edge["Edge: Orange Pi 4 Pro (systemd)"]
+    subgraph Edge["Edge Layer: Orange Pi 4 Pro (systemd)"]
         direction TB
-        INV1["Inversor 1 · Solis 6 kW\nSolarman V5 (porta 8899)"]
-        INV2["Inversor 2 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
-        INV3["Inversor 3 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
+        INV1["Inverter 1 · Solis 6 kW\nSolarman V5 (Port 8899)"]
+        INV2["Inverter 2 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
+        INV3["Inverter 3 · GoodWe 5 kW\nModbus TCP/UDP (502/8899)"]
 
-        COLLECTOR["collector/inverters.py\nciclo de 10 min"]
-        UTILITY["collector/utility.py\ntimer 7h, 13h e 19h"]
-        RETRY_QUEUE[("Fila offline\noffline_queue.json")]
+        COLLECTOR["collector/inverters.py\n10-minute cycle"]
+        UTILITY["collector/utility.py\nDaily sync timer (07:00, 13:00, 19:00)"]
+        RETRY_QUEUE[("Offline Queue\noffline_queue.json")]
 
-        INV1 -->|registradores 0..39| COLLECTOR
-        INV2 -->|52 sensores| COLLECTOR
-        INV3 -->|52 sensores| COLLECTOR
+        INV1 -->|Holding registers 0..39| COLLECTOR
+        INV2 -->|52 electrical sensors| COLLECTOR
+        INV3 -->|52 electrical sensors| COLLECTOR
 
         COLLECTOR --> RETRY_QUEUE
     end
 
-    subgraph Cloud["Supabase"]
+    subgraph Cloud["Database & Cloud Services: Supabase"]
         POSTGRES[("PostgreSQL\nRow Level Security")]
-        TABLE_TEL["solar_telemetry\nsnapshot a cada 10 min"]
-        TABLE_UTL["utility_data\nfaturas de 60 meses e extrato GD"]
-        AUTH["Supabase Auth\nsessões SSR"]
+        TABLE_TEL["solar_telemetry\n10-min snapshots"]
+        TABLE_UTL["utility_data\nInvoices & DG ledger"]
+        AUTH["Supabase Auth\nSSR sessions"]
 
         POSTGRES --> TABLE_TEL
         POSTGRES --> TABLE_UTL
     end
 
-    subgraph External["Serviços externos"]
-        COOP_API["Portal da Cooperaliança\n(API Useall)"]
-        OPEN_METEO["Open-Meteo\nirradiação e clima"]
-        GEMINI["Google Gemini\nConsultor IA"]
+    subgraph External["External APIs"]
+        COOP_API["Utility Portal\n(Useall API)"]
+        OPEN_METEO["Open-Meteo\nSolar irradiance & weather"]
+        GEMINI["Google Gemini\nAI Energy Advisor"]
     end
 
-    subgraph Frontend["Vercel: Next.js 16"]
+    subgraph Frontend["Application: Next.js 16 (Vercel)"]
         DASH["Dashboard\n/, /placas, /cooperativa, /combinada"]
-        PROXY["Proxy\nsessão e lista de acesso"]
+        PROXY["Proxy & Middleware\nSession check & allowlist"]
     end
 
     COLLECTOR -->|HTTPS REST| TABLE_TEL
     UTILITY -->|HTTPS REST| TABLE_UTL
-    UTILITY -.->|Coleta Faturas & GD| COOP_API
+    UTILITY -.->|Scrapes Billing & Ledger| COOP_API
     DASH -.-> OPEN_METEO
     DASH -.-> GEMINI
     PROXY --> DASH
@@ -107,121 +108,123 @@ flowchart TB
     TABLE_UTL --> DASH
 ```
 
-> As decisões fundamentais de engenharia, arquitetura e seus trade-offs estão documentadas nos [Registros de Decisões de Arquitetura (ADRs)](docs/adr/README.md).
+> Core architectural decisions, evaluation criteria, and trade-offs are documented in our [Architecture Decision Records (ADRs)](docs/adr/README.md).
 
 ---
 
-## 3. Protocolos e Engenharia Reversa IoT
+## 3. Protocols and IoT Reverse Engineering
 
-O sistema interroga 3 inversores simultaneamente na rede local em menos de 2 segundos, mantendo isolamento completo entre as telemetrias:
+The edge collector queries 3 inverters simultaneously over the local LAN in under 2 seconds, maintaining strict isolation between vendor routines:
 
-| Inversor | Potência | Interface Física | Protocolo de Telemetria | Parâmetros Extraídos |
+| Inverter | Nominal Power | Physical Interface | Telemetry Protocol | Key Parameters Extracted |
 | :--- | :--- | :--- | :--- | :--- |
-| **Solis / Ginlong** | ~6.0 kW | Datalogger Solarman LSW-3 (IP Local) | **Solarman V5 Frame Parser** (Porta `8899`) + Fallback HTTP Status | Potência ativa (W), Tensão da Rede CA (V), Corrente CA (A), Freq (Hz), Strings PV1/PV2 (V, A, W), Temp. Interna (°C), Acumulado Hoje e Total (kWh), Wi-Fi RSSI. |
-| **GoodWe** | 5.0 kW | Módulo Wi-Fi GoodWe DNS (IP Local) | **Modbus TCP** (Porta `502`) com Fallback UDP (Porta `8899`) | 52 registradores elétricos: Potência Ativa, Aparente e Reativa, Fator de Potência (FP), Temp. Interna e Dissipador Térmico (°C), Horas de Operação, Vbus, Strings PV1/PV2. |
+| **Solis / Ginlong** | ~6.0 kW | Solarman LSW-3 Datalogger (Local IP) | **Solarman V5 Frame Parser** (Port `8899`) + HTTP Status Fallback | Active Power (W), AC Grid Voltage (V), AC Current (A), Grid Frequency (Hz), PV1/PV2 Strings (V, A, W), Internal Temperature (°C), Daily/Total Yield (kWh), Wi-Fi RSSI. |
+| **GoodWe** | 5.0 kW | GoodWe DNS Wi-Fi Module (Local IP) | **Modbus TCP** (Port `502`) with UDP Fallback (Port `8899`) | 52 electrical sensors: Active, Apparent & Reactive Power, Power Factor (PF), Internal & Heatsink Temperature (°C), Operating Hours, DC Bus Voltage (Vbus), PV1/PV2 Strings. |
 
-### Decodificação Modbus Solarman V5 (Solis):
-O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários Solarman V5 (`0xA5`), lendo os registradores de retenção (*holding registers* `0..39`):
-* `Reg[06]`: Tensão da String PV1 (fator `0.1 V`)
-* `Reg[07]`: Corrente da String PV1 (fator `0.01 A`)
-* `Reg[08]`: Tensão da String PV2 (fator `0.1 V`)
-* `Reg[09]`: Corrente da String PV2 (fator `0.01 A`)
-* `Reg[14]`: Frequência da Rede Elétrica (fator `0.01 Hz`)
-* `Reg[15]`: Tensão da Rede Elétrica CA (fator `0.1 V`)
-* `Reg[16]`: Corrente da Rede Elétrica CA (fator `0.01 A`)
-* `Reg[25]`: Energia Gerada Hoje (fator `0.01 kWh`)
-* `Reg[36]`: Temperatura Interna do Inversor (fator `0.1 °C`)
+### Solis Solarman V5 Frame Decoding:
+The collector constructs Modbus RTU request frames wrapped in proprietary Solarman V5 headers (`0xA5`), querying holding registers `0..39`:
+* `Reg[06]`: String PV1 Voltage (scale factor `0.1 V`)
+* `Reg[07]`: String PV1 Current (scale factor `0.01 A`)
+* `Reg[08]`: String PV2 Voltage (scale factor `0.1 V`)
+* `Reg[09]`: String PV2 Current (scale factor `0.01 A`)
+* `Reg[14]`: Grid AC Frequency (scale factor `0.01 Hz`)
+* `Reg[15]`: Grid AC Voltage (scale factor `0.1 V`)
+* `Reg[16]`: Grid AC Current (scale factor `0.01 A`)
+* `Reg[25]`: Daily Generation Yield (scale factor `0.01 kWh`)
+* `Reg[36]`: Inverter Internal Temperature (scale factor `0.1 °C`)
 
 ---
 
-## 4. Stack Tecnológica
+## 4. Technology Stack
 
 ### Core & Frontend
 * **Framework:** [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React 19, TypeScript).
-* **Estilização:** [Tailwind CSS](https://tailwindcss.com/) com paleta HSL balanceada, modo escuro nativo e estética Glassmorphism.
-* **Visualização de Dados:** [Recharts](https://recharts.org/) com interpolação monotônica, curvas empilhadas, tooltips responsivos e comparativos históricos.
-* **Componentes & Primitivas:** Radix UI, Tremor primitives e Remix Icons.
-* **IA Generativa:** Modelos Gemini.
+* **Internationalization:** Custom zero-dependency, type-safe i18n layer supporting `pt-BR` and `en` with server/client locale propagation.
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/) with custom HSL token architecture, dark mode, and glassmorphism styling.
+* **Data Visualization:** [Recharts](https://recharts.org/) with monotone interpolation, stacked area curves, and responsive tooltips.
+* **UI Primitives:** Radix UI primitives, Tremor components, and Remix Icons.
+* **Generative AI:** Google Gemini API with token quota tracking and automated model fallback cascades.
 
-### Backend, IoT & Edge
-* **Linguagem Edge:** Python 3.10+.
-* **Bibliotecas IoT:** `pysolarmanv5`, `goodwe`, `requests`, `urllib3`.
-* **Serviço do Sistema:** Daemons nativos `systemd` no Linux com auto-restart e temporizadores cron.
-* **Hardware Edge:** Orange Pi 4 Pro (SoC Octa-core ARM64, consumo ~4W) operando 24 horas por dia.
+### Edge & IoT
+* **Language:** Python 3.10+.
+* **IoT Libraries:** `pysolarmanv5`, `goodwe`, `requests`, `urllib3`.
+* **System Services:** Linux `systemd` daemon services with automated restart policies and systemd timers.
+* **Edge Hardware:** Orange Pi 4 Pro (Octa-core ARM64 SoC, ~4W power draw) operating 24/7 on the local LAN.
 
-### Nuvem & Banco de Dados
-* **Banco de Dados:** [Supabase](https://supabase.com/) PostgreSQL 15 com colunas estruturadas e `JSONB` flexível para séries de sensores.
-* **Segurança de Acesso:** Row Level Security (RLS) e autenticação segura com `@supabase/ssr` e Next.js 16 Route Proxy.
+### Database & Cloud
+* **Database:** [Supabase](https://supabase.com/) PostgreSQL 15 with typed schema tables and structured `JSONB` sensor payloads.
+* **Security:** Row Level Security (RLS) enforcement, `@supabase/ssr` server-side session authentication, and Next.js Route Handlers.
 
 ---
 
-## 5. Estrutura do Repositório
+## 5. Repository Structure
 
 ```text
-├── collector/                          # Edge: coletores Python (Orange Pi / Raspberry Pi)
-│   ├── inverters.py                    # Telemetria dos 3 inversores (Solarman V5 / Modbus TCP / UDP) + API REST local
-│   ├── utility.py                      # Faturas, extrato de GD e créditos da concessionária
-│   ├── config.example.json             # Modelo de topologia: IPs, portas e seriais dos inversores
-│   ├── .env.example                    # Credenciais do Supabase (service_role) e da concessionária
+├── collector/                          # Edge: Python IoT daemons (Orange Pi / Raspberry Pi)
+│   ├── inverters.py                    # Multi-inverter telemetry engine (Solarman V5 / Modbus TCP / UDP) + Local REST API
+│   ├── utility.py                      # Utility billing & net metering ledger collector
+│   ├── config.example.json             # Topology template: IPs, ports, and serial numbers
+│   ├── .env.example                    # Supabase credentials (service_role) and utility credentials
 │   ├── requirements.txt / requirements-dev.txt
-│   ├── tests/                          # pytest: parsers, fila offline, envio ao Supabase, API local e testes em hardware
+│   ├── tests/                          # pytest suite: protocol parsers, offline queue, Supabase mock sink, live hardware
 │   └── deploy/
-│       ├── solar-inverters@.service    # Unit systemd do coletor 24/7
-│       ├── solar-utility@.service      # Unit systemd da sincronização da concessionária
-│       └── solar-utility@.timer        # Agendamento: 7h, 13h e 19h
-├── dashboard/                          # Web: Next.js 16 (App Router)
-│   ├── e2e/                            # Testes E2E (Playwright)
-│   ├── scripts/                        # Captura e anonimização das fixtures de teste
+│       ├── solar-inverters@.service    # 24/7 systemd unit service
+│       ├── solar-utility@.service      # Utility sync systemd unit
+│       └── solar-utility@.timer        # Systemd timer (07:00, 13:00, 19:00)
+├── dashboard/                          # Frontend: Next.js 16 (App Router)
+│   ├── e2e/                            # End-to-end tests (Playwright)
+│   ├── scripts/                        # Fixture capture and anonymization pipelines
 │   └── src/
-│       ├── app/                        # Rotas: /, /placas, /combinada, /cooperativa, /login, /api/ai-advisor
-│       ├── components/                 # Cards, gráficos Recharts, navegação
-│       ├── lib/                        # Queries Supabase, clima, cota da IA, autenticação, tipos
-│       ├── test/                       # Setup, fixtures e testes de integração
-│       └── proxy.ts                    # Proteção de rotas por sessão
+│       ├── app/                        # Next.js App Router: /, /placas, /combinada, /cooperativa, /login, /api
+│       ├── components/                 # UI components, Recharts visualizations, navigation
+│       ├── i18n/                       # Translation dictionaries, formatters, context, and toggle
+│       ├── lib/                        # Supabase client/server queries, weather API, AI quota, auth allowlist
+│       └── test/                       # Unit and integration test fixtures
+├── docs/
+│   ├── adr/                            # Architecture Decision Records (ADRs 0001 - 0005)
+│   └── images/                         # Architectural diagrams and screenshot assets
 ├── supabase/
-│   └── migrations/                     # Schema, índices, políticas RLS e funções (Supabase CLI)
-└── .github/                            # CI (testes, Trivy, Semgrep) e Dependabot
+│   └── migrations/                     # PostgreSQL schema, indexes, RLS policies, and stored procedures
+└── .github/                            # CI/CD workflows, automated monitoring, and Dependabot
 ```
 
-### Páginas do Dashboard
+### Dashboard Routes
 
-| Rota | Conteúdo | Fonte dos dados |
+| Route | Content | Data Source |
 | :--- | :--- | :--- |
-| `/` Início | Potência instantânea e % da capacidade, geração e economia do dia, saldo de créditos, curva solar de hoje, resumo dos inversores e clima dos últimos 7 dias | `solar_telemetry`, `utility_data`, Open-Meteo |
-| `/placas` Placas | Geração por dia/mês/ano, cards detalhados de cada inversor (strings PV1/PV2, rede CA, sensores Modbus) | `solar_telemetry`, `inverter_daily_history`, extrato de GD |
-| `/cooperativa` Cooperativa | Saldo de créditos GD, última fatura, balanço energético de 12 meses (injeção x compensação x saldo) e extrato GD com filtros | `utility_data` |
-| `/combinada` Análise | Consultor IA (análise diária e mensal), fluxo de energia usina → rede → créditos e eficiência frente à irradiação de até 90 dias | Gemini, `utility_data`, `solar_telemetry`, Open-Meteo |
-
-A rota `/api/ai-advisor` gera a análise do Consultor IA com o modelo configurado em `GEMINI_MODEL`, recorre aos modelos de `GEMINI_MODEL_FALLBACKS` quando ele falha ou atinge a cota diária, e guarda uma análise por dia na tabela `ai_advisor_daily`.
+| `/` Overview | Instant power, capacity factor %, daily generation and financial savings, credit reserve, real-time sun curve, inverter summaries, and 7-day weather efficiency | `solar_telemetry`, `utility_data`, Open-Meteo |
+| `/placas` Inverters | Daily/monthly/yearly generation periods, granular individual inverter telemetry cards (PV1/PV2 MPPT strings, AC grid, internal thermals) | `solar_telemetry`, `inverter_daily_history`, DG statement |
+| `/cooperativa` Utility | Net metering energy credits, latest utility invoice details, 12-month net balance curve (generation vs grid consumption), and filtered billing statement | `utility_data` |
+| `/combinada` Analysis | Gemini AI Energy Advisor (daily & monthly strategic insights), energy flow diagram (production → consumption → grid injection), and solar irradiance correlation (up to 90 days) | Gemini API, `utility_data`, `solar_telemetry`, Open-Meteo |
 
 ---
 
-## 6. Instalação e Execução
+## 6. Setup and Installation
 
-### Pré-requisitos
-* Python 3.10+ (coletores)
-* Node.js 20.9+ (dashboard)
-* Projeto no Supabase com as migrations de `supabase/migrations` aplicadas (`supabase db push` ou SQL Editor, na ordem dos arquivos)
+### Prerequisites
+* Python 3.10+ (for edge collectors)
+* Node.js 20.9+ (for web dashboard)
+* Supabase project with migrations applied from `supabase/migrations/`
 
-### 1. Coletores (Edge)
+### 1. Edge Collector
 ```bash
 git clone https://github.com/DiegoHahn/Solar-hub.git
 cd Solar-hub/collector
 
 python3 -m venv .venv
-source .venv/bin/activate  # No Windows: .venv\Scripts\activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env                 # credenciais e UCs
-cp config.example.json config.json   # IPs e seriais dos inversores
+cp .env.example .env                 # Configure Supabase service key & credentials
+cp config.example.json config.json   # Configure inverter IPs and serial numbers
 ```
 
-Coleta de teste para validar a comunicação com os inversores:
+Run a one-shot validation test across all inverters:
 ```bash
 python3 inverters.py --once
 ```
 
-Execução permanente no Linux (o sufixo após `@` é o usuário dono do clone em `/home/<usuário>/Solar-hub`):
+Enable Linux systemd services for continuous 24/7 background operation:
 ```bash
 sudo cp deploy/solar-inverters@.service deploy/solar-utility@.service deploy/solar-utility@.timer /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -229,103 +232,70 @@ sudo systemctl enable --now solar-inverters@$USER.service
 sudo systemctl enable --now solar-utility@$USER.timer
 ```
 
-### 2. Dashboard Web
+### 2. Web Dashboard
 ```bash
 cd dashboard
 npm install
 cp .env.example .env.local
 npm run dev
 ```
-Acesse **`http://localhost:3000`**.
+Navigate to **`http://localhost:3000`**.
 
-Scripts de qualidade:
+Quality and verification commands:
 ```bash
-npm run lint        # ESLint (next/core-web-vitals + typescript)
-npm run typecheck   # tsc --noEmit
-npm test            # Vitest (detalhes na seção 8)
+npm run lint        # ESLint validation
+npm run typecheck   # TypeScript compiler check (tsc --noEmit)
+npm test            # Vitest unit & component test suite
 ```
 
-### Variáveis de Ambiente
+---
 
-**Dashboard** (`dashboard/.env.local`, e nas variáveis do projeto na Vercel):
+## 7. Security and Authentication
 
-| Variável | Uso |
-| :--- | :--- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave pública (publishable/anon); o acesso aos dados depende da sessão do usuário e do RLS |
-| `ALLOWED_EMAILS` | E-mails autorizados a acessar o dashboard (Google ou senha), separados por vírgula; lista vazia bloqueia todos |
-| `GEMINI_API_KEY` | Chave do Google AI Studio para o Consultor IA |
-| `GEMINI_MODEL` | Modelo primário do Consultor IA |
-| `GEMINI_MODEL_FALLBACKS` | Modelos de reserva, em ordem de prioridade, separados por vírgula |
-| `GEMINI_PRIMARY_MAX_QUOTA` | Máximo de chamadas diárias ao modelo primário antes de usar os de reserva |
-| `NEXT_PUBLIC_SOLAR_LATITUDE` / `_LONGITUDE` | Localização da usina para a previsão e o histórico da Open-Meteo |
-| `NEXT_PUBLIC_SOLAR_TILT` / `_AZIMUTH` | Inclinação e orientação dos painéis (graus) |
-
-**Coletores** (`collector/.env`):
-
-| Variável | Uso |
-| :--- | :--- |
-| `SUPABASE_URL` | URL do projeto Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | Chave de gravação dos coletores (ignora RLS; fica só no dispositivo edge) |
-| `COOPERALIANCA_CPF` / `COOPERALIANCA_SENHA` | Login no portal da concessionária |
-| `COOPERALIANCA_TOKEN_EXTERNO` | Token exigido pela API Useall no cabeçalho `use-token-externo` |
-| `COOPERALIANCA_UCS` | Unidades consumidoras do titular, separadas por vírgula; a primeira é a UC geradora |
-
-A topologia dos inversores (IPs, portas, seriais, nome e capacidade da usina) fica em `collector/config.json`, a partir de `collector/config.example.json`.
+* **Secrets Management:** `.env`, `.env.local`, and `collector/config.json` are excluded via `.gitignore`. Sample templates (`*.example`) provide configuration schemas. On edge devices, access permissions are restricted using `chmod 600 collector/.env`.
+* **Session Protection & Access Allowlist:** Authentication is enforced via `@supabase/ssr` middleware. Unauthenticated requests are redirected to `/login`, while unauthorized emails are rejected using a fail-closed `ALLOWED_EMAILS` allowlist.
+* **Row Level Security (RLS):** All database tables require authenticated sessions for read access. Telemetry and billing tables can only be written by the edge service key (`service_role`). AI caches and weather tables allow authenticated writes from serverless functions without exposing elevated keys to clients.
+* **Closed Registration:** Public sign-up on Supabase Auth is disabled, ensuring access is strictly restricted to pre-authorized accounts.
+* **Strict Demo Isolation:** The public `/demo` route operates purely on in-memory fixtures, without touching live Supabase databases or consuming Google Gemini API quotas.
 
 ---
 
-## 7. Segurança e Autenticação
+## 8. Testing and Continuous Integration
 
-* **Segredos fora do repositório:** `.env`, `.env.local` e `collector/config.json` são ignorados pelo git; o repositório traz apenas modelos (`*.example`). No dispositivo edge (Orange Pi), mantenha permissões restritas no arquivo: `chmod 600 collector/.env`.
-* **Rotas protegidas por sessão:** `@supabase/ssr` + middleware do Next.js 16 redirecionam usuários não autenticados para `/login` e bloqueiam chamadas a `/api` com HTTP 401; o acesso (Google ou senha) é validado de forma fail-closed contra a lista `ALLOWED_EMAILS`.
-* **RLS no banco:** todas as tabelas exigem usuário autenticado para leitura. As tabelas de telemetria e concessionária são gravadas apenas pela chave `service_role` no dispositivo edge. As tabelas `ai_advisor_daily` e `daily_weather` permitem inserção/atualização por usuários autenticados para viabilizar cache da IA e histórico climático via serverless functions na Vercel sem expor a `service_role` na nuvem pública.
-* **Cadastro fechado:** o cadastro público do Supabase Auth permanece desativado, garantindo que apenas contas expressamente autorizadas obtenham sessão.
-* **Modo demonstração estritamente isolado:** a navegação via `/demo` opera exclusivamente sobre fixtures estáticas em memória, sem instanciar conexões com o banco de dados Supabase e sem consumir cotas da API do Google Gemini.
+The test suite emphasizes real data and production-mirroring environments: business rules are validated against sanitized production snapshots, integration queries validate RLS rules against Supabase, and E2E suites exercise compiled application builds.
 
----
-
-## 8. Testes e Integração Contínua
-
-A suíte prioriza dados e conexões reais: as regras de negócio são testadas com um snapshot anonimizado da produção, as consultas rodam contra o Supabase de verdade (com RLS) e o E2E navega no app compilado. Dublês ficam restritos ao que não pode ser chamado em teste — gravar telemetria em produção e gastar cota do Gemini.
-
-| Camada | Ferramenta | Comando | O que cobre |
+| Layer | Framework | Command | Scope |
 | :--- | :--- | :--- | :--- |
-| Unitários e componentes | Vitest + Testing Library | `npm test` | Cálculos de geração, fuso de Brasília, normalização dos dados da concessionária, cota da IA e componentes, com fixtures extraídas da produção |
-| Integração | Vitest | `npm run test:integration` | Supabase real (login, políticas RLS, consultas do dashboard, invariantes dos dados) e contrato da Open-Meteo |
-| E2E | Playwright | `npm run e2e` | App compilado: login, proteção de rotas e da API, bloqueio de open redirect, headers de segurança e carregamento das páginas |
-| Coletor | pytest + ruff | `pytest` | Parsers do Solis e do GoodWe com respostas reais dos equipamentos, fila offline, envio ao Supabase (contra um servidor HTTP local) e API local |
-| Hardware | pytest | `pytest -m live` | No dispositivo edge: leitura dos inversores dentro de faixas físicas e autenticação na concessionária |
-
-Os comandos do dashboard rodam em `dashboard/` e os do coletor em `collector/`.
-
-**Dados de produção nos testes.** A integração usa um usuário dedicado, sujeito ao mesmo RLS do dashboard, e só lê dados — a única escrita é na data sentinela `1999-01-01` das tabelas de cache, removida ao final. As fixtures são geradas por `dashboard/scripts/capture-fixtures.ts`, que substitui documentos, nomes, endereços, códigos de UC e de fatura, seriais, MACs, SSIDs e IPs por valores fictícios.
-
-**CI e cobertura.** O workflow `.github/workflows/ci.yml` roda lint, typecheck, testes com cobertura mínima de 80% no dashboard e no coletor, e build do dashboard; ruff e pytest do coletor; e análise de segurança com Trivy (dependências, segredos e configuração) e Semgrep (código). A integração e o E2E rodam no `main` e diariamente, com as credenciais do usuário de testes em GitHub Secrets.
-
-Para rodar a integração e o E2E localmente, copie `dashboard/.env.test.example` para `dashboard/.env.test.local` e preencha as credenciais do usuário de testes. Para validar testes e travas de cobertura automaticamente antes de cada push local, ative o hook com `git config core.hooksPath .githooks`.
+| Unit & Components | Vitest + Testing Library | `npm test` | Generation metrics, Brasília timezone boundaries, utility ledger normalization, i18n dictionaries, and component states (240+ tests) |
+| Integration | Vitest | `npm run test:integration` | Real Supabase instance (RLS policies, dashboard queries, data invariant guarantees) and Open-Meteo API contract |
+| End-to-End | Playwright | `npm run e2e` | Production build: auth workflows, route guards, open redirect prevention, security headers, and responsive layouts |
+| Collector Unit | pytest + ruff | `pytest` | Modbus protocol parsers for Solis and GoodWe, offline retry buffer, and Supabase HTTP client dispatch |
+| Hardware Live | pytest | `pytest -m live` | On-device validation: inverter sensory range tolerances and utility API authentication |
 
 ---
 
-## 9. Monitoramento da Telemetria
+## 9. Telemetry Health Monitoring
 
-O pipeline inclui vigilância contínua para assegurar que a geração solar e a sincronização com a concessionária permaneçam ativas:
+An automated heartbeat monitoring pipeline prevents silent failures in solar collection and utility synchronizations:
 
-* **Checagem periódica:** O workflow `.github/workflows/monitor.yml` executa a cada 30 minutos em horário diurno (06h às 19h BRT / 09h às 22h UTC) via cron e sob demanda (`workflow_dispatch`).
-* **Regras de integridade:**
-  * **Telemetria Solar (`solar_telemetry`):** Alerta se o registro mais recente tiver mais de 30 minutos durante o dia. No período noturno, a verificação entra em repouso automaticamente, evitando falsos alertas enquanto os inversores estão desligados.
-  * **Concessionária (`utility_data`):** Alerta se a sincronização diária de faturas e balanço energético tiver mais de 26 horas de atraso.
-* **Notificação nativa:** Qualquer atraso dispara falha no job do GitHub Actions, gerando notificação imediata por e-mail ao proprietário do repositório sem necessidade de serviços externos.
-* **Execução sob demanda:** O script pode ser disparado localmente com `npm run telemetry:check` a partir do diretório `dashboard/`.
-
----
-
-## 10. Fluxo de Desenvolvimento
-
-O repositório segue o GitHub Flow: toda mudança nasce em uma branch curta e entra no `main` por pull request, com CI obrigatório e squash merge; o `main` protegido é publicado automaticamente pela Vercel. Os commits seguem Conventional Commits, e o [release-please](https://github.com/googleapis/release-please) gera o `CHANGELOG.md`, as tags e as releases com versionamento semântico. Detalhes em [`CONTRIBUTING.md`](CONTRIBUTING.md).
+* **Scheduled Verification:** The `.github/workflows/monitor.yml` workflow runs every 30 minutes during daytime hours (06:00 to 19:00 BRT / 09:00 to 22:00 UTC) via cron and on-demand (`workflow_dispatch`).
+* **Health Evaluation Rules:**
+  * **Solar Telemetry (`solar_telemetry`):** Alerts if the latest telemetry timestamp is older than 30 minutes during active sunlight hours. Nighttime hours automatically enter standby to prevent false positives.
+  * **Utility Data (`utility_data`):** Alerts if the daily net metering ledger sync is delayed by more than 26 hours.
+* **Immediate Alerting:** Any stale telemetry status triggers a job failure on GitHub Actions, delivering email alerts to the repository owner without reliance on external paid monitoring services.
 
 ---
 
-## Licença
+## 10. Development Workflow
 
-Distribuído sob a licença **MIT**. Veja `LICENSE` para mais informações.
+The repository follows GitHub Flow with strict branch protection rules:
+* All modifications originate from feature branches and are merged into `main` via pull requests.
+* PRs require passing CI workflows (lint, typecheck, unit test coverage, Trivy security audit, Semgrep code scan) and squash merges.
+* Commit messages adhere to [Conventional Commits](https://www.conventionalcommits.org/), with [release-please](https://github.com/googleapis/release-please) automating `CHANGELOG.md` generation, Git semantic tags, and GitHub releases.
+* Contribution details are documented in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+---
+
+## License
+
+Distributed under the **MIT License**. See `LICENSE` for details.

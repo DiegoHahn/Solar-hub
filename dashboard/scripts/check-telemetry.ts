@@ -18,7 +18,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log("Conectando ao Supabase para verificar integridade da telemetria...");
+  console.log("Connecting to Supabase to check telemetry freshness...");
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: { persistSession: false },
@@ -30,7 +30,7 @@ async function main() {
   });
 
   if (authError) {
-    console.error("Falha ao autenticar usuário no Supabase:", authError.message);
+    console.error("Failed to sign in to Supabase:", authError.message);
     process.exit(1);
   }
 
@@ -51,12 +51,12 @@ async function main() {
     ]);
 
   if (solarError) {
-    console.error("Erro ao consultar tabela solar_telemetry:", solarError.message);
+    console.error("Failed to query solar_telemetry:", solarError.message);
     process.exit(1);
   }
 
   if (utilityError) {
-    console.error("Erro ao consultar tabela utility_data:", utilityError.message);
+    console.error("Failed to query utility_data:", utilityError.message);
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ async function main() {
   });
 
   console.log("\n=========================================");
-  console.log("RELATÓRIO DE MONITORAMENTO DE TELEMETRIA");
+  console.log("TELEMETRY MONITORING REPORT");
   console.log("=========================================");
   console.log(
     `Horário em Brasília: ${report.brasiliaTime} (Diurno: ${report.isDaytime ? "Sim" : "Não"})`,
@@ -76,13 +76,13 @@ async function main() {
     `Telemetria Solar: [${report.solar.status.toUpperCase()}] ${report.solar.message}`,
   );
   if (report.solar.timestamp) {
-    console.log(`    Último registro: ${report.solar.timestamp}`);
+    console.log(`    Latest record: ${report.solar.timestamp}`);
   }
   console.log(
     `Concessionária:   [${report.utility.status.toUpperCase()}] ${report.utility.message}`,
   );
   if (report.utility.timestamp) {
-    console.log(`    Última atualização: ${report.utility.timestamp}`);
+    console.log(`    Last update: ${report.utility.timestamp}`);
   }
   console.log("=========================================");
 
@@ -94,11 +94,11 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("Todos os coletores estão saudáveis e atualizados dentro dos limites.");
+  console.log("All collectors are healthy and within their freshness limits.");
   process.exit(0);
 }
 
 main().catch((err) => {
-  console.error("Erro inesperado durante execução do monitoramento:", err);
+  console.error("Unexpected error while running the telemetry check:", err);
   process.exit(1);
 });

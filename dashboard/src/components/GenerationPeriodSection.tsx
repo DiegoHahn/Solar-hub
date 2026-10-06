@@ -5,14 +5,9 @@ import { cx } from "@/lib/utils";
 import { InverterCurveChart } from "@/components/InverterCurveChart";
 import { GenerationBarChart } from "@/components/GenerationBarChart";
 import type { SunCurvePoint, GenerationPoint, MultiYearHistory } from "@/lib/types";
+import { useI18n } from "@/i18n";
 
 type Period = "dia" | "mes" | "ano";
-
-const PERIODS: { key: Period; label: string }[] = [
-  { key: "dia", label: "Dia" },
-  { key: "mes", label: "Mês" },
-  { key: "ano", label: "Ano" },
-];
 
 interface GenerationPeriodSectionProps {
   dayCurve: SunCurvePoint[];
@@ -27,36 +22,43 @@ export function GenerationPeriodSection({
   yearData = [],
   multiYearHistory,
 }: GenerationPeriodSectionProps) {
+  const { t } = useI18n();
   const [period, setPeriod] = useState<Period>("dia");
   const [annualFilter, setAnnualFilter] = useState<string>("ultimos_12");
 
-  // Determina os dados do gráfico para a aba "Ano"
+  const periods: { key: Period; label: string }[] = [
+    { key: "dia", label: t.combined.periodDay },
+    { key: "mes", label: t.combined.periodMonth },
+    { key: "ano", label: t.combined.periodYear },
+  ];
+
+  // Chart data for "Ano" (Year) tab
   let annualChartData: GenerationPoint[] = yearData;
-  let annualTitle = "Geração Anual";
-  let annualSubtitle = "Total bruto gerado por mês — últimos 12 meses";
+  let annualTitle = t.combined.periodYear;
+  let annualSubtitle = t.combined.annualGeneration12mSub;
 
   if (multiYearHistory) {
     if (annualFilter === "ultimos_12") {
       annualChartData = multiYearHistory.last12Months;
-      annualTitle = "Geração Anual — Últimos 12 Meses";
-      annualSubtitle = "Total bruto gerado a cada mês (visão móvel contínua)";
+      annualTitle = t.combined.annualGeneration12m;
+      annualSubtitle = t.combined.annualGeneration12mSub;
     } else if (annualFilter === "comparativo") {
       annualChartData = multiYearHistory.yearsTotals;
-      annualTitle = "Comparativo Histórico por Ano";
-      annualSubtitle = "Total bruto gerado pela usina a cada ano";
+      annualTitle = t.combined.historicalComparative;
+      annualSubtitle = t.combined.historicalComparativeSub;
     } else if (multiYearHistory.byYear[annualFilter]) {
       annualChartData = multiYearHistory.byYear[annualFilter];
-      annualTitle = `Geração Anual — ${annualFilter}`;
-      annualSubtitle = `Total bruto gerado mês a mês em ${annualFilter}`;
+      annualTitle = t.combined.annualGenerationYear.replace("{year}", annualFilter);
+      annualSubtitle = t.combined.annualGenerationYearSub.replace("{year}", annualFilter);
     }
   }
 
   return (
     <div className="space-y-4">
-      {/* Barra principal de seleção: Dia | Mês | Ano */}
+      {/* Main tab bar: Dia | Mês | Ano */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-gray-900/60">
-          {PERIODS.map((p) => (
+          {periods.map((p) => (
             <button
               key={p.key}
               type="button"
@@ -73,7 +75,7 @@ export function GenerationPeriodSection({
           ))}
         </div>
 
-        {/* Sub-filtro de anos quando a aba "Ano" está ativa */}
+        {/* Annual sub-filter when "Ano" is active */}
         {period === "ano" && multiYearHistory && (
           <div className="flex flex-wrap items-center gap-1">
             <button
@@ -86,7 +88,7 @@ export function GenerationPeriodSection({
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
               )}
             >
-              12 Meses
+              {t.combined.months12}
             </button>
 
             <button
@@ -99,7 +101,7 @@ export function GenerationPeriodSection({
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
               )}
             >
-              Todos os Anos
+              {t.combined.allYears}
             </button>
 
             {multiYearHistory.availableYears.map((yr) => (
@@ -121,13 +123,13 @@ export function GenerationPeriodSection({
         )}
       </div>
 
-      {/* Conteúdo da aba selecionada */}
+      {/* Selected tab content */}
       {period === "dia" &&
         (dayCurve.length > 0 ? (
           <InverterCurveChart data={dayCurve} />
         ) : (
           <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-            Nenhuma curva de geração registrada para o dia de hoje ainda.
+            {t.combined.noCurveToday}
           </div>
         ))}
 
@@ -135,13 +137,13 @@ export function GenerationPeriodSection({
         (monthData.length > 0 ? (
           <GenerationBarChart
             data={monthData}
-            title="Geração Mensal"
-            subtitle="Total bruto gerado por dia — mês atual"
+            title={t.combined.monthlyGeneration}
+            subtitle={t.combined.monthlyGenerationSubtitle}
             unitLabel="kWh"
           />
         ) : (
           <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-            Nenhum histórico diário acumulado neste mês ainda.
+            {t.combined.noMonthlyHistory}
           </div>
         ))}
 
@@ -155,7 +157,7 @@ export function GenerationPeriodSection({
           />
         ) : (
           <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-8 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-            Nenhum histórico anual disponível para o filtro selecionado.
+            {t.combined.noAnnualHistory}
           </div>
         ))}
     </div>

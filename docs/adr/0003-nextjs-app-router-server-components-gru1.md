@@ -1,35 +1,35 @@
-# 3. Next.js App Router com Server Components e Região gru1 na Vercel
+# 3. Next.js App Router with Server Components and Vercel gru1 Region
 
-* **Status:** Aceito
-* **Data:** 2026-09-04 (registro retroativo)
-* **Decisores:** Diego Hahn
+* **Status:** Accepted
+* **Date:** 2026-09-04 (retroactive record)
+* **Decision Makers:** Diego Hahn
 
-## Contexto
+## Context
 
-Dashboards desenvolvidos como Single Page Applications (SPAs puras no navegador) enfrentam desafios comuns:
+Dashboards built strictly as client-side Single Page Applications (SPAs running entirely in the browser) encounter well-known limitations:
 
-1. **Efeito cascata de requisições (*network waterfall*):** O navegador precisa baixar o bundle de scripts, inicializar o framework, renderizar esqueletos de carregamento e disparar múltiplas requisições paralelas para carregar telemetria, clima, faturas e gráficos.
-2. **Bundle JavaScript excessivo:** Bibliotecas de formatação, normalização de dados e clientes de banco são enviadas para o dispositivo do usuário final.
-3. **Latência de rede:** Se as funções serverless executarem em regiões distantes (como na América do Norte), a comunicação entre o usuário no Brasil, o servidor web e o banco de dados acumula tempo adicional de trânsito em cada requisição.
+1. **Request waterfalls:** Browsers must download JavaScript bundles, initialize the framework runtime, display empty layout skeletons, and dispatch cascading asynchronous API requests to fetch telemetry, weather forecasts, bills, and charts.
+2. **Excessive JavaScript bundle size:** Formatting libraries, data transformation logic, and database client SDKs are shipped to the end-user device.
+3. **Network transit latency:** If serverless functions run in distant hosting regions (such as North America), communication between the end-user in Brazil, the web server, and the database accumulates round-trip network delays on every request.
 
-## Decisão
+## Decision
 
-Adotamos o Next.js 16 com App Router, React Server Components (RSC) e implantação na região `gru1` (São Paulo) na Vercel:
+We adopted Next.js 16 with App Router, React Server Components (RSC), and deployment in the `gru1` (São Paulo, Brazil) region on Vercel:
 
-1. **Server Components como padrão:** As rotas principais do sistema buscam dados no banco de dados durante a renderização no servidor. O cliente recebe o HTML com os dados já prontos, reduzindo o tempo até a exibição do conteúdo.
-2. **Separação de interatividade:** Apenas componentes que dependem de eventos do DOM, ciclo de vida ou manipulação de canvas/SVG (gráficos do Recharts, abas do Radix UI, seletor de tema) recebem a diretiva `'use client'`.
-3. **Região `gru1` na Vercel:** As funções serverless da aplicação são alocadas na região de São Paulo (`gru1`), aproximando o processamento do servidor web dos usuários finais no Brasil.
-4. **Proteção de credenciais de API:** Operações com APIs externas (Google AI Studio / Gemini, Open-Meteo) ocorrem em Route Handlers e Server Components, mantendo chaves de serviço e tokens inacessíveis para o cliente.
+1. **Server Components by default:** Core application routes fetch database records directly during server rendering. Clients receive ready-to-render HTML containing complete data, drastically shortening time to first meaningful paint.
+2. **Targeted interactivity boundary:** Only components requiring DOM events, browser lifecycle hooks, or Canvas/SVG manipulation (Recharts, Radix UI tabs, Theme toggle) declare the `'use client'` directive.
+3. **Vercel `gru1` region deployment:** Serverless functions are provisioned in the São Paulo (`gru1`) datacenter, minimizing latency to Brazilian end-users and the local database endpoint.
+4. **API credential protection:** Sensitive external API integrations (Google Gemini AI, Open-Meteo) execute within server route handlers and Server Components, preventing service tokens and API keys from leaking to client bundles.
 
-## Consequências
+## Consequences
 
-### Positivas
+### Positive
 
-* **Menor latência de trânsito:** A proximidade geográfica do servidor serverless reduz o tempo de resposta percebido pelo usuário.
-* **Carregamento inicial mais eficiente:** Envio de dados pré-renderizados no primeiro payload HTML e menor incidência de saltos de layout (*Cumulative Layout Shift*).
-* **Bundle reduzido no cliente:** Código de parsing, formatação e agregação de dados não é enviado ao navegador.
-* **Isolamento de segredos:** Credenciais de inteligência artificial e regras de prompt não são expostas no código client-side.
+* **Reduced round-trip latency:** Geographical co-location of serverless functions minimizes perceived response times.
+* **Efficient initial page loads:** Pre-rendered HTML payloads ensure immediate data visibility and prevent Cumulative Layout Shift (CLS).
+* **Minimal client-side bundle size:** Parsing algorithms, statistical calculations, and data aggregators stay on the server.
+* **Secret isolation:** AI model tokens, prompt templates, and infrastructure secrets remain inaccessible to client browsers.
 
-### Negativas e Mitigações
+### Negative and Mitigations
 
-* **Fronteira de serialização:** Exige disciplina para evitar a passagem de objetos não serializáveis entre Server e Client Components. *Mitigação:* Tipagem estrita com TypeScript para as propriedades (*props*) dos componentes de interface.
+* **Serialization boundaries:** Requires strict discipline when passing objects between Server and Client Components. *Mitigation:* Comprehensive TypeScript interfaces enforcing serializable props across all component boundaries.

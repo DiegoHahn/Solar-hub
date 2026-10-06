@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       const userEmail = data.user.email;
 
       if (!isEmailAllowed(userEmail)) {
-        console.warn(`[Auth] Acesso negado para o e-mail: ${maskEmail(userEmail)}. Não autorizado.`);
+        console.warn(`[Auth] Access denied for email: ${maskEmail(userEmail)}. Unauthorized.`);
         await supabase.auth.signOut();
         return NextResponse.redirect(`${origin}/login?error=unauthorized_email`);
       }

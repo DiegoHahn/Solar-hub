@@ -1,6 +1,6 @@
-# Sincronização da concessionária, disparada pelo solar-utility@.timer
+# Utility synchronization service, triggered by solar-utility@.timer
 [Unit]
-Description=Solar Hub - Sincronização da Cooperaliança
+Description=Solar Hub - Utility Synchronization (Cooperaliança)
 After=network-online.target
 Wants=network-online.target
 
@@ -13,7 +13,7 @@ ExecStart=/home/%i/Solar-hub/collector/.venv/bin/python /home/%i/Solar-hub/colle
 StandardOutput=journal
 StandardError=journal
 
-# Hardening de segurança
+# Security hardening
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

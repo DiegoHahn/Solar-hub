@@ -33,21 +33,21 @@ describe("dataSource", () => {
   });
 
   describe("isDemoMode", () => {
-    it("retorna false se não houver cookie solarhub_demo", async () => {
+    it("returns false if no solarhub_demo cookie exists", async () => {
       mockCookieGet.mockReturnValue(undefined);
       const result = await isDemoMode();
       expect(result).toBe(false);
       expect(mockCreateClient).not.toHaveBeenCalled();
     });
 
-    it("retorna false se o valor de solarhub_demo for diferente de 1", async () => {
+    it("returns false if solarhub_demo value is not 1", async () => {
       mockCookieGet.mockReturnValue({ value: "0" });
       const result = await isDemoMode();
       expect(result).toBe(false);
       expect(mockCreateClient).not.toHaveBeenCalled();
     });
 
-    it("retorna true e NUNCA chama createClient se houver cookie solarhub_demo e nenhum cookie supabase", async () => {
+    it("returns true and NEVER calls createClient when solarhub_demo exists with no supabase cookies", async () => {
       mockCookieGet.mockReturnValue({ value: "1" });
       mockCookieGetAll.mockReturnValue([
         { name: "solarhub_demo", value: "1" },
@@ -59,7 +59,7 @@ describe("dataSource", () => {
       expect(mockCreateClient).not.toHaveBeenCalled();
     });
 
-    it("retorna false se houver cookie de demo mas também usuário logado no Supabase (usuário logado tem prioridade)", async () => {
+    it("returns false if demo cookie exists but user is authenticated in Supabase (logged-in user takes priority)", async () => {
       mockCookieGet.mockReturnValue({ value: "1" });
       mockCookieGetAll.mockReturnValue([
         { name: "solarhub_demo", value: "1" },
@@ -74,7 +74,7 @@ describe("dataSource", () => {
       expect(mockCreateClient).toHaveBeenCalled();
     });
 
-    it("retorna true se houver cookie de auth do Supabase mas a sessão estiver expirada/nula", async () => {
+    it("returns true if Supabase auth cookie exists but session is expired/null", async () => {
       mockCookieGet.mockReturnValue({ value: "1" });
       mockCookieGetAll.mockReturnValue([
         { name: "solarhub_demo", value: "1" },
@@ -88,26 +88,26 @@ describe("dataSource", () => {
       expect(result).toBe(true);
     });
 
-    it("retorna true como fallback se a checagem do Supabase lançar exceção", async () => {
+    it("returns true as fallback if Supabase check throws an error", async () => {
       mockCookieGet.mockReturnValue({ value: "1" });
       mockCookieGetAll.mockReturnValue([
         { name: "solarhub_demo", value: "1" },
         { name: "sb-solarhub-auth-token", value: "err" },
       ]);
-      mockGetUser.mockRejectedValueOnce(new Error("Supabase indisponível"));
+      mockGetUser.mockRejectedValueOnce(new Error("Supabase unavailable"));
 
       const result = await isDemoMode();
       expect(result).toBe(true);
     });
   });
 
-  describe("getDataSource - Isolamento Estrito em Modo Demo", () => {
+  describe("getDataSource - Strict Demo Mode Isolation", () => {
     beforeEach(() => {
       mockCookieGet.mockReturnValue({ value: "1" });
       mockCookieGetAll.mockReturnValue([{ name: "solarhub_demo", value: "1" }]);
     });
 
-    it("retorna DataSource com isDemo: true e funções apontadas para demoQueries", async () => {
+    it("returns DataSource with isDemo: true and functions pointing to demoQueries", async () => {
       const ds = await getDataSource();
       expect(ds.isDemo).toBe(true);
       expect(ds.getLatestTelemetry).toBe(demoQueries.getDemoLatestTelemetry);
@@ -120,9 +120,9 @@ describe("dataSource", () => {
       expect(ds.getIcaraWeatherData).toBe(demoQueries.getDemoIcaraWeatherData);
     });
 
-    it("executa todas as consultas de demo sem tocar no Supabase", async () => {
+    it("executes all demo queries without touching Supabase", async () => {
       mockCreateClient.mockImplementation(() => {
-        throw new Error("SUPABASE NÃO DEVE SER CHAMADO EM MODO DEMO!");
+        throw new Error("SUPABASE MUST NOT BE CALLED IN DEMO MODE!");
       });
 
       const ds = await getDataSource();
@@ -144,18 +144,18 @@ describe("dataSource", () => {
       expect(Array.isArray(yearly)).toBe(true);
       expect(Array.isArray(weather)).toBe(true);
 
-      // Garantia absoluta de zero chamadas ao cliente Supabase
+      // Absolute guarantee of zero calls to Supabase client
       expect(mockCreateClient).not.toHaveBeenCalled();
     });
   });
 
-  describe("getDataSource - Modo Real (não demo)", () => {
+  describe("getDataSource - Live Production Mode (non-demo)", () => {
     beforeEach(() => {
       mockCookieGet.mockReturnValue(undefined);
       mockCookieGetAll.mockReturnValue([]);
     });
 
-    it("retorna DataSource com isDemo: false e funções apontadas para queries reais", async () => {
+    it("returns DataSource with isDemo: false and functions pointing to real queries", async () => {
       const ds = await getDataSource();
       expect(ds.isDemo).toBe(false);
       expect(ds.getLatestTelemetry).toBe(realQueries.getLatestTelemetry);

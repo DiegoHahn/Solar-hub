@@ -3,8 +3,8 @@
 import type { MouseHandlerDataParam } from "recharts"
 
 /**
- * Retorna o item de `data` sob o cursor/toque, a partir do índice ativo informado
- * nos eventos de mouse/toque do gráfico (`onClick`, `onMouseMove`).
+ * Returns the data item under cursor/touch, based on activeIndex provided
+ * by chart mouse/touch events (`onClick`, `onMouseMove`).
  */
 export function getActiveDatum<T>(
   state: MouseHandlerDataParam | null | undefined,
@@ -138,9 +138,9 @@ export function hasOnlyOneValueForKey(
 }
 
 /**
- * Configuração de domínio e ticks para o eixo Y da curva de geração solar diária.
- * Mantém múltiplos inteiros limpos com passo de 5 kW e folga para a capacidade nominal,
- * eliminando truncamento de dígitos e sobreposição de rótulos.
+ * Y-axis domain and tick configuration for daily solar generation curve.
+ * Maintains clean integer steps of 5 kW with headroom for nominal capacity,
+ * preventing digit truncation and label overlapping.
  */
 export function getSunCurveYAxisConfig(nominalCapKw: number = 16, dataMax: number = 0) {
   const peak = Math.max(nominalCapKw * 1.1, dataMax);
@@ -157,9 +157,9 @@ export function getSunCurveYAxisConfig(nominalCapKw: number = 16, dataMax: numbe
 }
 
 /**
- * Configuração de domínio e ticks para o eixo Y da curva de inversores individuais.
- * Garante múltiplos inteiros (passo de 2 kW) e folga acima do teto de 6 kW,
- * evitando cortes no topo do gráfico.
+ * Y-axis domain and tick configuration for individual inverter curves.
+ * Ensures clean integer steps of 2 kW with headroom above the 6 kW ceiling,
+ * preventing curve clipping at the top.
  */
 export function getInverterCurveYAxisConfig(dataMax: number = 0) {
   const peak = Math.max(6, dataMax);

@@ -3,8 +3,8 @@ import { isEmailAllowed } from "@/lib/auth";
 import type { User } from "@supabase/supabase-js";
 
 /**
- * Obtém o usuário autenticado na requisição atual e valida se ele está na allowlist.
- * Retorna o usuário ou null se não autenticado/não autorizado.
+ * Retrieves the authenticated user from the current request and validates allowlist membership.
+ * Returns the user object or null if unauthenticated/unauthorized.
  */
 export async function requireUser(): Promise<User | null> {
   const supabase = await createClient();

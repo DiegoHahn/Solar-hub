@@ -18,14 +18,28 @@ import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
 
 import demoAdvisor from "@/lib/demo/data/advisor.json";
+import demoAdvisorEn from "@/lib/demo/data/advisor.en.json";
 import { isDemoMode } from "@/lib/dataSource";
+import { cookies, headers } from "next/headers";
+import { LOCALE_COOKIE_NAME, type Locale } from "@/i18n";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
-function respondFromDemo(): NextResponse {
+async function resolveRequestLocale(req?: Request): Promise<Locale> {
+  const reqHeaders = req ? req.headers : await headers();
+  const acceptLang = reqHeaders.get("accept-language") || "";
+  if (acceptLang.toLowerCase().includes("en")) return "en";
+  const cookieStore = await cookies();
+  const cookieVal = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
+  if (cookieVal === "en") return "en";
+  return "pt-BR";
+}
+
+function respondFromDemo(locale: Locale): NextResponse {
+  const data = locale === "en" ? demoAdvisorEn : demoAdvisor;
   return NextResponse.json({
-    ...demoAdvisor,
-    modelUsed: "demonstração",
+    ...data,
+    modelUsed: locale === "en" ? "demo mode" : "demonstração",
     quotaCount: 1,
     maxPrimaryQuota: getMaxPrimaryQuota(),
     isCached: true,
@@ -34,7 +48,7 @@ function respondFromDemo(): NextResponse {
   });
 }
 
-/** Responde com a análise do dia já gerada, se existir. */
+/** Responds with the daily analysis if already generated. */
 async function respondFromCache(): Promise<NextResponse | null> {
   const [cached, quota] = await Promise.all([getAdvisorCache(), getQuotaState()]);
   if (!cached) return null;
@@ -49,27 +63,29 @@ async function respondFromCache(): Promise<NextResponse | null> {
   });
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const locale = await resolveRequestLocale(req);
   if (await isDemoMode()) {
-    return respondFromDemo();
+    return respondFromDemo(locale);
   }
 
   const user = await requireUser();
   if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  return (await respondFromCache()) ?? handleGenerate();
+  return (await respondFromCache()) ?? handleGenerate(locale);
 }
 
 export async function POST(req: Request) {
+  const locale = await resolveRequestLocale(req);
   if (await isDemoMode()) {
-    return respondFromDemo();
+    return respondFromDemo(locale);
   }
 
   const user = await requireUser();
   if (!user) {
-    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -80,15 +96,16 @@ export async function POST(req: Request) {
     if (cachedResponse) return cachedResponse;
   }
 
-  return handleGenerate();
+  return handleGenerate(locale);
 }
 
-async function handleGenerate() {
+async function handleGenerate(locale: Locale = "pt-BR") {
   try {
+    const isEn = locale === "en";
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY não configurada no ambiente." },
+        { error: "GEMINI_API_KEY is not configured." },
         { status: 500 }
       );
     }
@@ -105,19 +122,19 @@ async function handleGenerate() {
     let candidateModels: string[] = [];
     let switchedDueToQuota = false;
 
-    // Regra de Cota: Se já atingiu a cota do modelo primário, salta direto para os fallbacks configurados no .env
+    // Quota rule: If primary model quota has been reached, skip directly to configured fallbacks in .env
     if (primaryCount >= maxPrimaryQuota) {
       switchedDueToQuota = true;
       candidateModels = [...configuredFallbacks];
       console.log(
-        `[Consultor IA] Limite de ${maxPrimaryQuota} chamadas diárias do modelo primário (${configuredModel}) atingido (${primaryCount}). Usando fallbacks configurados no .env:`,
+        `[AI Advisor] Daily limit of ${maxPrimaryQuota} calls for primary model (${configuredModel}) reached (${primaryCount}). Using fallbacks configured in .env:`,
         candidateModels
       );
     } else {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
 
-    // Carrega telemetria/concessionária (Supabase) e clima (Open-Meteo) para injetar no prompt
+    // Load telemetry/utility data (Supabase) and weather (Open-Meteo) to inject into prompt
     const [telemetry, utilityData, sunCurve, weatherHistory] = await Promise.all([
       getLatestTelemetry().catch(() => null),
       getLatestUtilityData().catch(() => null),
@@ -145,7 +162,7 @@ async function handleGenerate() {
     const peakKw = peakPoint.power_kw ?? (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
-    // Dados meteorológicos de hoje e dos últimos dias (Open-Meteo)
+    // Weather data for today and recent days (Open-Meteo)
     const todayWeather = weatherHistory[weatherHistory.length - 1];
     const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
     const avgRecentProduction =
@@ -167,10 +184,10 @@ async function handleGenerate() {
     const consumoFaturadoKwh = fatura?.KwhReal ?? 0;
     const valorFaturaReais = fatura?.ValorFatura ?? 0;
 
-    // Prompt do consultor: análise interpretativa (não apenas leitura dos números) voltada aos proprietários
+    // Advisor prompt: interpretive analysis (not just reading numbers) tailored to system owners
     const systemPrompt = `Você é um Consultor Especialista em Engenharia de Energia Solar.
 Seu papel NÃO é apenas listar números que já aparecem na tela, mas sim fornecer uma ANÁLISE REAL, CRÍTICA E INTERPRETATIVA dos dados da usina para os proprietários da residência em Içara/SC.
-Escreva SEMPRE em Português do Brasil (PT-BR).
+${isEn ? "Escreva SEMPRE em Inglês fluente e profissional (US English)." : "Escreva SEMPRE em Português do Brasil (PT-BR)."}
 
 DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
 1. NÃO SEJA UM MERO LEITOR DE NÚMEROS:
@@ -188,9 +205,9 @@ DIRETRIZES FUNDAMENTAIS DE ANÁLISE:
        : `- PERÍODO NOTURNO (geração diurna encerrada): São ${brasiliaTimeStr} e o sol já se pôs. O valor de ${geracaoHojeKwh.toFixed(1)} kWh representa o fechamento consolidado e definitivo da produção de hoje.`
    }
 3. IDIOMA E TOM:
-   - Português do Brasil (PT-BR) correto, elegante, sóbrio e profissional.
+   - ${isEn ? "Professional, clear, sober, high-impact technical English." : "Português do Brasil (PT-BR) correto, elegante, sóbrio e profissional."}
    - Trate o leitor como um adulto inteligente, lúcido e consciente do seu investimento patrimonial.
-   - NÃO use linguagem infantil nem informalidade forçada (evite "lar de vocês", "colocou no bolso", etc.).
+   - NÃO use linguagem infantil nem informalidade forçada.
 4. SEM JARGÕES BUROCRÁTICOS OU EM INGLÊS:
    - NÃO use siglas de leis como "GD I", "GD II", "Lei 14.300", "Fio B", "Art. 26". Explique simplesmente que os créditos contam com isenção integral na compensação da conta.
    - NÃO use termos em inglês como "performance ratio", "edge-of-cloud", "payback", "strings". Explique tudo em português claro (ex: "irradiação solar", "potência instantânea", "horas de sol pleno").
@@ -272,7 +289,7 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
 
     for (const modelToTry of candidateModels) {
       const modelStart = Date.now();
-      console.log(`[Consultor IA] Tentando gerar com ${modelToTry}...`);
+      console.log(`[AI Advisor] Attempting generation with ${modelToTry}...`);
       try {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent`,
@@ -299,24 +316,24 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
             modelSuccessfullyUsed = modelToTry;
-            console.log(`[Consultor IA] Sucesso com ${modelToTry} em ${elapsed}s!`);
+            console.log(`[AI Advisor] Success with ${modelToTry} in ${elapsed}s!`);
             break;
           }
         } else {
           const errText = await res.text();
-          lastError = new Error(`Modelo ${modelToTry} retornou ${res.status}: ${errText}`);
-          console.warn(`[Consultor IA] ${modelToTry} falhou (${res.status}) em ${elapsed}s. Tentando próximo...`);
+          lastError = new Error(`Model ${modelToTry} returned ${res.status}: ${errText}`);
+          console.warn(`[AI Advisor] ${modelToTry} failed (${res.status}) in ${elapsed}s. Trying next...`);
         }
       } catch (err) {
         const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         lastError = err;
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(`[Consultor IA] ${modelToTry} gerou erro/timeout (${message}) em ${elapsed}s. Tentando próximo...`);
+        console.warn(`[AI Advisor] ${modelToTry} errored/timed out (${message}) in ${elapsed}s. Trying next...`);
       }
     }
 
     if (!rawText) {
-      console.error("[Consultor IA] Todos os modelos falharam. Último erro:", lastError);
+      console.error("[AI Advisor] All models failed. Last error:", lastError);
       const cached = await getAdvisorCache();
       if (cached) {
         return NextResponse.json({
@@ -327,12 +344,14 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
           maxPrimaryQuota,
           isCached: true,
           updatedAt: cached.updatedAt,
-          warning: "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
+          warning: isEn
+            ? "Google AI Studio experiencing temporary high demand. Displaying last recorded analysis."
+            : "Google AI Studio com alta demanda temporária. Exibindo última análise registrada.",
         });
       }
       
-      // Se não houver cache anterior e a API do Google estiver indisponível temporariamente,
-      // entrega a análise técnica contextualizada sem quebrar a interface do usuário
+      // If no prior cache exists and Google API is temporarily unavailable,
+      // return contextual fallback analysis without breaking the user interface
       return NextResponse.json({
         ...fallbackAdvisorAnalysis,
         modelUsed: candidateModels[0] || configuredModel,
@@ -341,17 +360,19 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
         maxPrimaryQuota,
         isCached: false,
         updatedAt: new Date().toISOString(),
-        warning: "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
+        warning: isEn
+          ? "AI service temporarily unavailable from Google. Displaying preliminary technical analysis."
+          : "Serviço de IA temporariamente indisponível no Google. Exibindo análise técnica preliminar.",
       });
     }
 
     const parsed: AdvisorResult = JSON.parse(rawText);
 
-    // Incrementa a cota registrada
+    // Increment registered quota
     const updatedQuota = await incrementQuota(modelSuccessfullyUsed);
     const currentPrimaryCount = updatedQuota.primary_count;
 
-    // Salva no cache persistente para evitar chamadas redundantes
+    // Save to persistent cache to prevent redundant calls
     await saveAdvisorCache(parsed, modelSuccessfullyUsed);
 
     return NextResponse.json({
@@ -364,9 +385,9 @@ Retorne EXCLUSIVAMENTE o seguinte formato JSON estrito (sem formatação markdow
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Erro interno no Consultor IA:", error);
+    console.error("[AI Advisor] Internal error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro interno ao processar análise da IA" },
+      { error: error instanceof Error ? error.message : "Internal error processing AI analysis" },
       { status: 500 }
     );
   }

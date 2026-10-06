@@ -101,8 +101,8 @@ def test_login_cooperalianca_failures(httpserver):
     assert attempts("sem-token") == 1
 
 
-def test_login_cooperalianca_recupera_apos_portal_indisponivel(httpserver):
-    httpserver.expect_oneshot_request("/Auth").respond_with_data("Indisponível", status=503)
+def test_login_cooperalianca_recovers_after_portal_unavailable(httpserver):
+    httpserver.expect_oneshot_request("/Auth").respond_with_data("Unavailable", status=503)
     httpserver.expect_request("/Auth").respond_with_json({"Content": {"Token": "TOKEN123"}})
 
     with patch.object(utility, "API_BASE", httpserver.url_for("/")):
@@ -181,10 +181,10 @@ def test_sync_cooperalianca_full_cycle(httpserver, monkeypatch, tmp_path):
     assert saved_file.exists()
 
 
-def test_sync_cooperalianca_falha_quando_o_supabase_rejeita_o_envio(httpserver, monkeypatch):
+def test_sync_cooperalianca_fails_when_supabase_rejects_payload(httpserver, monkeypatch):
     httpserver.expect_request("/Auth").respond_with_json({"Content": {"Token": "TOKEN123"}})
     httpserver.expect_request("/rest/v1/utility_data", method="POST").respond_with_data(
-        "Erro", status=500
+        "Error", status=500
     )
 
     monkeypatch.setattr(utility, "API_BASE", httpserver.url_for("/"))
@@ -276,7 +276,7 @@ def test_download_informativo_pdf_server_failure(httpserver, monkeypatch, tmp_pa
 
     httpserver.expect_request("/Auth").respond_with_json({"Content": auth_data}, status=200)
     httpserver.expect_request("/GeracaoDistribuida/InformativoMicrogeracao").respond_with_data(
-        "Erro", status=500
+        "Error", status=500
     )
 
     monkeypatch.setattr(utility, "API_BASE", httpserver.url_for("/"))
@@ -304,7 +304,7 @@ def test_utility_atomic_write_error(tmp_path):
 
 def test_login_cooperalianca_network_exception(monkeypatch):
     monkeypatch.setattr(
-        utility.requests, "post", MagicMock(side_effect=requests.RequestException("Rede"))
+        utility.requests, "post", MagicMock(side_effect=requests.RequestException("Network"))
     )
     login = utility.login_cooperalianca
     assert login("00000000000", "senha", utility.portal_headers(), retry_delays=(0,)) is None
@@ -408,14 +408,14 @@ def test_download_informativo_pdf_auth_failure_branches(httpserver, monkeypatch,
 def test_utility_main_cli(monkeypatch):
     with patch.object(utility, "sync_cooperalianca", return_value={"ok": True}) as mock_sync:
         with patch.object(
-            utility, "download_informativo_pdf", side_effect=RuntimeError("Erro PDF")
+            utility, "download_informativo_pdf", side_effect=RuntimeError("PDF Error")
         ):
             monkeypatch.setattr("sys.argv", ["utility.py", "--pdf"])
             main()
             assert mock_sync.called
 
 
-def test_utility_main_sai_com_erro_quando_a_sincronizacao_falha(monkeypatch):
+def test_utility_main_exits_with_error_when_sync_fails(monkeypatch):
     with patch.object(utility, "sync_cooperalianca", return_value=None):
         monkeypatch.setattr("sys.argv", ["utility.py", "--pdf"])
         with pytest.raises(SystemExit) as exc:

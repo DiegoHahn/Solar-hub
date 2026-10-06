@@ -3,14 +3,14 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { Button } from "./Button";
 
 describe("Button", () => {
-  it("renderiza o botão com texto e variante padrão", () => {
+  it("renders button with text and default variant", () => {
     render(<Button>Clique aqui</Button>);
     const btn = screen.getByRole("button", { name: "Clique aqui" });
     expect(btn).toBeInTheDocument();
     expect(btn).not.toBeDisabled();
   });
 
-  it("aplica classes corretas para as diferentes variantes", () => {
+  it("applies correct classes for different variants", () => {
     const { rerender } = render(<Button variant="secondary">Secundário</Button>);
     expect(screen.getByRole("button")).toHaveClass("border-gray-300");
 
@@ -24,14 +24,14 @@ describe("Button", () => {
     expect(screen.getByRole("button")).toHaveClass("bg-red-600");
   });
 
-  it("chama o callback onClick quando clicado e não está desabilitado", () => {
+  it("calls onClick callback when clicked and not disabled", () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Ação</Button>);
     fireEvent.click(screen.getByRole("button", { name: "Ação" }));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it("não dispara onClick quando desabilitado", () => {
+  it("does not trigger onClick when disabled", () => {
     const handleClick = vi.fn();
     render(<Button disabled onClick={handleClick}>Desabilitado</Button>);
     const btn = screen.getByRole("button", { name: "Desabilitado" });
@@ -40,14 +40,14 @@ describe("Button", () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it("renderiza estado de carregamento com spinner e desabilita o botão", () => {
+  it("renders loading state with spinner and disables button", () => {
     render(<Button isLoading loadingText="Carregando dados...">Salvar</Button>);
     const btn = screen.getByRole("button");
     expect(btn).toBeDisabled();
     expect(screen.getAllByText("Carregando dados...").length).toBeGreaterThan(0);
   });
 
-  it("suporta renderização como asChild usando Slot", () => {
+  it("supports rendering asChild using Slot", () => {
     render(
       <Button asChild>
         <a href="/destino">Link como botão</a>

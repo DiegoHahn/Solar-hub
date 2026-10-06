@@ -38,7 +38,7 @@ describe("GenerationPeriodSection", () => {
     { label: "03", kwh: 38.7 },
   ];
 
-  it("inicia na aba Dia por padrão", () => {
+  it("starts on Day tab by default", () => {
     render(
       <GenerationPeriodSection
         dayCurve={dayCurve}
@@ -52,7 +52,7 @@ describe("GenerationPeriodSection", () => {
     expect(screen.getByRole("button", { name: "Ano" })).toBeInTheDocument();
   });
 
-  it("troca para a aba Mês e exibe o total acumulado do mês", () => {
+  it("switches to Month tab and displays accumulated monthly total", () => {
     render(
       <GenerationPeriodSection
         dayCurve={dayCurve}
@@ -71,7 +71,7 @@ describe("GenerationPeriodSection", () => {
     expect(screen.getAllByText(formatted).length).toBeGreaterThan(0);
   });
 
-  it("troca para a aba Ano e permite alternar entre filtros anuais", () => {
+  it("switches to Year tab and allows toggling between annual filters", () => {
     render(
       <GenerationPeriodSection
         dayCurve={dayCurve}
@@ -97,7 +97,7 @@ describe("GenerationPeriodSection", () => {
     }
   });
 
-  it("exibe mensagem vazia quando não há dados na aba", () => {
+  it("displays empty state message when tab has no data", () => {
     render(
       <GenerationPeriodSection
         dayCurve={[]}

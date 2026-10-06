@@ -89,13 +89,13 @@ function saveJson(filename: string, data: unknown, source: unknown = data) {
 }
 
 async function captureOpenMeteo() {
-  console.log("\n--- Capturando dados da Open-Meteo ---");
+  console.log("\n--- Capturing Open-Meteo data ---");
   const query = "latitude=-28.7139&longitude=-49.3003&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=15&azimuth=155&timezone=America%2FSao_Paulo";
 
   const forecastUrl = `https://api.open-meteo.com/v1/forecast?${query}&past_days=7&forecast_days=1`;
   const forecastRes = await fetch(forecastUrl);
   if (!forecastRes.ok) {
-    throw new Error(`Falha ao buscar forecast da Open-Meteo: ${forecastRes.statusText}`);
+    throw new Error(`Failed to fetch the Open-Meteo forecast: ${forecastRes.statusText}`);
   }
   const forecastJson = await forecastRes.json();
   saveJson("open-meteo-forecast.json", forecastJson);
@@ -103,7 +103,7 @@ async function captureOpenMeteo() {
   const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?${query}&start_date=2026-06-01&end_date=2026-06-15`;
   const archiveRes = await fetch(archiveUrl);
   if (!archiveRes.ok) {
-    throw new Error(`Falha ao buscar archive da Open-Meteo: ${archiveRes.statusText}`);
+    throw new Error(`Failed to fetch the Open-Meteo archive: ${archiveRes.statusText}`);
   }
   const archiveJson = await archiveRes.json();
   saveJson("open-meteo-archive.json", archiveJson);
@@ -124,7 +124,7 @@ function loadEnvFile(filePath: string): Record<string, string> {
 }
 
 async function captureSupabase() {
-  console.log("\n--- Capturando dados do Supabase de Produção ---");
+  console.log("\n--- Capturing production Supabase data ---");
   const localEnv = loadEnvFile(path.resolve(__dirname, "../.env.test.local"));
   const defaultEnv = loadEnvFile(path.resolve(__dirname, "../.env.local"));
 
@@ -134,22 +134,22 @@ async function captureSupabase() {
   const password = process.env.SUPABASE_TEST_PASSWORD || localEnv.SUPABASE_TEST_PASSWORD;
 
   if (!supabaseUrl || !anonKey) {
-    console.warn("URL ou Chave do Supabase ausentes. Pulando captura do Supabase.");
+    console.warn("Supabase URL or key missing. Skipping the Supabase capture.");
     return;
   }
 
   if (!email || !password) {
-    console.warn("SUPABASE_TEST_EMAIL ou SUPABASE_TEST_PASSWORD ausentes em .env.test.local. Pulando captura do Supabase.");
+    console.warn("SUPABASE_TEST_EMAIL or SUPABASE_TEST_PASSWORD missing in .env.test.local. Skipping the Supabase capture.");
     return;
   }
 
   const supabase = createClient(supabaseUrl, anonKey);
   const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
   if (authError) {
-    console.error("Erro de login no Supabase com usuário de teste:", authError.message);
+    console.error("Supabase login failed for the test user:", authError.message);
     return;
   }
-  console.log("Login com usuário de testes bem-sucedido.");
+  console.log("Signed in as the test user.");
 
   console.log("Buscando solar_telemetry...");
   const { data: telemetryRows, error: telError } = await supabase
@@ -159,7 +159,7 @@ async function captureSupabase() {
     .limit(200);
 
   if (telError) {
-    console.error("Erro ao buscar solar_telemetry:", telError.message);
+    console.error("Failed to fetch solar_telemetry:", telError.message);
   } else if (telemetryRows && telemetryRows.length > 0) {
     const targetDate = telemetryRows[0].recorded_at.slice(0, 10);
     const dayRows = telemetryRows.filter((r) => r.recorded_at.startsWith(targetDate));
@@ -184,8 +184,8 @@ async function captureSupabase() {
     supabase.from("inverter_daily_history").select("*").order("date", { ascending: false }).limit(360),
   ]);
 
-  if (dailyGenRes.error) console.error("Erro daily_generation:", dailyGenRes.error.message);
-  if (dailyHistRes.error) console.error("Erro inverter_daily_history:", dailyHistRes.error.message);
+  if (dailyGenRes.error) console.error("Failed to fetch daily_generation:", dailyGenRes.error.message);
+  if (dailyHistRes.error) console.error("Failed to fetch inverter_daily_history:", dailyHistRes.error.message);
 
   saveJson("daily-generation.json", {
     view: dailyGenRes.data || [],
@@ -198,7 +198,7 @@ async function captureSupabase() {
     .select("*")
     .order("month", { ascending: false });
 
-  if (monthError) console.error("Erro inverter_monthly_history:", monthError.message);
+  if (monthError) console.error("Failed to fetch inverter_monthly_history:", monthError.message);
   else saveJson("monthly-history.json", monthlyRows || []);
 
   console.log("Buscando utility_data...");
@@ -209,7 +209,7 @@ async function captureSupabase() {
     .limit(1);
 
   if (utilError) {
-    console.error("Erro utility_data:", utilError.message);
+    console.error("Failed to fetch utility_data:", utilError.message);
   } else if (utilityRows && utilityRows.length > 0) {
     const raw = utilityRows[0];
     const ucs = raw.unidades_consumidoras || {};
@@ -255,7 +255,7 @@ async function captureSupabase() {
     .order("date", { ascending: false })
     .limit(90);
 
-  if (wError) console.error("Erro daily_weather:", wError.message);
+  if (wError) console.error("Failed to fetch daily_weather:", wError.message);
   else saveJson("daily-weather.json", weatherRows || []);
 }
 
@@ -263,10 +263,10 @@ async function main() {
   ensureFixturesDir();
   await captureOpenMeteo();
   await captureSupabase();
-  console.log("\nProcesso de captura de fixtures concluído!");
+  console.log("\nFixture capture finished.");
 }
 
 main().catch((err) => {
-  console.error("Erro fatal na captura:", err);
+  console.error("Fixture capture failed:", err);
   process.exit(1);
 });

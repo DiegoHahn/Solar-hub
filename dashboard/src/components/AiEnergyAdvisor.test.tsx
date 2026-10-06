@@ -52,7 +52,7 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe("AiEnergyAdvisor", () => {
-  it("carrega e exibe a análise em cache e recomendações", async () => {
+  it("loads and displays cached analysis and recommendations", async () => {
     render(<AiEnergyAdvisor nominalKwp={16} />);
 
     expect(screen.getByRole("button", { name: /Consultando|Regerar/ })).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe("AiEnergyAdvisor", () => {
     expect(screen.getByText(/Gemini 2.5 Flash · 2\/4/)).toBeInTheDocument();
   });
 
-  it("permite alternar entre visão Diária e Mensal", async () => {
+  it("allows toggling between Daily and Monthly views", async () => {
     render(<AiEnergyAdvisor nominalKwp={16} />);
 
     await waitFor(() => {
@@ -80,21 +80,21 @@ describe("AiEnergyAdvisor", () => {
     expect(screen.getByText("Meta mensal")).toBeInTheDocument();
   });
 
-  it("exibe mensagem de erro se a requisição falhar", async () => {
+  it("displays error message when request fails", async () => {
     server.use(
       http.get("/api/ai-advisor", () => {
-        return HttpResponse.json({ error: "Cota diária esgotada" }, { status: 429 });
+        return HttpResponse.json({ error: "Daily quota exhausted" }, { status: 429 });
       }),
     );
 
     render(<AiEnergyAdvisor nominalKwp={16} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Cota diária esgotada/)).toBeInTheDocument();
+      expect(screen.getByText(/Daily quota exhausted/)).toBeInTheDocument();
     });
   });
 
-  it("ao clicar em Regerar, envia POST com force: true e atualiza os dados", async () => {
+  it("sends POST with force: true and updates data when clicking Regenerate", async () => {
     render(<AiEnergyAdvisor nominalKwp={16} />);
 
     await waitFor(() => {

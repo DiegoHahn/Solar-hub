@@ -23,13 +23,13 @@ describe("requireUser", () => {
     process.env.ALLOWED_EMAILS = originalAllowed;
   });
 
-  it("retorna null quando não há usuário logado", async () => {
+  it("returns null when no user is logged in", async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
     const user = await requireUser();
     expect(user).toBeNull();
   });
 
-  it("retorna null quando o email do usuário não está na allowlist", async () => {
+  it("returns null when user email is not in allowlist", async () => {
     mockGetUser.mockResolvedValueOnce({
       data: {
         user: {
@@ -42,7 +42,7 @@ describe("requireUser", () => {
     expect(user).toBeNull();
   });
 
-  it("retorna o usuário quando o email está na allowlist", async () => {
+  it("returns user when email is in allowlist", async () => {
     mockGetUser.mockResolvedValueOnce({
       data: {
         user: {

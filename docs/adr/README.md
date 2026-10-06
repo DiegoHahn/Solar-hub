@@ -1,26 +1,26 @@
-# Registros de Decisões de Arquitetura (ADRs)
+# Architectural Decision Records (ADRs)
 
-Este diretório documenta as principais decisões arquiteturais tomadas durante a concepção e evolução do **Solar Hub**, estruturadas de acordo com o formato [MADR (Markdown Architectural Decision Records)](https://adr.github.io/madr/).
+This directory documents the key architectural decisions made during the design and evolution of **Solar Hub**, structured according to the [MADR (Markdown Architectural Decision Records)](https://adr.github.io/madr/) format.
 
-Cada registro detalha o contexto técnico e os requisitos que motivaram a discussão, a decisão adotada e as consequências (positivas, negativas e mitigações).
+Each record details the technical context, requirements that drove the decision, the adopted choice, and the consequences (benefits, trade-offs, and mitigations).
 
 ---
 
-## Índice de Decisões
+## Decision Index
 
-| ADR | Título | Data | Status | Resumo da Decisão |
+| ADR | Title | Date | Status | Decision Summary |
 | :---: | :--- | :---: | :---: | :--- |
-| [0001](0001-coleta-edge-to-cloud-dispositivo-local.md) | Coleta Edge-to-Cloud em Dispositivo Local | 2026-08-30 | **Aceito** | Substituição das nuvens proprietárias por SBC local (Orange Pi 4 Pro) interrogando inversores via Modbus e Solarman V5 com fila offline em JSON. |
-| [0002](0002-supabase-com-rls-sem-api-propria.md) | Supabase com Row Level Security (RLS) sem API Intermediária | 2026-09-25 | **Aceito** | Acesso direto ao PostgreSQL gerenciado via Server Components com políticas RLS por linha e escrita restrita a contas pré-autorizadas para cache. |
-| [0003](0003-nextjs-app-router-server-components-gru1.md) | Next.js App Router com Server Components e Região gru1 na Vercel | 2026-09-04 | **Aceito** | Renderização no servidor sem waterfall de requisições no cliente e hospedagem na região gru1 (São Paulo) na Vercel. |
-| [0004](0004-github-flow-e-release-please.md) | GitHub Flow e Automação de Versões com Release Please | 2026-09-29 | **Aceito** | Branches efêmeras, CI com trava de cobertura ≥ 80%, squash merge linear e releases automatizadas a partir de Conventional Commits. |
-| [0005](0005-testes-com-dados-reais-anonimizados.md) | Testes com Dados Reais Anonimizados e Mocks Mínimos | 2026-09-29 | **Aceito** | Suíte de testes baseada em fixtures anonimizadas de produção, servidores HTTP locais reais e minimização de dublês sintéticos. |
+| [0001](0001-coleta-edge-to-cloud-dispositivo-local.md) | Edge-to-Cloud Collection via Local SBC | 2026-08-30 | **Accepted** | Replaced proprietary vendor clouds with an on-premises SBC (Orange Pi 4 Pro) querying inverters via Modbus and Solarman V5 with offline JSON queuing. |
+| [0002](0002-supabase-com-rls-sem-api-propria.md) | Supabase with Row Level Security (RLS) without Intermediate API | 2026-09-25 | **Accepted** | Direct access to managed PostgreSQL via Server Components with row-level RLS policies and write access restricted to pre-authorized accounts for caching. |
+| [0003](0003-nextjs-app-router-server-components-gru1.md) | Next.js App Router with Server Components and Vercel gru1 Region | 2026-09-04 | **Accepted** | Server-side rendering without client-side request waterfalls, hosted in the gru1 (São Paulo) region on Vercel. |
+| [0004](0004-github-flow-e-release-please.md) | GitHub Flow and Automated Releases with Release Please | 2026-09-29 | **Accepted** | Ephemeral branches, CI with strict ≥ 80% coverage gates, linear squash merges, and automated releases derived from Conventional Commits. |
+| [0005](0005-testes-com-dados-reais-anonimizados.md) | Testing with Anonymized Real Data and Minimal Mocks | 2026-09-29 | **Accepted** | Test suite built on anonymized production fixtures, real local loopback HTTP servers, and minimization of synthetic test doubles. |
 
 ---
 
-## Estrutura do Padrão MADR
+## MADR Standard Structure
 
-Cada ADR segue a estrutura padrão:
-* **Contexto:** Problema identificado, forças envolvidas e alternativas analisadas.
-* **Decisão:** Escolha técnica adotada e justificativa.
-* **Consequências:** Benefícios conquistados, trade-offs e estratégias de mitigação.
+Each ADR adheres to the standard layout:
+* **Context:** Problem statement, forces involved, and evaluated alternatives.
+* **Decision:** Technical approach selected and justification.
+* **Consequences:** Acquired benefits, trade-offs, and mitigation strategies.

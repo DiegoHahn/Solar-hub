@@ -15,6 +15,9 @@ import {
 import { Card } from "@/components/Card";
 import { RiBarChartGroupedLine } from "@remixicon/react";
 import type { SunCurvePoint } from "@/lib/types";
+import { useI18n } from "@/i18n";
+
+import type { Locale } from "@/i18n";
 
 const SERIES = [
   { key: "solis_kw", label: "Solis 6kW", color: "#3b82f6" },
@@ -27,9 +30,10 @@ interface CustomTooltipProps {
   payload?: Array<{ dataKey: string; value: number; color: string; payload: SunCurvePoint }>;
   label?: string;
   onActivePoint?: (point: SunCurvePoint) => void;
+  locale?: Locale;
 }
 
-export function InverterCurveTooltip({ active, payload, label, onActivePoint }: CustomTooltipProps) {
+export function InverterCurveTooltip({ active, payload, label, onActivePoint, locale = "pt-BR" }: CustomTooltipProps) {
   useEffect(() => {
     if (active && payload && payload.length > 0 && onActivePoint) {
       const point = payload[0]?.payload;
@@ -49,7 +53,7 @@ export function InverterCurveTooltip({ active, payload, label, onActivePoint }: 
     <div className="hidden md:block rounded-lg border border-gray-200 bg-white/95 p-3 shadow-xl backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95 text-xs">
       <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-1.5 font-semibold text-gray-900 dark:border-gray-800 dark:text-gray-100">
         <span>{label}</span>
-        <span className="tabular-nums">{total.toLocaleString("pt-BR", { minimumFractionDigits: 1 })} kW</span>
+        <span className="tabular-nums">{total.toLocaleString(locale, { minimumFractionDigits: 1 })} kW</span>
       </div>
       <div className="mt-2 space-y-1">
         {payload.map((p) => {
@@ -62,7 +66,7 @@ export function InverterCurveTooltip({ active, payload, label, onActivePoint }: 
                 {series.label}
               </span>
               <span className="tabular-nums text-gray-700 dark:text-gray-200">
-                {p.value?.toLocaleString("pt-BR", { minimumFractionDigits: 1 }) ?? "0,0"} kW
+                {p.value?.toLocaleString(locale, { minimumFractionDigits: 1 }) ?? "0,0"} kW
               </span>
             </div>
           );
@@ -73,6 +77,7 @@ export function InverterCurveTooltip({ active, payload, label, onActivePoint }: 
 }
 
 export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
+  const { t, locale } = useI18n();
   const isMounted = useIsClient();
   const [inspectedPoint, setInspectedPoint] = useState<SunCurvePoint | null>(null);
   const [chartKey, setChartKey] = useState(0);
@@ -101,7 +106,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
 
   if (!data || data.length === 0) return null;
 
-  // Ponto de pico do dia (usado como referência padrão para nunca ficar vazio)
+  // Peak point of the day (fallback reference so panel is never empty)
   const fallbackPoint: SunCurvePoint = { power_kw: 0, time: "--:--", nominal_cap_kw: 16.0 };
   const peakPoint = data.reduce(
     (max, p) => ((p.power_kw ?? 0) > (max.power_kw ?? 0) ? p : max),
@@ -117,28 +122,28 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
       <div className="flex items-center gap-2">
         <RiBarChartGroupedLine className="size-4 text-blue-500" />
         <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          Contribuição por Inversor
+          {t.inverters.contributionByInverter}
         </h2>
       </div>
       <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-        Janela solar das 05:00 às 20:00 em tempo real (intervalos de 30 min)
+        {t.inverters.solarWindowSubtitle}
       </p>
 
-      {/* PAINEL DE INSPEÇÃO EXCLUSIVO MOBILE (mostra o pico do dia até o usuário tocar em um ponto) */}
+      {/* MOBILE EXCLUSIVE INSPECTION PANEL (shows daily peak until user touches a point) */}
       <div className="block sm:hidden mt-3 rounded-xl border border-blue-500/20 bg-blue-500/[0.06] p-3 text-xs transition-all">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Horário {displayPoint.time}:
+                {t.common.time} {displayPoint.time}:
               </span>
               <span className="text-xl font-extrabold text-blue-500 tabular-nums">
-                {displayKw.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
-                <span className="ml-1 text-xs font-semibold text-blue-500/80">kW total</span>
+                {displayKw.toLocaleString(locale, { minimumFractionDigits: 1 })}
+                <span className="ml-1 text-xs font-semibold text-blue-500/80">{t.inverters.totalKw}</span>
               </span>
               {!isInspecting && (
                 <span className="rounded-md bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400">
-                  Pico
+                  {t.inverters.peak}
                 </span>
               )}
             </div>
@@ -149,7 +154,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 onTouchEnd={handleReset}
                 className="relative z-10 shrink-0 cursor-pointer rounded-md bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-500/20 active:bg-blue-500/30 dark:text-blue-400"
               >
-                ✕ Voltar
+                {t.common.back}
               </button>
             )}
           </div>
@@ -157,15 +162,21 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-blue-500/15 text-xs">
             <div>
               <span className="text-[#3b82f6] font-medium">Solis 6kW:</span>{" "}
-              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">{displayPoint.solis_kw?.toFixed(1) ?? "0"} kW</strong>
+              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                {displayPoint.solis_kw?.toFixed(1) ?? "0"} kW
+              </strong>
             </div>
             <div>
               <span className="text-[#10b981] font-medium">GoodWe 1:</span>{" "}
-              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">{displayPoint.goodwe1_kw?.toFixed(1) ?? "0"} kW</strong>
+              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                {displayPoint.goodwe1_kw?.toFixed(1) ?? "0"} kW
+              </strong>
             </div>
             <div>
               <span className="text-[#8b5cf6] font-medium">GoodWe 2:</span>{" "}
-              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">{displayPoint.goodwe2_kw?.toFixed(1) ?? "0"} kW</strong>
+              <strong className="text-sm font-bold tabular-nums text-gray-900 dark:text-gray-100">
+                {displayPoint.goodwe2_kw?.toFixed(1) ?? "0"} kW
+              </strong>
             </div>
           </div>
         </div>
@@ -218,7 +229,7 @@ export function InverterCurveChart({ data }: { data: SunCurvePoint[] }) {
                 tickFormatter={(val) => `${val} kW`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
               />
-              <Tooltip content={<InverterCurveTooltip onActivePoint={setInspectedPoint} />} />
+              <Tooltip content={<InverterCurveTooltip locale={locale} onActivePoint={setInspectedPoint} />} />
               <Legend
                 wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
                 formatter={(value) => SERIES.find((s) => s.key === value)?.label ?? value}

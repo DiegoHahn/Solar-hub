@@ -15,6 +15,7 @@ import {
   RiToolsLine,
 } from "@remixicon/react";
 import { cx } from "@/lib/utils";
+import { useI18n } from "@/i18n";
 
 interface Recommendation {
   title: string;
@@ -48,6 +49,7 @@ interface AiEnergyAdvisorProps {
 export function AiEnergyAdvisor({
   nominalKwp = 16.0,
 }: AiEnergyAdvisorProps) {
+  const { t, locale } = useI18n();
   const [period, setPeriod] = useState<"daily" | "monthly">("daily");
   const [data, setData] = useState<UnifiedAdvisorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,19 +60,23 @@ export function AiEnergyAdvisor({
     let isMounted = true;
     async function loadInitial() {
       try {
-        const res = await fetch("/api/ai-advisor");
+        const res = await fetch("/api/ai-advisor", {
+          headers: {
+            "Accept-Language": locale,
+          },
+        });
         if (!res.ok) {
           const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || "Erro ao consultar consultor solar");
+          throw new Error(errJson.error || "Failed to load the AI advisor");
         }
         const json: UnifiedAdvisorData = await res.json();
         if (isMounted) {
           setData(json);
         }
       } catch (err) {
-        console.error("Falha ao carregar Consultor IA:", err);
+        console.error("Failed to load the AI advisor:", err);
         if (isMounted) {
-          setError((err instanceof Error && err.message) || "Não foi possível conectar à IA.");
+          setError((err instanceof Error && err.message) || t.aiAdvisor.defaultError);
         }
       } finally {
         if (isMounted) {
@@ -83,9 +89,9 @@ export function AiEnergyAdvisor({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [locale, t.aiAdvisor.defaultError]);
 
-  // Botão Regerar: força uma nova análise na API do Gemini (desativado no modo demo)
+  // Refresh analysis
   const handleRefresh = async () => {
     if (data?.isDemo) return;
     setIsLoading(true);
@@ -93,18 +99,21 @@ export function AiEnergyAdvisor({
     try {
       const res = await fetch("/api/ai-advisor", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Language": locale,
+        },
         body: JSON.stringify({ force: true, nominalKwp }),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Erro ao regerar análise");
+        throw new Error(errJson.error || "Failed to regenerate the analysis");
       }
       const json: UnifiedAdvisorData = await res.json();
       setData(json);
     } catch (err) {
-      console.error("Falha ao regerar Consultor IA:", err);
-      setError((err instanceof Error && err.message) || "Erro ao regerar análise da IA.");
+      console.error("Failed to regenerate the AI advisor:", err);
+      setError((err instanceof Error && err.message) || t.aiAdvisor.defaultError);
     } finally {
       setIsLoading(false);
     }
@@ -159,10 +168,10 @@ export function AiEnergyAdvisor({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-b from-purple-950/20 via-gray-950 to-gray-950 p-4 sm:p-5 shadow-lg dark:border-purple-500/30">
-      {/* Luz ambiente suave de IA */}
+      {/* Soft ambient lighting */}
       <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-purple-600/10 blur-3xl" />
 
-      {/* Top Header: Ícone, Título e Controles */}
+      {/* Top Header: Icon, Title, and Controls */}
       <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-purple-500/15 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md shadow-purple-500/25">
@@ -171,7 +180,7 @@ export function AiEnergyAdvisor({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-gray-900 sm:text-base dark:text-gray-100">
-                Consultor Energético IA
+                {t.aiAdvisor.title}
               </h2>
               <span
                 title={
@@ -187,7 +196,7 @@ export function AiEnergyAdvisor({
           </div>
         </div>
 
-        {/* Controles: Toggle Diário/Mensal (Instantâneo) + Botão Regerar */}
+        {/* Controls: Toggle Daily / Monthly + Regenerate button */}
         <div className="flex items-center gap-2">
           <div className="inline-flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs">
             <button
@@ -201,7 +210,7 @@ export function AiEnergyAdvisor({
               )}
             >
               <RiSunLine className="size-3" aria-hidden="true" />
-              Diário
+              {t.aiAdvisor.daily}
             </button>
             <button
               type="button"
@@ -214,7 +223,7 @@ export function AiEnergyAdvisor({
               )}
             >
               <RiCalendarLine className="size-3" aria-hidden="true" />
-              Mensal
+              {t.aiAdvisor.monthly}
             </button>
           </div>
 
@@ -222,7 +231,7 @@ export function AiEnergyAdvisor({
             type="button"
             onClick={handleRefresh}
             disabled={!mounted ? false : isLoading || Boolean(data?.isDemo)}
-            title={data?.isDemo ? "A geração de novas análises está desativada no modo demonstração." : undefined}
+            title={data?.isDemo ? t.aiAdvisor.demoNotice : undefined}
             suppressHydrationWarning
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-50 active:scale-95 disabled:opacity-60 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
           >
@@ -230,19 +239,19 @@ export function AiEnergyAdvisor({
               className={cx("size-3", isLoading && "animate-spin text-purple-500")}
               aria-hidden="true"
             />
-            {isLoading ? "Consultando..." : "Regerar"}
+            {isLoading ? t.aiAdvisor.consulting : t.aiAdvisor.recalculate}
           </button>
         </div>
       </div>
 
-      {/* Alerta sutil se houver aviso de serviço */}
+      {/* Warning notice if present */}
       {data?.warning && (
         <div className="mt-2 text-[11px] text-amber-500/90 dark:text-amber-400/90">
           ℹ️ {data.warning}
         </div>
       )}
 
-      {/* Síntese Executiva Gerada pela IA */}
+      {/* AI Executive Summary */}
       <div className="relative mt-3.5 rounded-xl border border-purple-500/15 bg-purple-950/15 p-3.5 dark:border-purple-500/25 dark:bg-purple-950/25 min-h-[72px] flex items-center">
         {isLoading && !activePeriodData ? (
           <div className="w-full space-y-2 py-1">
@@ -252,7 +261,7 @@ export function AiEnergyAdvisor({
           </div>
         ) : error && !activePeriodData ? (
           <p className="text-xs text-rose-500">
-            {error}. Clique em &quot;Regerar&quot; para tentar novamente.
+            {error}. {t.aiAdvisor.retryHint}
           </p>
         ) : activePeriodData ? (
           <p className="text-xs sm:text-sm leading-relaxed text-gray-800 dark:text-gray-200">
@@ -266,7 +275,7 @@ export function AiEnergyAdvisor({
         )}
       </div>
 
-      {/* Recomendações Diretas em Lista Limpa */}
+      {/* Recommendations Cards */}
       <div className="relative mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {isLoading && !activePeriodData ? (
           <>

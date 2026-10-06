@@ -13,7 +13,7 @@ describe("DemoBanner", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza o banner com link para sair quando em rota autenticada/demo", () => {
+  it("renders banner with exit link when on authenticated/demo route", () => {
     mockUsePathname.mockReturnValue("/");
     render(<DemoBanner />);
 
@@ -26,7 +26,7 @@ describe("DemoBanner", () => {
     expect(link).toHaveAttribute("href", "/demo/sair");
   });
 
-  it("renderiza em subpáginas do dashboard como /placas", () => {
+  it("renders on dashboard subpages such as /placas", () => {
     mockUsePathname.mockReturnValue("/placas");
     render(<DemoBanner />);
 
@@ -35,13 +35,13 @@ describe("DemoBanner", () => {
     ).toBeInTheDocument();
   });
 
-  it("não renderiza na rota de /login", () => {
+  it("does not render on /login route", () => {
     mockUsePathname.mockReturnValue("/login");
     const { container } = render(<DemoBanner />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("não renderiza na rota de /auth/callback", () => {
+  it("does not render on /auth/callback route", () => {
     mockUsePathname.mockReturnValue("/auth/callback");
     const { container } = render(<DemoBanner />);
     expect(container.firstChild).toBeNull();

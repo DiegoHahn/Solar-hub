@@ -15,7 +15,7 @@ test.describe("Acesso Não Autenticado e Segurança", () => {
     const res = await request.get("/api/ai-advisor");
     expect(res.status()).toBe(401);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Não autenticado.");
+    expect(body).toHaveProperty("error", "Not authenticated.");
   });
 
   test("retorna 401 em POST /api/ai-advisor sem autenticação", async ({ request }) => {
@@ -24,7 +24,7 @@ test.describe("Acesso Não Autenticado e Segurança", () => {
     });
     expect(res.status()).toBe(401);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Não autenticado.");
+    expect(body).toHaveProperty("error", "Not authenticated.");
   });
 
   test("aplica headers de segurança e CSP rigorosos", async ({ page }) => {

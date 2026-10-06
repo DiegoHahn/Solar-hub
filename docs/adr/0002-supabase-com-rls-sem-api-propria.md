@@ -1,39 +1,39 @@
-# 2. Supabase com Row Level Security (RLS) sem Camada de API Intermediária
+# 2. Supabase with Row Level Security (RLS) without an Intermediate API Layer
 
-* **Status:** Aceito
-* **Data:** 2026-09-25 (registro retroativo)
-* **Decisores:** Diego Hahn
+* **Status:** Accepted
+* **Date:** 2026-09-25 (retroactive record)
+* **Decision Makers:** Diego Hahn
 
-## Contexto
+## Context
 
-Aplicações orientadas a dashboards frequentemente adotam uma arquitetura com três camadas: Frontend (SPA) → Backend/API (Node.js/Python) → Banco de Dados (SQL).
+Dashboard-oriented web applications often adopt a traditional three-tier architecture: Frontend (SPA) → Backend/API (Node.js/Python) → Database (SQL).
 
-Para o Solar Hub, manter um serviço intermediário de API representaria:
-1. **Sobrecarga operacional:** Necessidade de gerenciar, monitorar e manter contêineres ou serviços adicionais na nuvem.
-2. **Duplicação de camadas de tipos:** Escrever e sincronizar DTOs e controladores REST repetitivos apenas para repassar dados do banco para o frontend.
-3. **Latência adicional:** Salto de rede extra (Browser/SSR → API Gateway → PostgreSQL).
+For Solar Hub, maintaining an intermediate custom API service would introduce:
+1. **Operational overhead:** Needing to provision, monitor, and maintain additional cloud services or container runtimes.
+2. **Duplicated type layers:** Writing redundant DTOs, serializes, and REST controller routes simply to forward database records to the client.
+3. **Extra network latency:** An additional network hop (Browser/SSR → API Gateway → PostgreSQL).
 
-## Decisão
+## Decision
 
-Adotamos o Supabase (PostgreSQL gerenciado) com Row Level Security (RLS) como camada unificada de dados e autenticação, acessado diretamente pelo Next.js via Server Components e Route Handlers:
+We adopted Supabase (managed PostgreSQL) with Row Level Security (RLS) as our unified data and authentication layer, queried directly by Next.js via React Server Components and Route Handlers:
 
-1. **Autenticação:** O Supabase Auth gerencia identidades via tokens JWT trafegados em cookies seguros (`httpOnly`, `sameSite=lax`), operados pelo pacote `@supabase/ssr`. Novos cadastros públicos estão desativados no projeto; apenas contas pré-autorizadas na variável de ambiente `ALLOWED_EMAILS` obtêm acesso às rotas da aplicação.
-2. **Isolamento via RLS:**
-   - **Leitura restrita:** Todas as tabelas possuem `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`. Usuários anônimos (`anon`) não possuem permissão de leitura nas tabelas de telemetria ou concessionária.
-   - **Escrita restrita das telemetrias:** As tabelas `solar_telemetry` e `utility_data` rejeitam operações de escrita (INSERT, UPDATE, DELETE) por usuários da role `authenticated`. Apenas a chave administrativa `service_role`, retida exclusivamente no hardware edge da usina, grava essas informações.
-3. **Escrita `authenticated` em tabelas de cache (`ai_advisor_daily` e `daily_weather`):**
-   - O dashboard consome previsões da Open-Meteo e insights do Consultor IA (Google Gemini). Para evitar custos e esgotamento de cotas de APIs externas, essas respostas são salvas em cache por data.
-   - As funções serverless na Vercel operam sob a identidade do usuário logado (`authenticated`). Para persistir o cache diário sem injetar a chave com privilégios totais (`service_role`) no ambiente da Vercel, concedemos permissão de escrita para a role `authenticated` nas tabelas `ai_advisor_daily` e `daily_weather`.
-   - **Risco aceito:** A role `authenticated` pode realizar INSERT/UPDATE nessas tabelas para qualquer data. Esse risco é aceito porque o cadastro público no Supabase Auth está desativado e apenas e-mails explicitamente configurados em `ALLOWED_EMAILS` recebem sessão de usuário autenticado.
+1. **Authentication:** Supabase Auth manages identities via JWT tokens transmitted in secure cookies (`httpOnly`, `sameSite=lax`), operated through the `@supabase/ssr` package. Public registrations are disabled in the project; only accounts pre-authorized via the `ALLOWED_EMAILS` environment variable can access application routes.
+2. **Data isolation via RLS:**
+   - **Restricted reads:** All tables enforce `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`. Anonymous (`anon`) users have no read permissions on telemetry or utility billing tables.
+   - **Restricted writes on telemetry:** The `solar_telemetry` and `utility_data` tables reject write operations (INSERT, UPDATE, DELETE) from users with the `authenticated` role. Only the administrative `service_role` key, held exclusively on the local edge hardware, can write these records.
+3. **`authenticated` writes on cache tables (`ai_advisor_daily` and `daily_weather`):**
+   - The dashboard consumes weather forecasts from Open-Meteo and recommendations from the Gemini AI Energy Advisor. To prevent API cost spikes and rate limit exhaustion, responses are cached by date.
+   - Vercel serverless functions execute under the identity of the logged-in user (`authenticated`). To persist daily cache entries without exposing the privileged `service_role` key in the Vercel cloud environment, we grant write permissions for the `authenticated` role on `ai_advisor_daily` and `daily_weather`.
+   - **Accepted risk:** The `authenticated` role can perform INSERT/UPDATE queries on these cache tables for any date. This risk is accepted because public user signups are disabled in Supabase Auth, and only trusted emails explicitly specified in `ALLOWED_EMAILS` can establish authenticated sessions.
 
-## Consequências
+## Consequences
 
-### Positivas
+### Positive
 
-* **Arquitetura enxuta:** Nenhuma infraestrutura de servidor intermediário para escalar ou orquestrar.
-* **Controle de acesso centralizado no banco:** Políticas de segurança aplicadas no nível da linha no PostgreSQL (*defense-in-depth*), prevenindo que erros de renderização ou consultas no cliente acessem dados não autorizados.
-* **Execução de funções serverless sem chave mestra:** O cache de clima e IA funciona na Vercel sem expor a chave `service_role` no frontend ou em variáveis de ambiente da nuvem pública.
+* **Lean architecture:** Zero intermediate backend servers or reverse proxies to orchestrate and scale.
+* **Database-level centralized access control:** Security policies applied directly at the row level in PostgreSQL (*defense-in-depth*), guaranteeing that rendering bugs or compromised client queries cannot bypass authorization rules.
+* **Serverless execution without master keys:** Weather and AI caching functions run seamlessly on Vercel without exposing the `service_role` key to frontend bundles or cloud hosting environment configurations.
 
-### Negativas e Mitigações
+### Negative and Mitigations
 
-* **Acoplamento a recursos de banco:** As regras de acesso dependem da sintaxe e mecanismos de RLS do PostgreSQL. *Mitigação:* O PostgreSQL é padrão aberto; todas as políticas de segurança são expressas em migrações SQL versionadas no repositório.
+* **Coupling to database primitives:** Access rules depend on PostgreSQL syntax and RLS mechanisms. *Mitigation:* PostgreSQL is an open standard; all security policies are declared in version-controlled SQL migrations within the repository.

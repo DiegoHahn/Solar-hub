@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/database.types";
 
 export interface QuotaState {
-  date: string; // YYYY-MM-DD (fuso de Brasília)
-  primary_count: number; // chamadas ao modelo primário configurado em GEMINI_MODEL
+  date: string; // YYYY-MM-DD (Brasília timezone)
+  primary_count: number; // calls to primary model configured in GEMINI_MODEL
   total_calls: number;
 }
 
@@ -85,7 +85,7 @@ export const fallbackAdvisorAnalysis: AdvisorResult = {
 
 const TABLE = "ai_advisor_daily";
 
-/** Retorna a data atual no fuso horário de Brasília (YYYY-MM-DD) */
+/** Returns current date formatted in Brasília timezone (YYYY-MM-DD) */
 export function getBrasiliaDate(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -95,14 +95,14 @@ export function getBrasiliaDate(now: Date = new Date()): string {
   }).format(now);
 }
 
-/** Verifica se o modelo usado corresponde ao modelo primário (aceita variações de sufixo/versão). */
+/** Checks if model used matches primary model (accepts version/suffix variations). */
 export function isPrimaryModel(modelUsed: string, primaryModel: string): boolean {
   const used = modelUsed.trim().toLowerCase();
   const primary = primaryModel.trim().toLowerCase();
   return used === primary || used.includes(primary) || primary.includes(used);
 }
 
-/** Lê a cota do dia; sem registro (ou em caso de erro) considera a cota zerada. */
+/** Reads daily quota state; returns zeroed quota when absent or on error. */
 export async function getQuotaState(): Promise<QuotaState> {
   const date = getBrasiliaDate();
   const supabase = await createClient();
@@ -112,11 +112,11 @@ export async function getQuotaState(): Promise<QuotaState> {
     .eq("date", date)
     .maybeSingle();
 
-  if (error) console.error("Erro ao ler cota do Consultor IA:", error);
+  if (error) console.error("Error reading AI Advisor quota:", error);
   return { date, primary_count: data?.primary_count ?? 0, total_calls: data?.total_calls ?? 0 };
 }
 
-/** Registra uma chamada bem-sucedida ao Gemini e retorna a cota atualizada. */
+/** Records a successful Gemini call and returns the updated quota state. */
 export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
   const date = getBrasiliaDate();
   const primaryModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
@@ -131,7 +131,7 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
     .maybeSingle();
 
   if (error) {
-    console.error("Erro ao incrementar cota via RPC, aplicando fallback:", error);
+    console.error("Error incrementing quota via RPC, applying fallback:", error);
     const current = await getQuotaState();
     const next: QuotaState = {
       date,
@@ -152,7 +152,7 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
   };
 }
 
-/** Lê a análise gerada hoje, se houver. */
+/** Reads the cached analysis generated today, if available. */
 export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -162,7 +162,7 @@ export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
     .maybeSingle();
 
   if (error) {
-    console.error("Erro ao ler cache do Consultor IA:", error);
+    console.error("Error reading AI Advisor cache:", error);
     return null;
   }
   if (!data?.analysis) return null;
@@ -174,7 +174,7 @@ export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
   };
 }
 
-/** Salva a análise gerada como cache do dia. */
+/** Saves the generated analysis to daily cache. */
 export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from(TABLE).upsert(
@@ -186,5 +186,5 @@ export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string): 
     },
     { onConflict: "date" },
   );
-  if (error) console.error("Erro ao salvar cache do Consultor IA:", error);
+  if (error) console.error("Error saving AI Advisor cache:", error);
 }

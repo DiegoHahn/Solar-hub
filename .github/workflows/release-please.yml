@@ -13,8 +13,8 @@ jobs:
     name: release-please
     runs-on: ubuntu-latest
     steps:
-      # O PR de release precisa passar pelos checks obrigatórios do main; PRs abertos com o GITHUB_TOKEN
-      # não disparam workflows, por isso o token é de um usuário (fine-grained, só neste repositório).
+      # The release PR must satisfy required status checks on main; PRs opened by standard GITHUB_TOKEN
+      # do not trigger secondary workflows, so a dedicated fine-grained PAT is used for this repository.
       - uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}

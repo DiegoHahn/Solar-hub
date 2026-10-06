@@ -15,30 +15,30 @@ const inverter = (overrides: Partial<InverterReading> = {}): InverterReading => 
 });
 
 describe("getNominalKw", () => {
-  it("prioriza nominal_kw explícito", () => {
+  it("prioritizes explicit nominal_kw", () => {
     expect(getNominalKw(inverter({ nominal_kw: 8 }))).toBe(8);
   });
 
-  it("assume 6 kW para o Solis (inv_1 ou marca Solis)", () => {
+  it("assumes 6 kW for Solis (inv_1 or Solis brand)", () => {
     expect(getNominalKw(inverter({ id: "inv_1" }))).toBe(6);
     expect(getNominalKw(inverter({ id: "x", brand: "Solis / Ginlong" }))).toBe(6);
   });
 
-  it("assume 5 kW para os demais (GoodWe)", () => {
+  it("assumes 5 kW for other inverters (GoodWe)", () => {
     expect(getNominalKw(inverter())).toBe(5);
   });
 });
 
 describe("readNumericSensor", () => {
-  it("retorna números diretamente", () => {
+  it("returns numbers directly", () => {
     expect(readNumericSensor(inverter({ raw_sensors: { power_factor: 0.998 } }), "power_factor")).toBe(0.998);
   });
 
-  it("converte strings numéricas serializadas pelo coletor", () => {
+  it("converts numeric strings serialized by the collector", () => {
     expect(readNumericSensor(inverter({ raw_sensors: { vbus: "385.2" } }), "vbus")).toBe(385.2);
   });
 
-  it("retorna null para ausentes, booleanos, strings não numéricas e vazias", () => {
+  it("returns null for missing, boolean, non-numeric, and empty strings", () => {
     const inv = inverter({ raw_sensors: { flag: true, mode: "Normal", empty: " " } });
     expect(readNumericSensor(inv, "missing")).toBeNull();
     expect(readNumericSensor(inv, "flag")).toBeNull();

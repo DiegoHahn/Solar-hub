@@ -32,8 +32,8 @@ export async function isDemoMode(): Promise<boolean> {
   const hasDemoCookie = cookieStore.get("solarhub_demo")?.value === "1";
   if (!hasDemoCookie) return false;
 
-  // Se houver cookie de demo e nenhum cookie de auth do Supabase, está em demo
-  // sem nunca precisar instanciar o cliente do Supabase.
+  // If demo cookie is present and no Supabase auth cookies exist, running in demo mode
+  // without needing to instantiate the Supabase client.
   const allCookies = cookieStore.getAll();
   const hasAuthCookie = allCookies.some(
     (c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"),
