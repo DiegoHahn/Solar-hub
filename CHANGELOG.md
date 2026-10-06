@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.0...v1.2.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **auth:** let the sign-in server action through the login redirect ([#13](https://github.com/DiegoHahn/Solar-hub/issues/13)) ([2d2edbc](https://github.com/DiegoHahn/Solar-hub/commit/2d2edbc536792d5e965c3a6634be9edd7f5d2cf1))
+
 ## [1.2.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.1.2...v1.2.0) (2026-10-06)
 
 
