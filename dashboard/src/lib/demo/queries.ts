@@ -233,9 +233,9 @@ export async function getDemoIcaraWeatherData(): Promise<DailyWeather[]> {
   const dailyEntries = await getDemoGenerationByDay(90);
 
   const result: DailyWeather[] = [];
-  for (let i = 80; i >= -6; i--) {
+  for (let i = 86; i >= 0; i--) {
     const targetDate = brasiliaIsoDaysAgo(i, now);
-    const fixtureIdx = Math.abs((80 - i) % totalDays);
+    const fixtureIdx = (86 - i) % totalDays;
     const row = combined[fixtureIdx];
     if (row) {
       const shiftedRow = { ...row, date: targetDate };

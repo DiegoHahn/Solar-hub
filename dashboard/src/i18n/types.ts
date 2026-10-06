@@ -332,12 +332,10 @@ export interface Translations {
     generation90d: string;
     generationMonth: string;
     avgHspDaily: string;
-    performanceRatioTitle: string;
-    excellentQuality: string;
-    cloudLossTitle: string;
-    inQuarter: string;
-    inMonth: string;
-    inWeek: string;
+    specificYieldTitle: string;
+    specificYieldUnit: string;
+    measuredDays: string;
+    noMeasuredDays: string;
     avgHspPeriod: string;
     fullSunLabel: string;
     tooltipRealGeneration: string;

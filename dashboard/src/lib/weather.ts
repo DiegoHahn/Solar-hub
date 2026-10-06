@@ -48,6 +48,21 @@ export function parseWmoCode(code: number): { conditionKey: WeatherConditionKey;
   return { conditionKey: "cloudVariation", icon: "cloud-sun" };
 }
 
+/**
+ * Specific yield (kWh per installed kWp per day) over the days with measured generation.
+ * Estimated days are excluded because their kWh is derived from irradiance, and so is today,
+ * whose generation is still partial.
+ */
+export function specificYield(
+  days: DailyWeather[],
+  nominalKwp = 16,
+): { kwhPerKwpDay: number; measuredDays: number } | null {
+  const measured = days.filter((d) => d.isReal && !d.isToday);
+  if (measured.length === 0) return null;
+  const producedKwh = measured.reduce((sum, d) => sum + d.estimatedKwh, 0);
+  return { kwhPerKwpDay: producedKwh / nominalKwp / measured.length, measuredDays: measured.length };
+}
+
 /** Fixed series observed in Içara/SC, used when Open-Meteo API is unreachable */
 export const fallbackDailyWeather: DailyWeather[] = [
   {
