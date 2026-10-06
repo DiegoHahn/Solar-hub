@@ -6,10 +6,15 @@ import {
   incrementQuota,
   getAdvisorCache,
   saveAdvisorCache,
-  getFallbackAdvisorAnalysis,
+  type AdvisorResult,
 } from "./aiQuota";
 
 const mockFrom = vi.fn();
+
+const sampleAnalysis = (tag: string): AdvisorResult => ({
+  daily: { summary: `${tag} daily`, recommendations: [] },
+  monthly: { summary: `${tag} monthly`, recommendations: [] },
+});
 const mockRpc = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -122,28 +127,59 @@ describe("database access failures", () => {
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: new Error("Database failure") }),
     });
 
-    await expect(getAdvisorCache()).resolves.toBeNull();
+    await expect(getAdvisorCache("pt-BR")).resolves.toBeNull();
   });
 
   it("does not interrupt analysis generation when cache saving fails", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       upsert: vi.fn().mockResolvedValue({ error: new Error("Database failure") }),
     });
 
-    await expect(saveAdvisorCache(getFallbackAdvisorAnalysis("pt-BR"), "gemini-3.8-flash")).resolves.toBeUndefined();
+    await expect(saveAdvisorCache(sampleAnalysis("pt"), "gemini-3.8-flash", "pt-BR")).resolves.toBeUndefined();
     expect(consoleError).toHaveBeenCalled();
   });
 });
 
-describe("getFallbackAdvisorAnalysis", () => {
-  it("returns the analysis in the requested locale", () => {
-    const ptBR = getFallbackAdvisorAnalysis("pt-BR");
-    const en = getFallbackAdvisorAnalysis("en");
+describe("advisor cache per locale", () => {
+  const cachedRow = (analysis: unknown) => {
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { analysis }, error: null }),
+      upsert,
+    });
+    return upsert;
+  };
 
-    expect(en.daily.recommendations).toHaveLength(ptBR.daily.recommendations.length);
-    expect(en.monthly.recommendations).toHaveLength(ptBR.monthly.recommendations.length);
-    expect(en.daily.summary).not.toBe(ptBR.daily.summary);
-    expect(en.daily.recommendations.map((r) => r.icon)).toEqual(ptBR.daily.recommendations.map((r) => r.icon));
+  it("returns only the analysis cached for the requested locale", async () => {
+    const entry = { data: sampleAnalysis("en"), modelUsed: "gemini-3.8-flash", updatedAt: "2026-10-06T12:00:00Z" };
+    cachedRow({ en: entry });
+
+    await expect(getAdvisorCache("en")).resolves.toEqual(entry);
+    await expect(getAdvisorCache("pt-BR")).resolves.toBeNull();
+  });
+
+  it("ignores analyses stored without a locale", async () => {
+    cachedRow(sampleAnalysis("legacy"));
+
+    await expect(getAdvisorCache("pt-BR")).resolves.toBeNull();
+    await expect(getAdvisorCache("en")).resolves.toBeNull();
+  });
+
+  it("keeps the other locale when saving", async () => {
+    const existing = { data: sampleAnalysis("en"), modelUsed: "gemini-3.8-flash", updatedAt: "2026-10-06T12:00:00Z" };
+    const upsert = cachedRow({ en: existing });
+
+    await saveAdvisorCache(sampleAnalysis("pt"), "gemini-3.7-flash", "pt-BR");
+
+    const saved = upsert.mock.calls[0][0].analysis;
+    expect(saved.en).toEqual(existing);
+    expect(saved["pt-BR"].data.daily.summary).toBe("pt daily");
+    expect(saved["pt-BR"].modelUsed).toBe("gemini-3.7-flash");
   });
 });

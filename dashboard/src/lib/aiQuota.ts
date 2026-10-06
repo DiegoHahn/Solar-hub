@@ -33,108 +33,12 @@ export interface AdvisorResult {
   };
 }
 
-const fallbackAnalysisPtBR: AdvisorResult = {
-  daily: {
-    summary:
-      "A produção da usina refletiu diretamente as condições atmosféricas do dia em Içara/SC. A irradiação solar captada pelos módulos supriu as cargas essenciais da residência e direcionou o superávit para a rede da Cooperaliança, mantendo a operação equilibrada frente ao potencial nominal de 16 kWp.",
-    recommendations: [
-      {
-        title: "Aproveitamento Solar",
-        description:
-          "Concentre o uso de equipamentos de maior potência nas horas de maior radiação solar diurna para maximizar a autossuficiência.",
-        icon: "flashlight",
-      },
-      {
-        title: "Injeção e Compensação",
-        description:
-          "O excedente gerado é injetado na Cooperaliança e fica registrado para compensar o consumo noturno.",
-        icon: "dollar",
-      },
-      {
-        title: "Status Operacional",
-        description:
-          "Os três inversores operaram com estabilidade técnica e sem anomalias de rede.",
-        icon: "tools",
-      },
-    ],
-  },
-  monthly: {
-    summary:
-      "O balanço energético mensal mantém solidez patrimonial, sustentado por um estoque de créditos expressivo junto à Cooperaliança (superior a 9.000 kWh). Essa reserva estratégica garante segurança energética e estabilidade financeira completa para períodos de menor incidência solar.",
-    recommendations: [
-      {
-        title: "Reserva Estratégica GD",
-        description:
-          "O saldo de créditos na Cooperaliança assegura ampla cobertura para o consumo nos meses de menor insolação.",
-        icon: "shield",
-      },
-      {
-        title: "Retorno Financeiro",
-        description:
-          "A autossuficiência da usina proporciona abatimento contínuo e expressivo na despesa mensal de energia.",
-        icon: "dollar",
-      },
-      {
-        title: "Manutenção Preventiva",
-        description:
-          "A inspeção visual periódica dos módulos preserva a máxima capacidade de captação e geração.",
-        icon: "tools",
-      },
-    ],
-  },
-};
+/** The `analysis` column holds one cached analysis per locale, generated on the same Brasília date. */
+type LocalizedAdvisorCache = Partial<Record<Locale, CachedAdvisorData>>;
 
-const fallbackAnalysisEn: AdvisorResult = {
-  daily: {
-    summary:
-      "Plant output followed the day's weather in Içara/SC. The solar irradiation captured by the modules covered the home's essential loads and sent the surplus to the Cooperaliança grid, keeping operation balanced against the 16 kWp nominal capacity.",
-    recommendations: [
-      {
-        title: "Make the Most of the Sun",
-        description:
-          "Run high-power appliances during the hours of strongest sunlight to maximize self-sufficiency.",
-        icon: "flashlight",
-      },
-      {
-        title: "Injection and Offsetting",
-        description:
-          "Surplus generation is injected into the Cooperaliança grid and credited to offset nighttime consumption.",
-        icon: "dollar",
-      },
-      {
-        title: "Operational Status",
-        description: "All three inverters ran steadily with no grid anomalies.",
-        icon: "tools",
-      },
-    ],
-  },
-  monthly: {
-    summary:
-      "The monthly energy balance remains solid, backed by a large credit reserve with Cooperaliança (over 9,000 kWh). This reserve provides energy security and financial stability through periods of lower sunlight.",
-    recommendations: [
-      {
-        title: "Strategic Credit Reserve",
-        description:
-          "The credit balance at Cooperaliança comfortably covers consumption in the months with less sunlight.",
-        icon: "shield",
-      },
-      {
-        title: "Financial Return",
-        description: "The plant's self-sufficiency steadily and substantially reduces the monthly energy bill.",
-        icon: "dollar",
-      },
-      {
-        title: "Preventive Maintenance",
-        description: "Periodic visual inspection of the modules preserves their full capture and generation capacity.",
-        icon: "tools",
-      },
-    ],
-  },
-};
-
-/** Static analysis shown when no Gemini model responds and there is no cached analysis for today. */
-export function getFallbackAdvisorAnalysis(locale: Locale): AdvisorResult {
-  return locale === "en" ? fallbackAnalysisEn : fallbackAnalysisPtBR;
+function asLocalizedCache(value: unknown): LocalizedAdvisorCache {
+  if (!value || typeof value !== "object" || "daily" in value) return {};
+  return value as LocalizedAdvisorCache;
 }
 
 const TABLE = "ai_advisor_daily";
@@ -206,12 +110,12 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
   };
 }
 
-/** Reads the cached analysis generated today, if available. */
-export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
+/** Reads today's cached analysis for the locale; analyses from previous days are never returned. */
+export async function getAdvisorCache(locale: Locale): Promise<CachedAdvisorData | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from(TABLE)
-    .select("analysis, model_used, analysis_updated_at")
+    .select("analysis")
     .eq("date", getBrasiliaDate())
     .maybeSingle();
 
@@ -219,24 +123,28 @@ export async function getAdvisorCache(): Promise<CachedAdvisorData | null> {
     console.error("Error reading AI Advisor cache:", error);
     return null;
   }
-  if (!data?.analysis) return null;
-
-  return {
-    data: data.analysis as unknown as AdvisorResult,
-    modelUsed: data.model_used ?? "",
-    updatedAt: data.analysis_updated_at ?? "",
-  };
+  const entry = asLocalizedCache(data?.analysis)[locale];
+  return entry?.data?.daily ? entry : null;
 }
 
-/** Saves the generated analysis to daily cache. */
-export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string): Promise<void> {
+/** Saves the generated analysis for the locale, keeping the other locale's analysis for the same day. */
+export async function saveAdvisorCache(data: AdvisorResult, modelUsed: string, locale: Locale): Promise<void> {
   const supabase = await createClient();
+  const date = getBrasiliaDate();
+  const updatedAt = new Date().toISOString();
+
+  const { data: current } = await supabase.from(TABLE).select("analysis").eq("date", date).maybeSingle();
+  const analysis: LocalizedAdvisorCache = {
+    ...asLocalizedCache(current?.analysis),
+    [locale]: { data, modelUsed, updatedAt },
+  };
+
   const { error } = await supabase.from(TABLE).upsert(
     {
-      date: getBrasiliaDate(),
-      analysis: data as unknown as Json,
+      date,
+      analysis: analysis as unknown as Json,
       model_used: modelUsed,
-      analysis_updated_at: new Date().toISOString(),
+      analysis_updated_at: updatedAt,
     },
     { onConflict: "date" },
   );

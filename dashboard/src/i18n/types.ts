@@ -396,6 +396,8 @@ export interface Translations {
     demoNotice: string;
     defaultError: string;
     retryHint: string;
+    unavailable: string;
+    showingLastAnalysis: string;
     primaryQuotaTooltip: string;
     configuredModelTooltip: string;
   };

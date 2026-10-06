@@ -392,6 +392,8 @@ export const ptBR: Translations = {
     demoNotice: "A geração de novas análises está desativada no modo demonstração.",
     defaultError: "Não foi possível conectar à IA.",
     retryHint: "Clique em \"Regerar\" para tentar novamente.",
+    unavailable: "O consultor de IA está indisponível no momento",
+    showingLastAnalysis: "Não foi possível gerar uma nova análise. Exibindo a última análise de hoje.",
     primaryQuotaTooltip: "Limite de chamadas diárias do modelo primário atingido. Usando modelo alternativo do .env e reservando cota para o Raspberry.",
     configuredModelTooltip: "Modelo inteligente configurado no .env",
   },

@@ -5,6 +5,7 @@ import { ptBR } from "../src/i18n/locales/pt-BR";
 const testEmail = process.env.SUPABASE_TEST_EMAIL;
 const testPassword = process.env.SUPABASE_TEST_PASSWORD;
 
+/** Today's pt-BR analysis, the locale the browser context uses by default. */
 async function getTodayCachedAnalysis(): Promise<{ daily: { summary: string } } | null> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +18,8 @@ async function getTodayCachedAnalysis(): Promise<{ daily: { summary: string } } 
     .select("analysis")
     .eq("date", new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date()))
     .maybeSingle();
-  return data?.analysis ?? null;
+  const analysis = data?.analysis as { "pt-BR"?: { data: { daily: { summary: string } } } } | null;
+  return analysis?.["pt-BR"]?.data ?? null;
 }
 
 test.describe("Authenticated flows with real data", () => {
@@ -66,7 +68,7 @@ test.describe("Authenticated flows with real data", () => {
   test("GET /api/ai-advisor while signed in returns today's cached analysis", async ({ page }) => {
     const cached = await getTodayCachedAnalysis();
     // Without a cached analysis the route would call Gemini; the test must not spend quota or store a fake analysis in production.
-    test.skip(!cached, "Ainda não há análise em cache para hoje.");
+    test.skip(!cached, "No analysis cached for today yet.");
 
     const response = await page.request.get("/api/ai-advisor");
     expect(response.status()).toBe(200);
