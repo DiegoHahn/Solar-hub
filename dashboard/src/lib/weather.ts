@@ -49,18 +49,44 @@ export function parseWmoCode(code: number): { conditionKey: WeatherConditionKey;
 }
 
 /**
- * Specific yield (kWh per installed kWp per day) over the days with measured generation.
- * Estimated days are excluded because their kWh is derived from irradiance, and so is today,
- * whose generation is still partial.
+ * Real Performance Ratio (PR) calculation:
+ * PR = (Actual Generation kWh) / (Total Incident Solar Energy on 16 kWp array) * 100
+ * Incident energy = HSP * 16 kWp.
+ * Only measured days (isReal && !isToday) are computed to reflect physical performance.
  */
-export function specificYield(
+export function calculatePerformanceRatio(
   days: DailyWeather[],
   nominalKwp = 16,
-): { kwhPerKwpDay: number; measuredDays: number } | null {
-  const measured = days.filter((d) => d.isReal && !d.isToday);
+): { prPercent: number; measuredDays: number } | null {
+  const measured = days.filter((d) => d.isReal && !d.isToday && d.solarRadiationHsp > 0);
   if (measured.length === 0) return null;
-  const producedKwh = measured.reduce((sum, d) => sum + d.estimatedKwh, 0);
-  return { kwhPerKwpDay: producedKwh / nominalKwp / measured.length, measuredDays: measured.length };
+  const totalActualKwh = measured.reduce((sum, d) => sum + d.estimatedKwh, 0);
+  const totalTheoreticalKwh = measured.reduce((sum, d) => sum + d.solarRadiationHsp * nominalKwp, 0);
+  if (totalTheoreticalKwh <= 0) return null;
+  const prPercent = (totalActualKwh / totalTheoreticalKwh) * 100;
+  return { prPercent, measuredDays: measured.length };
+}
+
+/**
+ * Real Cloud Cover Loss (Perda por Nebulosidade):
+ * Measures the energy lost due to cloud cover attenuation compared to clear-sky conditions.
+ * Reference clear-sky HSP is estimated by the highest observed HSP or 5.5 h/day baseline.
+ * Cloud loss for a day = max(0, (Clear-sky HSP - Day HSP) * 16 kWp * 0.81 PR baseline).
+ */
+export function calculateCloudLoss(
+  days: DailyWeather[],
+  nominalKwp = 16,
+  prBaseline = 0.81,
+): { lostKwh: number; evaluatedDays: number } | null {
+  const validDays = days.filter((d) => !d.isToday);
+  if (validDays.length === 0) return null;
+  const maxObservedHsp = Math.max(...validDays.map((d) => d.solarRadiationHsp), 5.5);
+  const clearSkyReferenceHsp = Math.max(maxObservedHsp, 5.5);
+  const lostKwh = validDays.reduce((sum, d) => {
+    const deficitHsp = Math.max(0, clearSkyReferenceHsp - d.solarRadiationHsp);
+    return sum + deficitHsp * nominalKwp * prBaseline;
+  }, 0);
+  return { lostKwh, evaluatedDays: validDays.length };
 }
 
 /** Fixed series observed in Içara/SC, used when Open-Meteo API is unreachable */

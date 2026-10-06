@@ -8,7 +8,13 @@ vi.mock("./queries", () => ({
 }));
 
 import { getGenerationByDay, getStoredDailyWeather, saveDailyWeather } from "./queries";
-import { fallbackDailyWeather, parseWmoCode, specificYield, type DailyWeather } from "./weather";
+import {
+  fallbackDailyWeather,
+  parseWmoCode,
+  calculatePerformanceRatio,
+  calculateCloudLoss,
+  type DailyWeather,
+} from "./weather";
 import { getIcaraWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
@@ -31,29 +37,60 @@ describe("parseWmoCode", () => {
 const day = (overrides: Partial<DailyWeather>): DailyWeather => ({
   ...fallbackDailyWeather[0],
   isReal: true,
+  isToday: false,
   ...overrides,
 });
 
-describe("specificYield", () => {
-  it("averages measured kWh per installed kWp per day", () => {
-    const result = specificYield([day({ estimatedKwh: 64 }), day({ estimatedKwh: 80 })]);
-
-    expect(result).toEqual({ kwhPerKwpDay: 4.5, measuredDays: 2 });
-  });
-
-  it("ignores estimated days and today", () => {
-    const result = specificYield([
-      day({ estimatedKwh: 64 }),
-      day({ estimatedKwh: 70, isReal: false }),
-      day({ estimatedKwh: 10, isToday: true }),
+describe("calculatePerformanceRatio", () => {
+  it("computes real PR percentage across measured days", () => {
+    const result = calculatePerformanceRatio([
+      day({ estimatedKwh: 64, solarRadiationHsp: 5 }), // 64 / (5 * 16) = 0.8
+      day({ estimatedKwh: 68, solarRadiationHsp: 5 }), // 68 / (5 * 16) = 0.85
     ]);
 
-    expect(result).toEqual({ kwhPerKwpDay: 4, measuredDays: 1 });
+    expect(result).toEqual({ prPercent: 82.5, measuredDays: 2 });
+  });
+
+  it("ignores estimated days, today, and zero-irradiance days", () => {
+    const result = calculatePerformanceRatio([
+      day({ estimatedKwh: 64, solarRadiationHsp: 5 }),
+      day({ estimatedKwh: 70, solarRadiationHsp: 5, isReal: false }),
+      day({ estimatedKwh: 10, solarRadiationHsp: 5, isToday: true }),
+      day({ estimatedKwh: 0, solarRadiationHsp: 0 }),
+    ]);
+
+    expect(result).toEqual({ prPercent: 80, measuredDays: 1 });
   });
 
   it("returns null when the period has no measured days", () => {
-    expect(specificYield([day({ isReal: false })])).toBeNull();
-    expect(specificYield([])).toBeNull();
+    expect(calculatePerformanceRatio([day({ isReal: false })])).toBeNull();
+    expect(calculatePerformanceRatio([])).toBeNull();
+  });
+});
+
+describe("calculateCloudLoss", () => {
+  it("computes lost kWh based on clear-sky baseline", () => {
+    const result = calculateCloudLoss([
+      day({ solarRadiationHsp: 5.5 }),
+      day({ solarRadiationHsp: 3.5 }),
+    ]);
+
+    // Deficit: (5.5 - 3.5) * 16 * 0.81 = 25.92 kWh
+    expect(result).toEqual({ lostKwh: 25.92, evaluatedDays: 2 });
+  });
+
+  it("ignores today because generation is still partial", () => {
+    const result = calculateCloudLoss([
+      day({ solarRadiationHsp: 3.5 }),
+      day({ solarRadiationHsp: 1.0, isToday: true }),
+    ]);
+
+    expect(result).toEqual({ lostKwh: 25.92, evaluatedDays: 1 });
+  });
+
+  it("returns null when no past days exist", () => {
+    expect(calculateCloudLoss([])).toBeNull();
+    expect(calculateCloudLoss([day({ isToday: true })])).toBeNull();
   });
 });
 

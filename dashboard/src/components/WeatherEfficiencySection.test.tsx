@@ -67,18 +67,23 @@ describe("WeatherEfficiencySection", () => {
     expect(screen.queryByText("dias")).not.toBeInTheDocument();
   });
 
-  it("shows the specific yield of the measured days", () => {
-    const measured = dailyWeatherList.map((d) => ({ ...d, isReal: true, isToday: false, estimatedKwh: 72 }));
+  it("shows the real Performance Ratio and Cloud Loss diagnostic cards", () => {
+    const measured = dailyWeatherList.map((d) => ({
+      ...d,
+      isReal: true,
+      isToday: false,
+      estimatedKwh: 72,
+    }));
     render(<WeatherEfficiencySection weatherData={measured} compact={false} />);
 
-    expect(screen.getByText("4,50")).toBeInTheDocument();
-    expect(screen.getByText("kWh/kWp/dia")).toBeInTheDocument();
-    expect(screen.getByText("7 dias medidos")).toBeInTheDocument();
+    expect(screen.getByText("Performance Ratio (PR)")).toBeInTheDocument();
+    expect(screen.getByText(/Perda por Nebulosidade \(7d\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Média HSP 7d/i)).toBeInTheDocument();
   });
 
   it("shows a placeholder when the period has no measured generation", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);
 
-    expect(screen.getByText("Sem dias medidos no período")).toBeInTheDocument();
+    expect(screen.getByText(/Sem dias medidos no período/i)).toBeInTheDocument();
   });
 });
