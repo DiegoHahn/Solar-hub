@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.2...v1.2.3) (2026-10-06)
+
+
+### Bug Fixes
+
+* **ai-advisor:** cache analyses per locale and show an unavailable state ([#20](https://github.com/DiegoHahn/Solar-hub/issues/20)) ([c3735e1](https://github.com/DiegoHahn/Solar-hub/commit/c3735e1b7e9626895f4936e7d0f954d2a2c64b64))
+* **dashboard:** replace hard-coded performance figures with measured specific yield ([#19](https://github.com/DiegoHahn/Solar-hub/issues/19)) ([b6ee038](https://github.com/DiegoHahn/Solar-hub/commit/b6ee0386ee8220b70c2ed93a4f3395386a0600e5))
+
 ## [1.2.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.1...v1.2.2) (2026-10-06)
 
 
