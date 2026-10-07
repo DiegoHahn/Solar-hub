@@ -297,7 +297,7 @@ The test suite emphasizes real data and production-mirroring environments: busin
 
 | Layer | Framework | Command | Scope |
 | :--- | :--- | :--- | :--- |
-| Unit & Components | Vitest + Testing Library | `npm test` | Generation metrics, Brasília timezone boundaries, utility ledger normalization, i18n dictionaries, and component states (240+ tests) |
+| Unit & Components | Vitest + Testing Library | `npm test` | Generation metrics, Brasília timezone boundaries, utility ledger normalization, i18n dictionaries, and component states |
 | Integration | Vitest | `npm run test:integration` | Real Supabase instance (RLS policies, dashboard queries, data invariant guarantees) and Open-Meteo API contract |
 | End-to-End | Playwright | `npm run e2e` | Production build: auth workflows, route guards, open redirect prevention, security headers, and responsive layouts |
 | Collector Unit | pytest + ruff | `pytest` | Modbus protocol parsers for Solis and GoodWe, offline retry buffer, and Supabase HTTP client dispatch |
