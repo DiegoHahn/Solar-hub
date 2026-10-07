@@ -218,6 +218,7 @@ describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () =>
         temperature_min_c: 14.2,
         sunshine_duration_s: 36000,
         shortwave_radiation_mj: 19.5,
+        tilted_radiation_kwh: 5.1,
         precipitation_mm: 0.0,
         source: "forecast",
       };

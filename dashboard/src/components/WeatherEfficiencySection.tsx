@@ -25,7 +25,13 @@ import {
 } from "@remixicon/react";
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
-import { DailyWeather, fallbackDailyWeather, calculatePerformanceRatio, calculateCloudLoss } from "@/lib/weather";
+import {
+  DailyWeather,
+  fallbackDailyWeather,
+  calculatePerformanceRatio,
+  calculateCloudLoss,
+  PLANT_DC_KWP,
+} from "@/lib/weather";
 import { useI18n, formatNumber, type Locale } from "@/i18n";
 
 interface CustomWeatherTooltipProps {
@@ -137,7 +143,7 @@ export function WeatherEfficiencySection({
   const partlyCloudyDays = displayedData.filter((d) => d.weatherCode >= 2 && d.weatherCode <= 48).length;
   const rainyDays = displayedData.filter((d) => d.weatherCode >= 50).length;
   const prStats = calculatePerformanceRatio(displayedData);
-  const cloudLossStats = calculateCloudLoss(displayedData);
+  const cloudLossStats = calculateCloudLoss(displayedData, weatherData);
 
   const renderWeatherIcon = (icon: DailyWeather["icon"], className = "size-4") => {
     switch (icon) {
@@ -293,7 +299,7 @@ export function WeatherEfficiencySection({
               <span className="block text-[10px] text-gray-500 dark:text-gray-400">{t.combined.efficiencyLabel}</span>
               <strong className="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 {point.solarRadiationHsp > 0
-                  ? `${Math.min(150, Math.round((point.estimatedKwh / (16.0 * point.solarRadiationHsp)) * 100))}%`
+                  ? `${Math.min(150, Math.round((point.estimatedKwh / (PLANT_DC_KWP * point.solarRadiationHsp)) * 100))}%`
                   : "—"}
               </strong>
             </div>
@@ -516,10 +522,16 @@ export function WeatherEfficiencySection({
                 {t.combined.cloudLossTitle.replace("{period}", range)}
               </span>
               <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                ~{formatNumber(cloudLossStats ? cloudLossStats.lostKwh : 0, locale, { maximumFractionDigits: 0 })} kWh{" "}
-                <span className="text-xs font-normal text-gray-500">
-                  {range === "90d" ? t.combined.inQuarter : range === "30d" ? t.combined.inMonth : t.combined.inWeek}
-                </span>
+                {cloudLossStats ? (
+                  <>
+                    ~{formatNumber(cloudLossStats.lostKwh, locale, { maximumFractionDigits: 0 })} kWh{" "}
+                    <span className="text-xs font-normal text-gray-500">
+                      {range === "90d" ? t.combined.inQuarter : range === "30d" ? t.combined.inMonth : t.combined.inWeek}
+                    </span>
+                  </>
+                ) : (
+                  "—"
+                )}
               </div>
             </div>
           </div>
