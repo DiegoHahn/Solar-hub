@@ -241,7 +241,7 @@ def sync_cooperalianca(cpf=None, senha=None):
     )
 
     result = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now().astimezone().isoformat(),
         "distribuidora": "Cooperaliança (Içara/SC)",
         "titular": titular_nome,
         "cpf": cpf,
