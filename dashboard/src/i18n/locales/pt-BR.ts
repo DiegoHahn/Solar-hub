@@ -68,7 +68,7 @@ export const ptBR: Translations = {
     plantOperating: "Usina em Geração",
     noGenerationWeather: "Sem Geração (Clima)",
     nighttimeStandby: "Standby Noturno",
-    instantKw: "{kw} kW instantâneos",
+    instantKw: "kW agora",
     ofCapacity: "{pct}% da capacidade homologada ({cap} kWp)",
     lifetimeGeneration: "Geração Histórica Total",
     yieldHsp: "Rendimento Solar (HSP)",

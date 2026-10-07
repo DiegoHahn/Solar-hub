@@ -188,12 +188,7 @@ export default async function Home() {
                   })}
                 </span>
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {interpolate(t.overview.instantKw, {
-                    kw: formatNumber(currentPowerKw, locale, {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 2,
-                    }),
-                  })}
+                  {t.overview.instantKw}
                 </span>
               </div>
             </ProgressCircle>
