@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ptBR } from "./locales/pt-BR";
 import { en } from "./locales/en";
-import { formatNumber, formatKwh, formatKw, formatCurrency, formatRelativeTime, formatPortalDate } from "./formatters";
+import { formatNumber, formatKwh, formatKw, formatCurrency, formatRelativeTime, formatPortalDate, formatTariff, formatCurrencyEstimate } from "./formatters";
 
 describe("i18n dictionaries", () => {
   it("has matching translation keys between pt-BR and en", () => {
@@ -63,6 +63,13 @@ describe("i18n formatters", () => {
     const twoHoursAgo = new Date(now.getTime() - 2 * 3600000);
     expect(formatRelativeTime(twoHoursAgo, "pt-BR")).toBe("há 2 horas");
     expect(formatRelativeTime(twoHoursAgo, "en")).toBe("2h ago");
+  });
+
+  it("formats tariffs with three decimals and estimates in whole reais", () => {
+    expect(formatTariff(0.75773, "en")).toBe("R$0.758");
+    expect(formatTariff(0.75773, "pt-BR")).toBe("R$ 0,758");
+    expect(formatCurrencyEstimate(7501.53, "en")).toBe("R$7,502");
+    expect(formatCurrencyEstimate(7501.53, "pt-BR")).toBe("R$ 7.502");
   });
 
   it("formats utility portal dates per locale", () => {

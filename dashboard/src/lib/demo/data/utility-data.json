@@ -54,16 +54,14 @@
     ]
   },
   "tarifa_referencia": {
-    "classe": "RURAL",
-    "te_kwh": 0.27714,
+    "bandeira_vigente": "Bandeira verde",
+    "tarifa_kwh": 0.75773,
+    "te_kwh": 0.25829,
     "tusd_kwh": 0.49944,
-    "subclasse": "AGROPECUARIA URBANA",
-    "tipo_rede": "Trifásico",
-    "tarifa_kwh": 0.77658,
-    "icms_aliquota": 17,
-    "bandeira_vigente": "Bandeira amarela"
+    "vigente_desde": "2026-08-29",
+    "resolucao": "Despacho 3.398 /2026"
   },
-  "generator_uc": "1000103",
+  "generator_uc": null,
   "unidades_consumidoras": {
     "1000101": {
       "codigo_uc": "1000101",
@@ -7029,6 +7027,5 @@
       "Municipio": "Içara"
     }
   },
-  "created_at": "2026-09-18T12:57:58.403998+00:00",
-  "generator_uc": null
+  "created_at": "2026-09-18T12:57:58.403998+00:00"
 }

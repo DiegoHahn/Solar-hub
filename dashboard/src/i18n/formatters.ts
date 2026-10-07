@@ -21,13 +21,24 @@ export function formatKw(value: number, locale: Locale = DEFAULT_LOCALE): string
 export function formatCurrency(
   value: number,
   locale: Locale = DEFAULT_LOCALE,
-  currency = "BRL",
+  options?: Intl.NumberFormatOptions,
 ): string {
   const intlLocale = locale === "pt-BR" ? "pt-BR" : "en-US";
   return new Intl.NumberFormat(intlLocale, {
     style: "currency",
-    currency,
+    currency: "BRL",
+    ...options,
   }).format(value);
+}
+
+/** Estimated amounts (credit reserve) are shown in whole reais. */
+export function formatCurrencyEstimate(value: number, locale: Locale = DEFAULT_LOCALE): string {
+  return formatCurrency(value, locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+/** Energy tariff per kWh, with the third decimal place utilities publish. */
+export function formatTariff(value: number, locale: Locale = DEFAULT_LOCALE): string {
+  return formatCurrency(value, locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 }
 
 /**

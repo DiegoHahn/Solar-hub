@@ -68,15 +68,14 @@ export type SolarTelemetryRow = Omit<
   inverters_data: InverterReading[];
 };
 
+/** Tariff in force for the generator unit (per kWh, before taxes), as reported by the utility portal. */
 export interface TarifaReferencia {
-  classe: string;
-  subclasse: string;
-  tipo_rede: string;
   bandeira_vigente: string;
   tarifa_kwh: number;
-  tusd_kwh: number;
-  te_kwh: number;
-  icms_aliquota: number;
+  te_kwh?: number | null;
+  tusd_kwh?: number | null;
+  vigente_desde?: string | null;
+  resolucao?: string | null;
 }
 
 export interface GeracaoDistribuida {

@@ -1,0 +1,29 @@
+{
+  "TipoPreco": 1,
+  "PossuiDescIrrigante": false,
+  "RetTarifasBandeiraVerde": {
+    "ValorTusd": 0.49944,
+    "ValorTe": 0.25829,
+    "TarifaAplicada": 0.75773,
+    "VigenciaNaCompetencia": true,
+    "DataInicioVigenciaNaCompetencia": "29/08/2026 00:00:00",
+    "EscassezHidrica": 0.0,
+    "DescricaoTarifa": "Despacho 3.398 /2026 "
+  },
+  "RetTarifasBandeiraAmarela": {
+    "ValorTusd": 0.49944,
+    "ValorTe": 0.27714,
+    "TarifaAplicada": 0.77658,
+    "VigenciaNaCompetencia": false,
+    "DataInicioVigenciaNaCompetencia": "01/01/1900 00:00:00",
+    "EscassezHidrica": 0.0
+  },
+  "RetTarifasBandeiraVermelha": {
+    "ValorTusd": 0.49944,
+    "ValorTe": 0.30292,
+    "TarifaAplicada": 0.80236,
+    "VigenciaNaCompetencia": false,
+    "DataInicioVigenciaNaCompetencia": "01/01/1900 00:00:00",
+    "EscassezHidrica": 0.0
+  }
+}

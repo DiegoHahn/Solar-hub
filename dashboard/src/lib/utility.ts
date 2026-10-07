@@ -32,6 +32,12 @@ export function maskUcCode(code: string | null | undefined): string {
   return code.length > 4 ? `••••${code.slice(-4)}` : code;
 }
 
+/** Tariff per kWh in force, or null before the collector has stored one. */
+export function getTariffPerKwh(utilityData: UtilityDataRow | null | undefined): number | null {
+  const value = utilityData?.tarifa_referencia?.tarifa_kwh;
+  return typeof value === "number" && value > 0 ? value : null;
+}
+
 /** Badge color for the tariff flag reported by the utility ("Bandeira verde", "Bandeira amarela", ...). */
 export function tariffFlagVariant(flag: string | undefined): BadgeProps["variant"] {
   const f = (flag ?? "").toLowerCase();

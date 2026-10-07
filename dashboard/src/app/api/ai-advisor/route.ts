@@ -12,7 +12,7 @@ import {
   getTodaySunCurve,
 } from "@/lib/queries";
 import { getIcaraWeatherData } from "@/lib/weatherData";
-import { getGeneratorUc } from "@/lib/utility";
+import { getGeneratorUc, getTariffPerKwh } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
 import { singleFlight } from "@/lib/singleFlight";
@@ -153,7 +153,7 @@ async function generate(locale: Locale): Promise<NextResponse> {
     const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
     const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
-    const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+    const tariffPerKwh = getTariffPerKwh(utilityData) ?? 0;
     const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
     const todaySavingsBrl = todayGenerationKwh * tariffPerKwh;
 
@@ -222,7 +222,7 @@ CORE ANALYSIS GUIDELINES:
 
 REAL PLANT DATA (USE ONLY THIS DATA):
 - Solar plant: 16 kWp (${telemetry?.inverters_count ?? 3} inverters) in Içara/SC.
-- Utility: Cooperaliança. Tariff: R$ ${tariffPerKwh.toFixed(3)}/kWh.
+- Utility: Cooperaliança. Tariff: ${tariffPerKwh > 0 ? `R$ ${tariffPerKwh.toFixed(3)}/kWh` : "not available (do not estimate savings in reais)"}.
 
 TODAY'S MEASUREMENTS:
 - Analysis time: ${brasiliaTimeStr} (Brasília time)

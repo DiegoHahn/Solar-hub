@@ -194,7 +194,7 @@ export const ptBR: Translations = {
     status: "Status",
     noInvoices: "Nenhuma fatura registrada.",
     accumulatedCreditBalance: "Saldo de créditos acumulados",
-    inReserveGd: "~R$ {value} em reserva GD",
+    inReserveGd: "~{value} em reserva GD",
     partialExpiry: "Vencimento parcial em {date}",
     nextCycle: "Próx. ciclo",
     currentInvoice: "Fatura Atual",
