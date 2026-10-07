@@ -2,7 +2,6 @@ import telemetryData from "./data/telemetry-day.json";
 import dailyGenData from "./data/daily-generation.json";
 import monthlyHistoryData from "./data/monthly-history.json";
 import utilityDataJson from "./data/utility-data.json";
-import forecastJson from "./data/open-meteo-forecast.json";
 import archiveJson from "./data/open-meteo-archive.json";
 
 import type {
@@ -29,7 +28,7 @@ import {
 import {
   toWeatherRows,
   toDailyWeather,
-  type OpenMeteoDaily,
+  type OpenMeteoResponse,
 } from "@/lib/weatherData";
 import type { DailyWeather } from "@/lib/weather";
 import { findGeneratorUcCode } from "@/lib/utility";
@@ -155,10 +154,11 @@ export async function getDemoGenerationByDay(
   }
 
   const fixtureHistory = rawData.history || [];
-  for (let i = 0; i < Math.min(daysBack, 60); i++) {
+  // Per-inverter history follows the same source date as the daily total above.
+  for (let i = 0; i < daysBack; i++) {
+    const sourceDate = rawData.view[i % rawData.view.length]?.date;
     const targetDate = brasiliaIsoDaysAgo(i, now);
-    const subset = fixtureHistory.slice(i * 3, i * 3 + 3);
-    for (const h of subset) {
+    for (const h of fixtureHistory.filter((row) => row.date === sourceDate)) {
       historyRows.push({
         date: targetDate,
         inverter_id: h.inverter_id,
@@ -219,30 +219,27 @@ export async function getDemoYearlyGeneration(): Promise<GenerationPoint[]> {
   return history.yearsTotals;
 }
 
+/**
+ * Each demo day reuses the weather observed on the same source date as its generation fixture
+ * (see getDemoGenerationByDay), so irradiation and kWh stay consistent.
+ */
 export async function getDemoIcaraWeatherData(): Promise<DailyWeather[]> {
   const now = getDemoNow();
   const todayIso = toBrasiliaIsoDate(now);
-  const forecastDaily = (forecastJson as { daily: OpenMeteoDaily }).daily;
-  const archiveDaily = (archiveJson as { daily: OpenMeteoDaily }).daily;
-
-  const forecastRows = toWeatherRows(forecastDaily, "forecast");
-  const archiveRows = toWeatherRows(archiveDaily, "archive");
-  const combined = [...archiveRows, ...forecastRows];
-
-  const totalDays = combined.length;
+  const weatherBySourceDate = new Map(
+    toWeatherRows(archiveJson as OpenMeteoResponse, "archive").map((row) => [row.date, row]),
+  );
+  const sourceDays = (dailyGenData as { view: Array<{ date: string }> }).view;
   const dailyEntries = await getDemoGenerationByDay(90);
 
   const result: DailyWeather[] = [];
   for (let i = 86; i >= 0; i--) {
     const targetDate = brasiliaIsoDaysAgo(i, now);
-    const fixtureIdx = (86 - i) % totalDays;
-    const row = combined[fixtureIdx];
+    const row = weatherBySourceDate.get(sourceDays[i % sourceDays.length].date);
     if (row) {
-      const shiftedRow = { ...row, date: targetDate };
-      const actualGen = dailyEntries[targetDate];
-      result.push(toDailyWeather(shiftedRow, todayIso, actualGen));
+      result.push(toDailyWeather({ ...row, date: targetDate }, todayIso, dailyEntries[targetDate]));
     }
   }
 
-  return result.sort((a, b) => a.date.localeCompare(b.date));
+  return result;
 }

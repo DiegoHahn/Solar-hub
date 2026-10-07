@@ -501,7 +501,7 @@ export async function getStoredDailyWeather(startIso: string): Promise<DailyWeat
   const { data, error } = await supabase
     .from("daily_weather")
     .select(
-      "date, weather_code, temperature_max_c, temperature_min_c, sunshine_duration_s, shortwave_radiation_mj, precipitation_mm, source",
+      "date, weather_code, temperature_max_c, temperature_min_c, sunshine_duration_s, shortwave_radiation_mj, tilted_radiation_kwh, precipitation_mm, source",
     )
     .gte("date", startIso)
     .order("date", { ascending: true });

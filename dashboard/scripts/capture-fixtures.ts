@@ -85,12 +85,12 @@ function saveJson(filename: string, data: unknown, source: unknown = data) {
   const filePath = path.join(FIXTURES_DIR, filename);
   const cleanStr = anonymize(data, source);
   fs.writeFileSync(filePath, cleanStr + "\n", "utf-8");
-  console.log(`Salvo e anonimizado: ${filename}`);
+  console.log(`Saved and anonymized: ${filename}`);
 }
 
 async function captureOpenMeteo() {
   console.log("\n--- Capturing Open-Meteo data ---");
-  const query = "latitude=-28.7139&longitude=-49.3003&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&tilt=15&azimuth=155&timezone=America%2FSao_Paulo";
+  const query = "latitude=-28.7139&longitude=-49.3003&daily=weather_code,temperature_2m_max,temperature_2m_min,sunshine_duration,shortwave_radiation_sum,precipitation_sum&hourly=global_tilted_irradiance&tilt=15&azimuth=155&timezone=America%2FSao_Paulo";
 
   const forecastUrl = `https://api.open-meteo.com/v1/forecast?${query}&past_days=7&forecast_days=1`;
   const forecastRes = await fetch(forecastUrl);
