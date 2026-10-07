@@ -3,10 +3,13 @@ import path from "node:path";
 import fs from "node:fs";
 import http from "node:http";
 import { spawn, type ChildProcess } from "node:child_process";
+import { LOCALE_COOKIE_NAME } from "../src/i18n/types";
 
 const OUTPUT_DIR = path.resolve(__dirname, "../../docs/images");
 const PORT = 3108;
 const BASE_URL = `http://localhost:${PORT}`;
+// The README screenshots show the English interface.
+const LOCALE_COOKIE = { name: LOCALE_COOKIE_NAME, value: "en", url: BASE_URL };
 
 function isServerListening(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -63,6 +66,7 @@ async function capture() {
       viewport: { width: 1440, height: 900 },
       colorScheme: "dark",
     });
+    await desktopContext.addCookies([LOCALE_COOKIE]);
 
     const page = await desktopContext.newPage();
 
@@ -119,6 +123,7 @@ async function capture() {
       hasTouch: true,
       colorScheme: "dark",
     });
+    await mobileContext.addCookies([LOCALE_COOKIE]);
 
     const mobilePage = await mobileContext.newPage();
     await mobilePage.goto(`${BASE_URL}/demo`);
