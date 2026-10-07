@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -189,6 +190,8 @@ def test_sync_cooperalianca_full_cycle(httpserver, monkeypatch, tmp_path):
         next(r for r, _ in httpserver.log if r.path == "/rest/v1/utility_data").data
     )
     assert pushed["tarifa_referencia"]["tarifa_kwh"] == 0.75773
+    # Carries the UTC offset, otherwise Postgres stores local time as if it were UTC
+    assert datetime.fromisoformat(pushed["updated_at"]).utcoffset() is not None
 
 
 def test_fetch_current_tariff_uses_the_flag_in_force(httpserver):
