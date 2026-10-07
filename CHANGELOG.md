@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.6](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.5...v1.2.6) (2026-10-07)
+
+
+### Bug Fixes
+
+* **i18n:** English screenshots and remaining untranslated utility strings ([#27](https://github.com/DiegoHahn/Solar-hub/issues/27)) ([018d254](https://github.com/DiegoHahn/Solar-hub/commit/018d25469c19e8fdd74f8db619ba362cf59dcd85))
+
 ## [1.2.5](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.4...v1.2.5) (2026-10-07)
 
 
