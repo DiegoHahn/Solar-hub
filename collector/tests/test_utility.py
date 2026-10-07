@@ -152,6 +152,10 @@ def test_sync_cooperalianca_full_cycle(httpserver, monkeypatch, tmp_path):
     ).respond_with_json({"Content": grafico_gd}, status=200)
 
     httpserver.expect_request(
+        "/TarifasBandeiras", query_string=f"codigoUc={uc_test}"
+    ).respond_with_json({"Content": load_fixture("TarifasBandeiras")}, status=200)
+
+    httpserver.expect_request(
         "/rest/v1/utility_data", method="POST", query_string="on_conflict=cpf"
     ).respond_with_data("OK", status=201)
 
@@ -176,9 +180,76 @@ def test_sync_cooperalianca_full_cycle(httpserver, monkeypatch, tmp_path):
     assert res["distribuidora"] == "Cooperaliança (Içara/SC)"
     assert uc_test in res["unidades_consumidoras"]
     assert res["unidades_consumidoras"][uc_test]["codigo_uc"] == uc_test
+    assert res["tarifa_referencia"]["bandeira_vigente"] == "Bandeira verde"
 
     saved_file = tmp_path / "cooperalianca_latest.json"
     assert saved_file.exists()
+
+    pushed = json.loads(
+        next(r for r, _ in httpserver.log if r.path == "/rest/v1/utility_data").data
+    )
+    assert pushed["tarifa_referencia"]["tarifa_kwh"] == 0.75773
+
+
+def test_fetch_current_tariff_uses_the_flag_in_force(httpserver):
+    httpserver.expect_request("/TarifasBandeiras").respond_with_json(
+        {"Content": load_fixture("TarifasBandeiras")}
+    )
+
+    with patch.object(utility, "API_BASE", httpserver.url_for("/")):
+        tariff = utility.fetch_current_tariff("90001", {})
+
+    assert tariff == {
+        "bandeira_vigente": "Bandeira verde",
+        "tarifa_kwh": 0.75773,
+        "te_kwh": 0.25829,
+        "tusd_kwh": 0.49944,
+        "vigente_desde": "2026-08-29",
+        "resolucao": "Despacho 3.398 /2026",
+    }
+
+
+def test_fetch_current_tariff_returns_none_without_a_current_flag(httpserver):
+    flags = load_fixture("TarifasBandeiras")
+    flags["RetTarifasBandeiraVerde"]["VigenciaNaCompetencia"] = False
+    httpserver.expect_request("/sem-vigente/TarifasBandeiras").respond_with_json({"Content": flags})
+    httpserver.expect_request("/erro/TarifasBandeiras").respond_with_data("Error", status=500)
+
+    with patch.object(utility, "API_BASE", httpserver.url_for("/sem-vigente/")):
+        assert utility.fetch_current_tariff("90001", {}) is None
+    with patch.object(utility, "API_BASE", httpserver.url_for("/erro/")):
+        assert utility.fetch_current_tariff("90001", {}) is None
+
+
+def test_portal_date_to_iso():
+    assert utility.portal_date_to_iso("29/08/2026 00:00:00") == "2026-08-29"
+    assert utility.portal_date_to_iso("") is None
+    assert utility.portal_date_to_iso(None) is None
+
+
+def test_sync_keeps_stored_tariff_when_unavailable(httpserver, monkeypatch):
+    httpserver.expect_request("/Auth").respond_with_json({"Content": {"Token": "TOKEN123"}})
+    httpserver.expect_request("/rest/v1/utility_data", method="POST").respond_with_data(
+        "OK", status=201
+    )
+
+    monkeypatch.setattr(utility, "API_BASE", httpserver.url_for("/"))
+    monkeypatch.setattr(utility, "UCS", ["90001"])
+    monkeypatch.setattr(
+        utility,
+        "ENV",
+        {"SUPABASE_URL": httpserver.url_for("/"), "SUPABASE_SERVICE_ROLE_KEY": "test-key"},
+    )
+    monkeypatch.setattr("sys.argv", ["utility.py"])
+
+    res = sync_cooperalianca("00000000000", "senha")
+
+    assert res is not None
+    assert "tarifa_referencia" not in res
+    pushed = json.loads(
+        next(r for r, _ in httpserver.log if r.path == "/rest/v1/utility_data").data
+    )
+    assert "tarifa_referencia" not in pushed
 
 
 def test_sync_cooperalianca_fails_when_supabase_rejects_payload(httpserver, monkeypatch):

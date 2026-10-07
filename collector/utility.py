@@ -51,9 +51,11 @@ def push_utility_to_supabase(result):
         "titular": result["titular"],
         "cpf": result["cpf"],
         "perfil_usuario": result.get("perfil_usuario", {}),
-        "tarifa_referencia": result.get("tarifa_referencia", {}),
         "unidades_consumidoras": result.get("unidades_consumidoras", {}),
     }
+    # Left out when the tariff could not be fetched, so the upsert keeps the last stored one
+    if result.get("tarifa_referencia"):
+        payload["tarifa_referencia"] = result["tarifa_referencia"]
 
     headers = {
         "apikey": service_key,
@@ -113,6 +115,41 @@ def safe_api_get(url, headers, timeout=12, default=None):
         endpoint_name = url.split("?")[0].split("/")[-1]
         print(f"    Network failure requesting {endpoint_name}: {e}")
     return default
+
+
+TARIFF_FLAGS = (
+    ("RetTarifasBandeiraVerde", "Bandeira verde"),
+    ("RetTarifasBandeiraAmarela", "Bandeira amarela"),
+    ("RetTarifasBandeiraVermelha", "Bandeira vermelha"),
+)
+
+
+def portal_date_to_iso(value):
+    """Converts a portal date ("DD/MM/YYYY HH:MM:SS") to ISO "YYYY-MM-DD"; returns None if malformed."""
+    try:
+        return datetime.strptime((value or "").split(" ")[0], "%d/%m/%Y").date().isoformat()
+    except ValueError:
+        return None
+
+
+def fetch_current_tariff(uc, headers):
+    """Tariff in force for the consumer unit, from the flag the portal marks as current for this billing month.
+
+    Values are per kWh before taxes (TE + TUSD). Returns None when the portal does not report a current flag.
+    """
+    flags = safe_api_get(API_BASE + f"TarifasBandeiras?codigoUc={uc}", headers, default={}) or {}
+    for key, flag_name in TARIFF_FLAGS:
+        entry = flags.get(key) or {}
+        if entry.get("VigenciaNaCompetencia") and entry.get("TarifaAplicada"):
+            return {
+                "bandeira_vigente": flag_name,
+                "tarifa_kwh": entry["TarifaAplicada"],
+                "te_kwh": entry.get("ValorTe"),
+                "tusd_kwh": entry.get("ValorTusd"),
+                "vigente_desde": portal_date_to_iso(entry.get("DataInicioVigenciaNaCompetencia")),
+                "resolucao": (entry.get("DescricaoTarifa") or "").strip() or None,
+            }
+    return None
 
 
 def portal_headers():
@@ -209,18 +246,15 @@ def sync_cooperalianca(cpf=None, senha=None):
         "titular": titular_nome,
         "cpf": cpf,
         "perfil_usuario": perfil_usuario,
-        "tarifa_referencia": {
-            "classe": "RURAL",
-            "subclasse": "AGROPECUARIA URBANA",
-            "tipo_rede": "Trifásico",
-            "bandeira_vigente": "Bandeira amarela",
-            "tarifa_kwh": 0.77658,
-            "tusd_kwh": 0.49944,
-            "te_kwh": 0.27714,
-            "icms_aliquota": 17.0,
-        },
         "unidades_consumidoras": {},
     }
+
+    tariff = fetch_current_tariff(UCS[0], headers)
+    if tariff:
+        result["tarifa_referencia"] = tariff
+        print(f" -> Tariff: {tariff['bandeira_vigente']}, R$ {tariff['tarifa_kwh']:.5f}/kWh")
+    else:
+        print(" -> Tariff unavailable; keeping the last stored one")
 
     for uc in UCS:
         uc_data = {"codigo_uc": uc}
