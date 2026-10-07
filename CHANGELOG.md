@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.3.0...v1.4.0) (2026-10-07)
+
+
+### Features
+
+* **dashboard:** show the tariff flag inside the power card ([#33](https://github.com/DiegoHahn/Solar-hub/issues/33)) ([baf521c](https://github.com/DiegoHahn/Solar-hub/commit/baf521ce9b10db563ec5fcaa57fa4dfc1c454614))
+
+
+### Bug Fixes
+
+* **collector:** store the utility sync time with its UTC offset ([#35](https://github.com/DiegoHahn/Solar-hub/issues/35)) ([d918f7f](https://github.com/DiegoHahn/Solar-hub/commit/d918f7f2951c018417c7d0681ff744c8e1af9117))
+
 ## [1.3.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.6...v1.3.0) (2026-10-07)
 
 
