@@ -68,7 +68,7 @@ export const en: Translations = {
     plantOperating: "Plant Generating",
     noGenerationWeather: "No Generation (Weather)",
     nighttimeStandby: "Nighttime Standby",
-    instantKw: "{kw} instant kW",
+    instantKw: "kW now",
     ofCapacity: "{pct}% of nominal capacity ({cap} kWp)",
     lifetimeGeneration: "Lifetime Generation",
     yieldHsp: "Solar Yield (PSH)",
