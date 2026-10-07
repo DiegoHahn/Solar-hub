@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.6...v1.3.0) (2026-10-07)
+
+
+### Features
+
+* **collector:** read the tariff in force from the utility portal ([#32](https://github.com/DiegoHahn/Solar-hub/issues/32)) ([197a084](https://github.com/DiegoHahn/Solar-hub/commit/197a084eb681b667bb7e17496130cf5a09067884))
+
+
+### Bug Fixes
+
+* **dashboard:** show only the unit under the instant power reading ([#30](https://github.com/DiegoHahn/Solar-hub/issues/30)) ([5bc0b48](https://github.com/DiegoHahn/Solar-hub/commit/5bc0b48ffeb535dc081be0048d9758595f22d0f6))
+
 ## [1.2.6](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.5...v1.2.6) (2026-10-07)
 
 
