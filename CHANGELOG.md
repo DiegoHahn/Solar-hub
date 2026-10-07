@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.5](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.4...v1.2.5) (2026-10-07)
+
+
+### Bug Fixes
+
+* **ai-advisor:** share concurrent generations per locale ([#25](https://github.com/DiegoHahn/Solar-hub/issues/25)) ([f46406b](https://github.com/DiegoHahn/Solar-hub/commit/f46406b6ae64522e3711c608eaa8240624828607))
+* **dashboard:** use DC module capacity and plane-of-array irradiation for performance figures ([#24](https://github.com/DiegoHahn/Solar-hub/issues/24)) ([a054574](https://github.com/DiegoHahn/Solar-hub/commit/a0545748c750df98c2b9d66eda1003c74a3273db))
+
 ## [1.2.4](https://github.com/DiegoHahn/Solar-hub/compare/v1.2.3...v1.2.4) (2026-10-06)
 
 
