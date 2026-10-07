@@ -53,6 +53,7 @@ export type Database = {
           sunshine_duration_s: number
           temperature_max_c: number
           temperature_min_c: number
+          tilted_radiation_kwh: number | null
           updated_at: string
           weather_code: number
         }
@@ -64,6 +65,7 @@ export type Database = {
           sunshine_duration_s: number
           temperature_max_c: number
           temperature_min_c: number
+          tilted_radiation_kwh?: number | null
           updated_at?: string
           weather_code: number
         }
@@ -75,6 +77,7 @@ export type Database = {
           sunshine_duration_s?: number
           temperature_max_c?: number
           temperature_min_c?: number
+          tilted_radiation_kwh?: number | null
           updated_at?: string
           weather_code?: number
         }

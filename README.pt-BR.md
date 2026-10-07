@@ -260,6 +260,7 @@ npm test            # Vitest (detalhes na seção 8)
 | `GEMINI_PRIMARY_MAX_QUOTA` | Máximo de chamadas diárias ao modelo primário antes de usar os de reserva |
 | `NEXT_PUBLIC_SOLAR_LATITUDE` / `_LONGITUDE` | Localização da usina para a previsão e o histórico da Open-Meteo |
 | `NEXT_PUBLIC_SOLAR_TILT` / `_AZIMUTH` | Inclinação e orientação dos painéis (graus) |
+| `NEXT_PUBLIC_PLANT_DC_KWP` | Potência DC dos módulos (kWp), usada no Performance Ratio e nas estimativas |
 
 **Coletores** (`collector/.env`):
 
