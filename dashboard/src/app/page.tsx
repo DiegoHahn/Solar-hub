@@ -15,36 +15,15 @@ import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection"
 import { SunCurveChart } from "@/components/SunCurveChart";
 import { getDataSource } from "@/lib/dataSource";
 import { minutesSince } from "@/lib/dates";
-import { getGeneratorUc, maskUcCode } from "@/lib/utility";
+import { getGeneratorUc, maskUcCode, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
 import { getServerI18n } from "@/i18n/server";
 import { formatNumber, formatCurrency, formatRelativeTime, interpolate } from "@/i18n/formatters";
-import type { Translations } from "@/i18n/types";
-import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
 
 const STALE_THRESHOLD_MIN = 30;
-
-function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
-  if (!bandeira) return "neutral";
-  const b = bandeira.toLowerCase();
-  if (b.includes("verde")) return "success";
-  if (b.includes("amarela")) return "warning";
-  if (b.includes("vermelha")) return "error";
-  return "neutral";
-}
-
-function translateBandeira(bandeira: string | undefined, t: Translations): string {
-  if (!bandeira) return "";
-  const b = bandeira.toLowerCase();
-  if (b.includes("verde")) return t.utility.flagGreen;
-  if (b.includes("amarela")) return t.utility.flagYellow;
-  if (b.includes("vermelha")) return t.utility.flagRed;
-  if (b.includes("escassez")) return t.utility.flagWaterScarcity;
-  return bandeira;
-}
 
 export default async function Home() {
   const [{ t, locale }, ds] = await Promise.all([getServerI18n(), getDataSource()]);
@@ -109,7 +88,7 @@ export default async function Home() {
         </div>
 
         <div className="flex items-center gap-2">
-          {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{translateBandeira(bandeira, t)}</Badge>}
+          {bandeira && <Badge variant={tariffFlagVariant(bandeira)}>{translateTariffFlag(bandeira, t)}</Badge>}
         </div>
       </div>
 
@@ -302,7 +281,7 @@ export default async function Home() {
           label={t.overview.currentTariff}
           value={formatCurrency(tariffPerKwh, locale)}
           unit={`/${t.common.kwh}`}
-          hint={`${translateBandeira(bandeira, t)} · ${t.utility.ruralSubgroup}`}
+          hint={`${translateTariffFlag(bandeira, t)} · ${t.utility.ruralSubgroup}`}
           accent="violet"
         />
       </div>

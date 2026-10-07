@@ -10,11 +10,11 @@ Each record details the technical context, requirements that drove the decision,
 
 | ADR | Title | Date | Status | Decision Summary |
 | :---: | :--- | :---: | :---: | :--- |
-| [0001](0001-coleta-edge-to-cloud-dispositivo-local.md) | Edge-to-Cloud Collection via Local SBC | 2026-08-30 | **Accepted** | Replaced proprietary vendor clouds with an on-premises SBC (Orange Pi 4 Pro) querying inverters via Modbus and Solarman V5 with offline JSON queuing. |
-| [0002](0002-supabase-com-rls-sem-api-propria.md) | Supabase with Row Level Security (RLS) without Intermediate API | 2026-09-25 | **Accepted** | Direct access to managed PostgreSQL via Server Components with row-level RLS policies and write access restricted to pre-authorized accounts for caching. |
+| [0001](0001-edge-to-cloud-collection-on-local-device.md) | Edge-to-Cloud Collection via Local SBC | 2026-08-30 | **Accepted** | Replaced proprietary vendor clouds with an on-premises SBC (Orange Pi 4 Pro) querying inverters via Modbus and Solarman V5 with offline JSON queuing. |
+| [0002](0002-supabase-with-rls-without-custom-api.md) | Supabase with Row Level Security (RLS) without Intermediate API | 2026-09-25 | **Accepted** | Direct access to managed PostgreSQL via Server Components with row-level RLS policies and write access restricted to pre-authorized accounts for caching. |
 | [0003](0003-nextjs-app-router-server-components-gru1.md) | Next.js App Router with Server Components and Vercel gru1 Region | 2026-09-04 | **Accepted** | Server-side rendering without client-side request waterfalls, hosted in the gru1 (São Paulo) region on Vercel. |
-| [0004](0004-github-flow-e-release-please.md) | GitHub Flow and Automated Releases with Release Please | 2026-09-29 | **Accepted** | Ephemeral branches, CI with strict ≥ 80% coverage gates, linear squash merges, and automated releases derived from Conventional Commits. |
-| [0005](0005-testes-com-dados-reais-anonimizados.md) | Testing with Anonymized Real Data and Minimal Mocks | 2026-09-29 | **Accepted** | Test suite built on anonymized production fixtures, real local loopback HTTP servers, and minimization of synthetic test doubles. |
+| [0004](0004-github-flow-and-release-please.md) | GitHub Flow and Automated Releases with Release Please | 2026-09-29 | **Accepted** | Ephemeral branches, CI with strict ≥ 80% coverage gates, linear squash merges, and automated releases derived from Conventional Commits. |
+| [0005](0005-tests-with-anonymized-real-data.md) | Testing with Anonymized Real Data and Minimal Mocks | 2026-09-29 | **Accepted** | Test suite built on anonymized production fixtures, real local loopback HTTP servers, and minimization of synthetic test doubles. |
 
 ---
 

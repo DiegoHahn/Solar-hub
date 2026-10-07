@@ -197,6 +197,8 @@ The collector constructs Modbus RTU request frames wrapped in proprietary Solarm
 | `/cooperativa` Utility | Net metering energy credits, latest utility invoice details, 12-month net balance curve (generation vs grid consumption), and filtered billing statement | `utility_data` |
 | `/combinada` Analysis | Gemini AI Energy Advisor (daily & monthly strategic insights), energy flow diagram (production → consumption → grid injection), and solar irradiance correlation (up to 90 days) | Gemini API, `utility_data`, `solar_telemetry`, Open-Meteo |
 
+The `/api/ai-advisor` route generates the AI Advisor analysis with the model set in `GEMINI_MODEL`, falls back to the `GEMINI_MODEL_FALLBACKS` models when it fails or reaches its daily quota, and caches one analysis per day and language in the `ai_advisor_daily` table.
+
 ---
 
 ## 6. Setup and Installation
@@ -247,6 +249,35 @@ npm run lint        # ESLint validation
 npm run typecheck   # TypeScript compiler check (tsc --noEmit)
 npm test            # Vitest unit & component test suite
 ```
+
+### Environment Variables
+
+**Dashboard** (`dashboard/.env.local`, and the project environment variables on Vercel):
+
+| Variable | Purpose |
+| :--- | :--- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public (publishable/anon) key; data access depends on the user session and RLS |
+| `ALLOWED_EMAILS` | Comma-separated emails allowed to sign in (Google or password); an empty list blocks everyone |
+| `GEMINI_API_KEY` | Google AI Studio key for the AI Energy Advisor |
+| `GEMINI_MODEL` | Primary AI Advisor model |
+| `GEMINI_MODEL_FALLBACKS` | Comma-separated fallback models, in priority order |
+| `GEMINI_PRIMARY_MAX_QUOTA` | Daily call limit for the primary model before switching to the fallbacks |
+| `NEXT_PUBLIC_SOLAR_LATITUDE` / `_LONGITUDE` | Plant location for the Open-Meteo forecast and history |
+| `NEXT_PUBLIC_SOLAR_TILT` / `_AZIMUTH` | Panel tilt and orientation (degrees) |
+| `NEXT_PUBLIC_PLANT_DC_KWP` | DC module capacity (kWp), used for the performance ratio and the estimates |
+
+**Collectors** (`collector/.env`):
+
+| Variable | Purpose |
+| :--- | :--- |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Collector write key (bypasses RLS; stays on the edge device only) |
+| `COOPERALIANCA_CPF` / `COOPERALIANCA_SENHA` | Utility portal login |
+| `COOPERALIANCA_TOKEN_EXTERNO` | Token required by the Useall API in the `use-token-externo` header |
+| `COOPERALIANCA_UCS` | Comma-separated consumer units of the account holder; the first one is the generating unit |
+
+The inverter topology (IPs, ports, serial numbers, plant name and capacity) lives in `collector/config.json`, created from `collector/config.example.json`.
 
 ---
 

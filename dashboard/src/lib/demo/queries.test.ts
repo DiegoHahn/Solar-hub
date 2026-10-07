@@ -68,7 +68,7 @@ describe("demo/queries", () => {
     it("anonymizes account holder and national ID and normalizes generating consumer unit", async () => {
       const result = await getDemoLatestUtilityData();
 
-      expect(result.titular).toBe("Titular Demo");
+      expect(result.titular).toBe("Demo Account");
       expect(result.cpf).toBe("000.000.000-00");
       expect(result.distribuidora).toBe("Cooperaliança (Içara/SC)");
 

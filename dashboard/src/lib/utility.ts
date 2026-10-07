@@ -1,4 +1,6 @@
 import type { UnidadeConsumidora, UtilityDataRow } from "@/lib/types";
+import type { BadgeProps } from "@/components/Badge";
+import type { Translations } from "@/i18n/types";
 
 /**
  * Identifies the generator Consumer Unit (where the solar plant is installed) among the account units:
@@ -28,6 +30,26 @@ export function getGeneratorUc(utilityData: UtilityDataRow | null | undefined): 
 export function maskUcCode(code: string | null | undefined): string {
   if (!code) return "—";
   return code.length > 4 ? `••••${code.slice(-4)}` : code;
+}
+
+/** Badge color for the tariff flag reported by the utility ("Bandeira verde", "Bandeira amarela", ...). */
+export function tariffFlagVariant(flag: string | undefined): BadgeProps["variant"] {
+  const f = (flag ?? "").toLowerCase();
+  if (f.includes("verde")) return "success";
+  if (f.includes("amarela")) return "warning";
+  if (f.includes("vermelha")) return "error";
+  return "neutral";
+}
+
+/** Tariff flag label in the current language; unknown flags are shown as reported. */
+export function translateTariffFlag(flag: string | undefined, t: Translations): string {
+  if (!flag) return "";
+  const f = flag.toLowerCase();
+  if (f.includes("verde")) return t.utility.flagGreen;
+  if (f.includes("amarela")) return t.utility.flagYellow;
+  if (f.includes("vermelha")) return t.utility.flagRed;
+  if (f.includes("escassez")) return t.utility.flagWaterScarcity;
+  return flag;
 }
 
 /** Account holder first name, capitalized for UI display. */

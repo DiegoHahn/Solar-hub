@@ -192,7 +192,7 @@ O coletor empacota quadros Modbus RTU encapsulados em cabeçalhos proprietários
 | `/cooperativa` Cooperativa | Saldo de créditos GD, última fatura, balanço energético de 12 meses (injeção x compensação x saldo) e extrato GD com filtros | `utility_data` |
 | `/combinada` Análise | Consultor IA (análise diária e mensal), fluxo de energia usina → rede → créditos e eficiência frente à irradiação de até 90 dias | Gemini, `utility_data`, `solar_telemetry`, Open-Meteo |
 
-A rota `/api/ai-advisor` gera a análise do Consultor IA com o modelo configurado em `GEMINI_MODEL`, recorre aos modelos de `GEMINI_MODEL_FALLBACKS` quando ele falha ou atinge a cota diária, e guarda uma análise por dia na tabela `ai_advisor_daily`.
+A rota `/api/ai-advisor` gera a análise do Consultor IA com o modelo configurado em `GEMINI_MODEL`, recorre aos modelos de `GEMINI_MODEL_FALLBACKS` quando ele falha ou atinge a cota diária, e guarda uma análise por dia e por idioma na tabela `ai_advisor_daily`.
 
 ---
 
