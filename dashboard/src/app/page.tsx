@@ -25,26 +25,6 @@ export const dynamic = "force-dynamic";
 
 const STALE_THRESHOLD_MIN = 30;
 
-/** Hero card tint while generating, following the tariff flag color (amber when the flag is unknown). */
-const HERO_TINT = {
-  success: {
-    card: "border-emerald-500/20 from-emerald-500/[0.07] to-teal-500/[0.04] dark:border-emerald-500/30 shadow-emerald-500/5",
-    glow: "bg-emerald-500/10",
-  },
-  warning: {
-    card: "border-amber-500/20 from-amber-500/[0.07] to-orange-500/[0.04] dark:border-amber-500/30 shadow-amber-500/5",
-    glow: "bg-amber-500/10",
-  },
-  error: {
-    card: "border-red-500/20 from-red-500/[0.07] to-rose-500/[0.04] dark:border-red-500/30 shadow-red-500/5",
-    glow: "bg-red-500/10",
-  },
-} as const;
-
-function heroTint(flag: string | undefined) {
-  const variant = tariffFlagVariant(flag);
-  return variant === "success" || variant === "error" ? HERO_TINT[variant] : HERO_TINT.warning;
-}
 
 export default async function Home() {
   const [{ t, locale }, ds] = await Promise.all([getServerI18n(), getDataSource()]);
@@ -59,7 +39,6 @@ export default async function Home() {
 
   const tariffPerKwh = getTariffPerKwh(utilityData);
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente;
-  const tint = heroTint(bandeira);
   const creditBalanceBrl = tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
 
   const capacityKw = telemetry?.total_nominal_capacity_kw ?? 16.0;
@@ -131,7 +110,7 @@ export default async function Home() {
         className={cx(
           "relative overflow-hidden rounded-2xl border p-5 md:p-6 transition-all",
           isGenerating
-            ? cx("bg-gradient-to-br via-transparent shadow-lg", tint.card)
+            ? "border-amber-500/20 bg-gradient-to-br from-amber-500/[0.07] via-transparent to-orange-500/[0.04] dark:border-amber-500/30 shadow-lg shadow-amber-500/5"
             : "border-gray-200 dark:border-gray-900 bg-white dark:bg-[#090E1A]"
         )}
       >
@@ -139,7 +118,7 @@ export default async function Home() {
         {isGenerating && (
           <div
             aria-hidden="true"
-            className={cx("pointer-events-none absolute -left-16 -top-16 size-64 rounded-full blur-3xl", tint.glow)}
+            className="pointer-events-none absolute -left-16 -top-16 size-64 rounded-full bg-amber-500/10 blur-3xl"
           />
         )}
 
