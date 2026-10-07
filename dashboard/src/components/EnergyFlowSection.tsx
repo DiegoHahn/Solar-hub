@@ -10,8 +10,8 @@ import {
 import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import type { SolarTelemetryRow, UtilityDataRow } from "@/lib/types";
-import { getGeneratorUc, maskUcCode } from "@/lib/utility";
-import { useI18n, formatNumber, formatCurrency, formatPortalDate } from "@/i18n";
+import { getGeneratorUc, getTariffPerKwh, maskUcCode } from "@/lib/utility";
+import { useI18n, formatNumber, formatCurrency, formatCurrencyEstimate, formatPortalDate } from "@/i18n";
 
 interface EnergyFlowSectionProps {
   telemetry: SolarTelemetryRow | null;
@@ -32,20 +32,22 @@ export function EnergyFlowSection({
   const hist12 = uc?.grafico_historico_12_meses?.RetornoDadosHistoricoGeracaoConsumoKwhNormal || [];
   const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
-  const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
+  const tariffPerKwh = getTariffPerKwh(utilityData);
   const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? 0;
-  const creditReserveBrl = Math.round(creditBalanceKwh * tariffPerKwh);
+  const creditReserveBrl = tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
 
   // Today's inverter telemetry data
   const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
-  const todaySavingsBrl = todayGenerationKwh * tariffPerKwh;
+  const todaySavingsBrl = tariffPerKwh !== null ? todayGenerationKwh * tariffPerKwh : null;
 
   // Monthly data (last invoice / Cooperaliança history)
   const monthInjectedKwh = lastMonthItem?.KwhGerado ?? 0;
   const monthCompensatedKwh = lastMonthItem?.kwhCreditado ?? 0;
   const monthNetBalanceKwh = monthInjectedKwh - monthCompensatedKwh;
   const monthGenerationKwh = monthSolarKwh > 0 ? monthSolarKwh : monthInjectedKwh;
-  const monthSavingsBrl = monthInjectedKwh * tariffPerKwh;
+  const monthSavingsBrl = tariffPerKwh !== null ? monthInjectedKwh * tariffPerKwh : null;
+  const savingsBrl = timeframe === "today" ? todaySavingsBrl : monthSavingsBrl;
+  const savingsLabel = savingsBrl !== null ? formatCurrency(savingsBrl, locale) : "—";
 
   const isToday = timeframe === "today";
 
@@ -140,7 +142,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.generatedValueLabel}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                {formatCurrency(isToday ? todaySavingsBrl : monthSavingsBrl, locale)}
+                {savingsLabel}
               </strong>
             </div>
           </div>
@@ -234,7 +236,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.reserveValue}</span>
               <strong className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                {formatCurrency(creditReserveBrl, locale)}
+                {creditReserveBrl !== null ? formatCurrencyEstimate(creditReserveBrl, locale) : "—"}
               </strong>
             </div>
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
@@ -294,7 +296,7 @@ export function EnergyFlowSection({
             {t.combined.estimatedSavingsKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-purple-600 dark:text-purple-400">
-            {formatCurrency(isToday ? todaySavingsBrl : monthSavingsBrl, locale)}
+            {savingsLabel}
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {isToday ? t.combined.economyToday : t.combined.economyMonth}

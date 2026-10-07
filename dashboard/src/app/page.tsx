@@ -15,11 +15,11 @@ import { WeatherEfficiencySection } from "@/components/WeatherEfficiencySection"
 import { SunCurveChart } from "@/components/SunCurveChart";
 import { getDataSource } from "@/lib/dataSource";
 import { minutesSince } from "@/lib/dates";
-import { getGeneratorUc, maskUcCode, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
+import { getGeneratorUc, getTariffPerKwh, maskUcCode, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { cx } from "@/lib/utils";
 import { getServerI18n } from "@/i18n/server";
-import { formatNumber, formatCurrency, formatRelativeTime, interpolate } from "@/i18n/formatters";
+import { formatNumber, formatCurrency, formatCurrencyEstimate, formatRelativeTime, formatTariff, interpolate } from "@/i18n/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +36,9 @@ export default async function Home() {
 
   const creditBalanceKwh = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;
 
-  const tariffPerKwh = utilityData?.tarifa_referencia?.tarifa_kwh ?? 0.77658;
-  const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente ?? "Bandeira verde";
-  const creditBalanceBrl = Math.round(creditBalanceKwh * tariffPerKwh);
+  const tariffPerKwh = getTariffPerKwh(utilityData);
+  const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente;
+  const creditBalanceBrl = tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
 
   const capacityKw = telemetry?.total_nominal_capacity_kw ?? 16.0;
   const currentPowerKw = telemetry?.total_power_kw ?? 0.0;
@@ -51,7 +51,7 @@ export default async function Home() {
   const { isDaytime } = brasiliaClock();
 
   const geradoHojeKwh = telemetry?.total_today_kwh ?? 0.0;
-  const todaySavingsBrl = formatCurrency(geradoHojeKwh * tariffPerKwh, locale);
+  const todaySavingsBrl = tariffPerKwh !== null ? formatCurrency(geradoHojeKwh * tariffPerKwh, locale) : null;
 
   const onlineInvertersCount =
     telemetry?.inverters_data?.filter((i) => i.status === "online").length ?? 0;
@@ -246,7 +246,7 @@ export default async function Home() {
           label={t.overview.generationToday}
           value={formatNumber(geradoHojeKwh, locale, { minimumFractionDigits: 1 })}
           unit={t.common.kwh}
-          hint={interpolate(t.overview.savingsOf, { val: todaySavingsBrl })}
+          hint={todaySavingsBrl ? interpolate(t.overview.savingsOf, { val: todaySavingsBrl }) : undefined}
           accent="amber"
         />
 
@@ -255,7 +255,7 @@ export default async function Home() {
           label={t.overview.accumulatedBalance}
           value={formatNumber(creditBalanceKwh, locale)}
           unit={t.common.kwh}
-          hint={`~${formatCurrency(creditBalanceBrl, locale)} ${t.overview.inReserve}`}
+          hint={creditBalanceBrl !== null ? `~${formatCurrencyEstimate(creditBalanceBrl, locale)} ${t.overview.inReserve}` : undefined}
           accent="emerald"
         />
 
@@ -274,9 +274,9 @@ export default async function Home() {
         <StatCard
           icon={RiBuilding2Line}
           label={t.overview.currentTariff}
-          value={formatCurrency(tariffPerKwh, locale)}
+          value={tariffPerKwh !== null ? formatTariff(tariffPerKwh, locale) : "—"}
           unit={`/${t.common.kwh}`}
-          hint={`${translateTariffFlag(bandeira, t)} · ${t.utility.ruralSubgroup}`}
+          hint={bandeira ? `${translateTariffFlag(bandeira, t)} · ${t.utility.ruralSubgroup}` : t.utility.ruralSubgroup}
           accent="violet"
         />
       </div>

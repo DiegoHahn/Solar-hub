@@ -5,8 +5,8 @@ import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
 import { getDataSource } from "@/lib/dataSource";
-import { getGeneratorUc, maskUcCode, holderFirstName, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
-import { formatCurrency, formatNumber, formatPortalDate } from "@/i18n";
+import { getGeneratorUc, getTariffPerKwh, maskUcCode, holderFirstName, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
+import { formatCurrency, formatCurrencyEstimate, formatNumber, formatPortalDate, formatTariff } from "@/i18n";
 import { getServerI18n } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -35,8 +35,8 @@ export default async function CooperativaPage() {
 
   const gd = uc.geracao_distribuida;
   const lastBill = uc.resumo_ultima_fatura;
-  const tariffPerKwh = utilityData.tarifa_referencia?.tarifa_kwh ?? 0;
-  const reserveValue = Math.round((gd?.ValorProximoSaldoVencer ?? 0) * tariffPerKwh);
+  const tariffPerKwh = getTariffPerKwh(utilityData);
+  const reserveValue = tariffPerKwh !== null ? (gd?.ValorProximoSaldoVencer ?? 0) * tariffPerKwh : null;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -71,7 +71,7 @@ export default async function CooperativaPage() {
               <span className="ml-1 text-lg font-medium text-gray-400 dark:text-gray-500">kWh</span>
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {t.utility.inReserveGd.replace("{value}", formatNumber(reserveValue, locale))}
+              {reserveValue !== null && t.utility.inReserveGd.replace("{value}", formatCurrencyEstimate(reserveValue, locale))}
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
@@ -111,7 +111,7 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiWallet3Line}
           label={t.utility.effectiveTariff}
-          value={`R$ ${tariffPerKwh.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
+          value={tariffPerKwh !== null ? formatTariff(tariffPerKwh, locale) : "—"}
           unit="/kWh"
           hint={bandeira ? translateTariffFlag(bandeira, t) : "Rural B2"}
           accent="violet"

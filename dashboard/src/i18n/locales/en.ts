@@ -194,7 +194,7 @@ export const en: Translations = {
     status: "Status",
     noInvoices: "No invoices recorded.",
     accumulatedCreditBalance: "Accumulated credit balance",
-    inReserveGd: "~R$ {value} in DG reserve",
+    inReserveGd: "~{value} in DG reserve",
     partialExpiry: "Partial expiration on {date}",
     nextCycle: "Next cycle",
     currentInvoice: "Current Invoice",

@@ -5,6 +5,7 @@ import { ptBR } from "@/i18n/locales/pt-BR";
 import {
   findGeneratorUcCode,
   getGeneratorUc,
+  getTariffPerKwh,
   holderFirstName,
   maskUcCode,
   tariffFlagVariant,
@@ -151,6 +152,21 @@ describe("holderFirstName", () => {
 
   it("returns empty string when name is undefined", () => {
     expect(holderFirstName(undefined)).toBe("");
+  });
+});
+
+describe("getTariffPerKwh", () => {
+  const withTariff = (tarifa_referencia: UtilityDataRow["tarifa_referencia"]) =>
+    ({ tarifa_referencia }) as UtilityDataRow;
+
+  it("returns the stored tariff", () => {
+    expect(getTariffPerKwh(withTariff({ bandeira_vigente: "Bandeira verde", tarifa_kwh: 0.75773 }))).toBe(0.75773);
+  });
+
+  it("returns null when no tariff has been stored", () => {
+    expect(getTariffPerKwh(withTariff(null))).toBeNull();
+    expect(getTariffPerKwh(withTariff({ bandeira_vigente: "Bandeira verde", tarifa_kwh: 0 }))).toBeNull();
+    expect(getTariffPerKwh(null)).toBeNull();
   });
 });
 

@@ -54,14 +54,12 @@
     ]
   },
   "tarifa_referencia": {
-    "classe": "RURAL",
-    "te_kwh": 0.27714,
+    "bandeira_vigente": "Bandeira verde",
+    "tarifa_kwh": 0.75773,
+    "te_kwh": 0.25829,
     "tusd_kwh": 0.49944,
-    "subclasse": "AGROPECUARIA URBANA",
-    "tipo_rede": "Trifásico",
-    "tarifa_kwh": 0.77658,
-    "icms_aliquota": 17,
-    "bandeira_vigente": "Bandeira amarela"
+    "vigente_desde": "2026-08-29",
+    "resolucao": "Despacho 3.398 /2026"
   },
   "unidades_consumidoras": {
     "UC-1": {
