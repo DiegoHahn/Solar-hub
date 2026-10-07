@@ -16,7 +16,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -39,7 +39,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -53,7 +53,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -84,7 +84,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -107,7 +107,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -121,7 +121,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -152,7 +152,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -175,7 +175,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -189,7 +189,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -220,7 +220,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -243,7 +243,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -257,7 +257,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -288,7 +288,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -311,7 +311,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -325,7 +325,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -356,7 +356,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -379,7 +379,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -393,7 +393,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -424,7 +424,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -447,7 +447,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -461,7 +461,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -492,7 +492,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -515,7 +515,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -529,7 +529,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -560,7 +560,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -583,7 +583,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -597,7 +597,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -628,7 +628,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -651,7 +651,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -665,7 +665,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -696,7 +696,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -719,7 +719,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -733,7 +733,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -764,7 +764,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -787,7 +787,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -801,7 +801,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -832,7 +832,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -855,7 +855,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -869,7 +869,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -900,7 +900,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -923,7 +923,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -937,7 +937,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -968,7 +968,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -991,7 +991,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1005,7 +1005,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1036,7 +1036,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1059,7 +1059,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1073,7 +1073,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1104,7 +1104,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1127,7 +1127,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1141,7 +1141,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1172,7 +1172,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1195,7 +1195,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1209,7 +1209,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1240,7 +1240,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1263,7 +1263,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1277,7 +1277,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1308,7 +1308,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1331,7 +1331,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1345,7 +1345,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1376,7 +1376,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1399,7 +1399,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1413,7 +1413,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1444,7 +1444,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1467,7 +1467,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1481,7 +1481,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1512,7 +1512,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1535,7 +1535,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1549,7 +1549,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1580,7 +1580,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1603,7 +1603,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1617,7 +1617,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1648,7 +1648,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1671,7 +1671,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1685,7 +1685,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1716,7 +1716,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1739,7 +1739,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1753,7 +1753,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1784,7 +1784,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1807,7 +1807,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1821,7 +1821,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1852,7 +1852,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1875,7 +1875,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1889,7 +1889,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1920,7 +1920,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -1943,7 +1943,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1957,7 +1957,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -1988,7 +1988,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2011,7 +2011,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2025,7 +2025,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2056,7 +2056,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2079,7 +2079,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2093,7 +2093,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2124,7 +2124,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2147,7 +2147,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2161,7 +2161,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2192,7 +2192,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2215,7 +2215,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2229,7 +2229,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2260,7 +2260,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2283,7 +2283,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2297,7 +2297,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2328,7 +2328,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2351,7 +2351,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2365,7 +2365,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2396,7 +2396,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2419,7 +2419,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2433,7 +2433,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2464,7 +2464,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2487,7 +2487,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2501,7 +2501,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2532,7 +2532,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2555,7 +2555,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2569,7 +2569,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2600,7 +2600,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2623,7 +2623,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2637,7 +2637,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2668,7 +2668,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2691,7 +2691,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2705,7 +2705,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2736,7 +2736,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2759,7 +2759,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2773,7 +2773,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2804,7 +2804,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2827,7 +2827,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2841,7 +2841,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2872,7 +2872,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2895,7 +2895,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2909,7 +2909,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2940,7 +2940,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -2963,7 +2963,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -2977,7 +2977,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -3008,7 +3008,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -3031,7 +3031,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -3045,7 +3045,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -3084,7 +3084,7 @@
           "v": 344.5,
           "w": 0
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -3141,7 +3141,7 @@
           "v": 278.4,
           "w": 0
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0,
@@ -3226,7 +3226,7 @@
           "v": 279.6,
           "w": 0
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 0,
@@ -3326,7 +3326,7 @@
           "v": 257.1,
           "w": 0
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.02,
@@ -3383,7 +3383,7 @@
           "v": 304.7,
           "w": 0
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 0,
@@ -3468,7 +3468,7 @@
           "v": 305.5,
           "w": 0
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0,
@@ -3568,7 +3568,7 @@
           "v": 348.3,
           "w": 31.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -3625,7 +3625,7 @@
           "v": 274.3,
           "w": 27
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 0.3,
@@ -3710,7 +3710,7 @@
           "v": 278.9,
           "w": 28
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 0.3,
@@ -3810,7 +3810,7 @@
           "v": 349.8,
           "w": 45.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -3867,7 +3867,7 @@
           "v": 282.6,
           "w": 85
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0.6,
@@ -3952,7 +3952,7 @@
           "v": 282.7,
           "w": 85
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0.6,
@@ -4052,7 +4052,7 @@
           "v": 352.3,
           "w": 42.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -4109,7 +4109,7 @@
           "v": 281,
           "w": 84
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 0.6,
@@ -4194,7 +4194,7 @@
           "v": 284.7,
           "w": 85
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 0.6,
@@ -4294,7 +4294,7 @@
           "v": 351.4,
           "w": 59.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -4351,7 +4351,7 @@
           "v": 289.2,
           "w": 87
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0.9,
@@ -4436,7 +4436,7 @@
           "v": 290.3,
           "w": 87
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 0.9,
@@ -4536,7 +4536,7 @@
           "v": 355.2,
           "w": 88.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.94,
@@ -4593,7 +4593,7 @@
           "v": 304,
           "w": 152
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 1.3,
@@ -4678,7 +4678,7 @@
           "v": 307,
           "w": 184
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 1.3,
@@ -4778,7 +4778,7 @@
           "v": 367.6,
           "w": 106.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.92,
@@ -4835,7 +4835,7 @@
           "v": 310.1,
           "w": 248
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.94,
         "igrid": 1.8,
@@ -4920,7 +4920,7 @@
           "v": 311.1,
           "w": 249
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.93,
         "igrid": 1.7,
@@ -5020,7 +5020,7 @@
           "v": 376,
           "w": 116.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -5077,7 +5077,7 @@
           "v": 311.1,
           "w": 342
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 2.5,
@@ -5162,7 +5162,7 @@
           "v": 312.6,
           "w": 344
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 2.4,
@@ -5262,7 +5262,7 @@
           "v": 382.2,
           "w": 126.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -5319,7 +5319,7 @@
           "v": 310.2,
           "w": 465
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 3.4,
@@ -5404,7 +5404,7 @@
           "v": 312,
           "w": 468
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 3.1,
@@ -5504,7 +5504,7 @@
           "v": 390.1,
           "w": 136.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.05,
@@ -5561,7 +5561,7 @@
           "v": 309.4,
           "w": 619
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 4.8,
@@ -5646,7 +5646,7 @@
           "v": 310,
           "w": 620
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.07,
         "igrid": 4.5,
@@ -5746,7 +5746,7 @@
           "v": 398.7,
           "w": 143.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.03,
@@ -5803,7 +5803,7 @@
           "v": 307.5,
           "w": 738
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.04,
         "igrid": 5.8,
@@ -5888,7 +5888,7 @@
           "v": 310.5,
           "w": 745
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 5.5,
@@ -5988,7 +5988,7 @@
           "v": 396.2,
           "w": 158.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.92,
@@ -6045,7 +6045,7 @@
           "v": 305.7,
           "w": 887
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 6.9,
@@ -6130,7 +6130,7 @@
           "v": 308.4,
           "w": 894
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 6.7,
@@ -6230,7 +6230,7 @@
           "v": 399.2,
           "w": 87.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.02,
@@ -6287,7 +6287,7 @@
           "v": 304.1,
           "w": 1064
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 8.1,
@@ -6372,7 +6372,7 @@
           "v": 305.2,
           "w": 1068
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 7.8,
@@ -6472,7 +6472,7 @@
           "v": 406,
           "w": 89.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -6529,7 +6529,7 @@
           "v": 302.3,
           "w": 1209
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 9.2,
@@ -6614,7 +6614,7 @@
           "v": 304,
           "w": 1216
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 8.9,
@@ -6714,7 +6714,7 @@
           "v": 418.8,
           "w": 113.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.06,
@@ -6771,7 +6771,7 @@
           "v": 299.3,
           "w": 1347
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.07,
         "igrid": 10.3,
@@ -6856,7 +6856,7 @@
           "v": 301,
           "w": 1385
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.06,
         "igrid": 10,
@@ -6956,7 +6956,7 @@
           "v": 403.8,
           "w": 129.2
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -7013,7 +7013,7 @@
           "v": 295.4,
           "w": 1507
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 11.4,
@@ -7098,7 +7098,7 @@
           "v": 297.9,
           "w": 1519
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 11,
@@ -7198,7 +7198,7 @@
           "v": 412.7,
           "w": 148.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -7255,7 +7255,7 @@
           "v": 293.5,
           "w": 1644
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 12.3,
@@ -7340,7 +7340,7 @@
           "v": 294.5,
           "w": 1649
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 12,
@@ -7440,7 +7440,7 @@
           "v": 410.8,
           "w": 156.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.02,
@@ -7497,7 +7497,7 @@
           "v": 289.2,
           "w": 1764
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 13.3,
@@ -7582,7 +7582,7 @@
           "v": 290.6,
           "w": 1773
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 12.8,
@@ -7682,7 +7682,7 @@
           "v": 389.7,
           "w": 152
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -7739,7 +7739,7 @@
           "v": 286.9,
           "w": 1894
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 14.3,
@@ -7824,7 +7824,7 @@
           "v": 287.8,
           "w": 1899
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 13.8,
@@ -7924,7 +7924,7 @@
           "v": 405.5,
           "w": 174.4
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.04,
@@ -7981,7 +7981,7 @@
           "v": 285.9,
           "w": 2001
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 15,
@@ -8066,7 +8066,7 @@
           "v": 286.4,
           "w": 2033
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 14.4,
@@ -8166,7 +8166,7 @@
           "v": 405.9,
           "w": 182.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -8223,7 +8223,7 @@
           "v": 282.9,
           "w": 2122
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 15.9,
@@ -8308,7 +8308,7 @@
           "v": 284.1,
           "w": 2131
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 15.2,
@@ -8408,7 +8408,7 @@
           "v": 400.2,
           "w": 196.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -8465,7 +8465,7 @@
           "v": 279.7,
           "w": 2238
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 16.7,
@@ -8550,7 +8550,7 @@
           "v": 281,
           "w": 2248
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 16,
@@ -8650,7 +8650,7 @@
           "v": 382.6,
           "w": 704
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.03,
@@ -8707,7 +8707,7 @@
           "v": 282.9,
           "w": 2376
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 17.6,
@@ -8792,7 +8792,7 @@
           "v": 281.8,
           "w": 2367
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 16.9,
@@ -8892,7 +8892,7 @@
           "v": 366,
           "w": 1317.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -8949,7 +8949,7 @@
           "v": 281.8,
           "w": 2480
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 18.3,
@@ -9034,7 +9034,7 @@
           "v": 279.7,
           "w": 2489
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 17.7,
@@ -9134,7 +9134,7 @@
           "v": 361.8,
           "w": 1866.9
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -9191,7 +9191,7 @@
           "v": 281.4,
           "w": 2589
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 19.2,
@@ -9276,7 +9276,7 @@
           "v": 280.3,
           "w": 2579
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 18.5,
@@ -9376,7 +9376,7 @@
           "v": 344.4,
           "w": 2032
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -9433,7 +9433,7 @@
           "v": 281,
           "w": 2698
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 20,
@@ -9518,7 +9518,7 @@
           "v": 279.9,
           "w": 2687
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 19.2,
@@ -9618,7 +9618,7 @@
           "v": 346.8,
           "w": 2136.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -9675,7 +9675,7 @@
           "v": 281.1,
           "w": 2783
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 20.6,
@@ -9760,7 +9760,7 @@
           "v": 279.2,
           "w": 2792
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 19.9,
@@ -9860,7 +9860,7 @@
           "v": 356.6,
           "w": 2161
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -9917,7 +9917,7 @@
           "v": 280.6,
           "w": 2862
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 21.2,
@@ -10002,7 +10002,7 @@
           "v": 277.7,
           "w": 2888
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 20.4,
@@ -10102,7 +10102,7 @@
           "v": 345.3,
           "w": 2292.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.96,
@@ -10159,7 +10159,7 @@
           "v": 279.5,
           "w": 2963
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 21.7,
@@ -10244,7 +10244,7 @@
           "v": 278.7,
           "w": 2954
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 20.9,
@@ -10344,7 +10344,7 @@
           "v": 347.7,
           "w": 2347
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -10401,7 +10401,7 @@
           "v": 280.8,
           "w": 3033
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 22.1,
@@ -10486,7 +10486,7 @@
           "v": 278.7,
           "w": 3038
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 21.4,
@@ -10586,7 +10586,7 @@
           "v": 343.5,
           "w": 2418.2
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -10643,7 +10643,7 @@
           "v": 280.2,
           "w": 3110
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 22.3,
@@ -10728,7 +10728,7 @@
           "v": 278.3,
           "w": 3089
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 21.8,
@@ -10828,7 +10828,7 @@
           "v": 340.8,
           "w": 2457.2
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60,
@@ -10885,7 +10885,7 @@
           "v": 278.9,
           "w": 3152
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 22.8,
@@ -10970,7 +10970,7 @@
           "v": 275.3,
           "w": 3138
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 22.2,
@@ -11070,7 +11070,7 @@
           "v": 337.4,
           "w": 2506.9
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -11127,7 +11127,7 @@
           "v": 277.7,
           "w": 3194
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 22.9,
@@ -11212,7 +11212,7 @@
           "v": 274.5,
           "w": 3184
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 22.3,
@@ -11312,7 +11312,7 @@
           "v": 334.9,
           "w": 2558.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -11369,7 +11369,7 @@
           "v": 276.8,
           "w": 3266
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23.4,
@@ -11454,7 +11454,7 @@
           "v": 275.7,
           "w": 3253
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 22.8,
@@ -11554,7 +11554,7 @@
           "v": 337.4,
           "w": 2614.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -11611,7 +11611,7 @@
           "v": 280.2,
           "w": 3306
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 23.7,
@@ -11696,7 +11696,7 @@
           "v": 275,
           "w": 3300
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 23.1,
@@ -11796,7 +11796,7 @@
           "v": 337.8,
           "w": 2641.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -11853,7 +11853,7 @@
           "v": 278.5,
           "w": 3342
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 23.9,
@@ -11938,7 +11938,7 @@
           "v": 276.2,
           "w": 3314
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.3,
@@ -12038,7 +12038,7 @@
           "v": 331.4,
           "w": 2664.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -12095,7 +12095,7 @@
           "v": 279.1,
           "w": 3349
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 23.9,
@@ -12180,7 +12180,7 @@
           "v": 282.4,
           "w": 3332
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 23.2,
@@ -12280,7 +12280,7 @@
           "v": 333.3,
           "w": 2689.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -12337,7 +12337,7 @@
           "v": 300.1,
           "w": 3121
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23,
@@ -12422,7 +12422,7 @@
           "v": 283.9,
           "w": 3322
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.3,
@@ -12522,7 +12522,7 @@
           "v": 334.2,
           "w": 2693.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.96,
@@ -12579,7 +12579,7 @@
           "v": 260.9,
           "w": 3313
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23.7,
@@ -12664,7 +12664,7 @@
           "v": 287.2,
           "w": 3274
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23.2,
@@ -12764,7 +12764,7 @@
           "v": 329.2,
           "w": 2709.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -12821,7 +12821,7 @@
           "v": 287.5,
           "w": 3335
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 23.9,
@@ -12906,7 +12906,7 @@
           "v": 286.3,
           "w": 3321
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 23.2,
@@ -13006,7 +13006,7 @@
           "v": 334,
           "w": 2708.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.96,
@@ -13063,7 +13063,7 @@
           "v": 291.1,
           "w": 3348
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23.9,
@@ -13148,7 +13148,7 @@
           "v": 288.2,
           "w": 3314
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.2,
@@ -13248,7 +13248,7 @@
           "v": 326.4,
           "w": 2712.4
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -13305,7 +13305,7 @@
           "v": 295.7,
           "w": 3253
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 23.8,
@@ -13390,7 +13390,7 @@
           "v": 290.2,
           "w": 3279
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.5,
@@ -13490,7 +13490,7 @@
           "v": 322.8,
           "w": 2601.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -13547,7 +13547,7 @@
           "v": 295.5,
           "w": 3250
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 23.8,
@@ -13632,7 +13632,7 @@
           "v": 288.3,
           "w": 3315
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.3,
@@ -13732,7 +13732,7 @@
           "v": 336.7,
           "w": 2707.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.06,
@@ -13789,7 +13789,7 @@
           "v": 290.7,
           "w": 3314
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.06,
         "igrid": 23.8,
@@ -13874,7 +13874,7 @@
           "v": 265,
           "w": 3312
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.06,
         "igrid": 23.6,
@@ -13974,7 +13974,7 @@
           "v": 335,
           "w": 2669.9
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -14031,7 +14031,7 @@
           "v": 278.4,
           "w": 3341
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 24,
@@ -14116,7 +14116,7 @@
           "v": 277.4,
           "w": 3329
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 23.4,
@@ -14216,7 +14216,7 @@
           "v": 338,
           "w": 2670.2
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -14273,7 +14273,7 @@
           "v": 278.7,
           "w": 3289
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 23.7,
@@ -14358,7 +14358,7 @@
           "v": 277.8,
           "w": 3306
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 23.3,
@@ -14458,7 +14458,7 @@
           "v": 339.8,
           "w": 2647
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -14515,7 +14515,7 @@
           "v": 281.2,
           "w": 3262
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 23.5,
@@ -14600,7 +14600,7 @@
           "v": 279,
           "w": 3264
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 23,
@@ -14700,7 +14700,7 @@
           "v": 340.4,
           "w": 2614.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.03,
@@ -14757,7 +14757,7 @@
           "v": 281.4,
           "w": 3208
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.04,
         "igrid": 23.1,
@@ -14842,7 +14842,7 @@
           "v": 280.9,
           "w": 3202
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 22.6,
@@ -14942,7 +14942,7 @@
           "v": 340.1,
           "w": 2557.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -14999,7 +14999,7 @@
           "v": 281.4,
           "w": 3124
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.94,
         "igrid": 22.7,
@@ -15084,7 +15084,7 @@
           "v": 280.3,
           "w": 3139
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 22.1,
@@ -15184,7 +15184,7 @@
           "v": 341.3,
           "w": 2525.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.02,
@@ -15241,7 +15241,7 @@
           "v": 280.8,
           "w": 3061
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 22.3,
@@ -15326,7 +15326,7 @@
           "v": 280.1,
           "w": 3081
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 21.8,
@@ -15426,7 +15426,7 @@
           "v": 338.7,
           "w": 2462.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -15483,7 +15483,7 @@
           "v": 280.5,
           "w": 3001
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 21.8,
@@ -15568,7 +15568,7 @@
           "v": 280.6,
           "w": 2974
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 21.4,
@@ -15668,7 +15668,7 @@
           "v": 342.6,
           "w": 2391.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -15725,7 +15725,7 @@
           "v": 281.9,
           "w": 2904
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 21.1,
@@ -15810,7 +15810,7 @@
           "v": 282.5,
           "w": 2910
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 20.8,
@@ -15910,7 +15910,7 @@
           "v": 352.2,
           "w": 2285.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.02,
@@ -15967,7 +15967,7 @@
           "v": 281.2,
           "w": 2812
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 20.4,
@@ -16052,7 +16052,7 @@
           "v": 281.9,
           "w": 2819
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 20.1,
@@ -16152,7 +16152,7 @@
           "v": 345.2,
           "w": 2243.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -16209,7 +16209,7 @@
           "v": 281.9,
           "w": 2706
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.96,
         "igrid": 20.1,
@@ -16294,7 +16294,7 @@
           "v": 282.2,
           "w": 2709
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 19.4,
@@ -16394,7 +16394,7 @@
           "v": 334.1,
           "w": 2044.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -16451,7 +16451,7 @@
           "v": 285.7,
           "w": 2428
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 18,
@@ -16536,7 +16536,7 @@
           "v": 285.1,
           "w": 2509
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 18.6,
@@ -16636,7 +16636,7 @@
           "v": 346.6,
           "w": 2124.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.86,
@@ -16693,7 +16693,7 @@
           "v": 282.4,
           "w": 2598
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.88,
         "igrid": 19.2,
@@ -16778,7 +16778,7 @@
           "v": 286.5,
           "w": 2607
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.88,
         "igrid": 19.1,
@@ -16878,7 +16878,7 @@
           "v": 348.6,
           "w": 1234
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.96,
@@ -16935,7 +16935,7 @@
           "v": 284.7,
           "w": 1566
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 11.8,
@@ -17020,7 +17020,7 @@
           "v": 284.4,
           "w": 1593
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.96,
         "igrid": 11.8,
@@ -17120,7 +17120,7 @@
           "v": 350.5,
           "w": 1990.8
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.92,
@@ -17177,7 +17177,7 @@
           "v": 284.9,
           "w": 2450
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 18.1,
@@ -17262,7 +17262,7 @@
           "v": 286.4,
           "w": 2434
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.96,
         "igrid": 17.8,
@@ -17362,7 +17362,7 @@
           "v": 345.5,
           "w": 1793.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.93,
@@ -17419,7 +17419,7 @@
           "v": 284,
           "w": 2187
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.94,
         "igrid": 16.3,
@@ -17504,7 +17504,7 @@
           "v": 286,
           "w": 2174
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.94,
         "igrid": 16.2,
@@ -17604,7 +17604,7 @@
           "v": 351.2,
           "w": 1408.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -17661,7 +17661,7 @@
           "v": 282.1,
           "w": 1777
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 13.3,
@@ -17746,7 +17746,7 @@
           "v": 288.3,
           "w": 1759
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 13,
@@ -17846,7 +17846,7 @@
           "v": 345.9,
           "w": 1214.1
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.93,
@@ -17903,7 +17903,7 @@
           "v": 287.8,
           "w": 1525
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.94,
         "igrid": 11.7,
@@ -17988,7 +17988,7 @@
           "v": 288.7,
           "w": 1472
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.93,
         "igrid": 11.3,
@@ -18088,7 +18088,7 @@
           "v": 357.6,
           "w": 1369.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.92,
@@ -18145,7 +18145,7 @@
           "v": 287.8,
           "w": 1640
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 12.6,
@@ -18230,7 +18230,7 @@
           "v": 292.1,
           "w": 1636
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 12.4,
@@ -18330,7 +18330,7 @@
           "v": 353.6,
           "w": 1248.2
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.01,
@@ -18387,7 +18387,7 @@
           "v": 283.9,
           "w": 1505
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.05,
         "igrid": 11.4,
@@ -18472,7 +18472,7 @@
           "v": 291.8,
           "w": 1488
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 11.3,
@@ -18572,7 +18572,7 @@
           "v": 356.3,
           "w": 1101
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -18629,7 +18629,7 @@
           "v": 288.5,
           "w": 1327
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.03,
         "igrid": 10.3,
@@ -18714,7 +18714,7 @@
           "v": 293.8,
           "w": 1322
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.02,
         "igrid": 10.1,
@@ -18814,7 +18814,7 @@
           "v": 358.6,
           "w": 964.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.97,
@@ -18871,7 +18871,7 @@
           "v": 289,
           "w": 1185
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 8.9,
@@ -18956,7 +18956,7 @@
           "v": 295.4,
           "w": 1152
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 8.7,
@@ -19056,7 +19056,7 @@
           "v": 361.5,
           "w": 784.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -19113,7 +19113,7 @@
           "v": 287.1,
           "w": 1005
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 7.5,
@@ -19198,7 +19198,7 @@
           "v": 296.6,
           "w": 979
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 7.4,
@@ -19298,7 +19298,7 @@
           "v": 336.1,
           "w": 648.7
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.96,
@@ -19355,7 +19355,7 @@
           "v": 290,
           "w": 812
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 6.2,
@@ -19440,7 +19440,7 @@
           "v": 298.3,
           "w": 805
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.95,
         "igrid": 6.1,
@@ -19540,7 +19540,7 @@
           "v": 363.3,
           "w": 559.5
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 60.07,
@@ -19597,7 +19597,7 @@
           "v": 289.8,
           "w": 667
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.08,
         "igrid": 5.1,
@@ -19682,7 +19682,7 @@
           "v": 298.8,
           "w": 657
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60.07,
         "igrid": 4.9,
@@ -19782,7 +19782,7 @@
           "v": 358.7,
           "w": 376.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -19839,7 +19839,7 @@
           "v": 289.4,
           "w": 463
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 3.6,
@@ -19924,7 +19924,7 @@
           "v": 299.3,
           "w": 449
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 3.4,
@@ -20024,7 +20024,7 @@
           "v": 355.5,
           "w": 224
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.95,
@@ -20081,7 +20081,7 @@
           "v": 286.5,
           "w": 286
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 2.7,
@@ -20166,7 +20166,7 @@
           "v": 296.3,
           "w": 267
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 2.2,
@@ -20266,7 +20266,7 @@
           "v": 355.9,
           "w": 124.6
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -20323,7 +20323,7 @@
           "v": 281.8,
           "w": 141
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 1.6,
@@ -20408,7 +20408,7 @@
           "v": 291.3,
           "w": 146
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.99,
         "igrid": 1.3,
@@ -20508,7 +20508,7 @@
           "v": 341.1,
           "w": 27.3
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.99,
@@ -20565,7 +20565,7 @@
           "v": 265.9,
           "w": 27
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 60.01,
         "igrid": 0.3,
@@ -20650,7 +20650,7 @@
           "v": 278.9,
           "w": 28
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 60,
         "igrid": 0.3,
@@ -20750,7 +20750,7 @@
           "v": 344.6,
           "w": 0
         },
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": 59.98,
@@ -20783,7 +20783,7 @@
           "v": 252.2,
           "w": 0
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 0.2,
@@ -20868,7 +20868,7 @@
           "v": 258.5,
           "w": 0
         },
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "fgrid": 59.98,
         "igrid": 0.4,
@@ -20960,7 +20960,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -20993,7 +20993,7 @@
           "v": 241.4,
           "w": 0
         },
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "fgrid": 59.97,
         "igrid": 0.5,
@@ -21068,7 +21068,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21099,7 +21099,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21122,7 +21122,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21136,7 +21136,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21167,7 +21167,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21190,7 +21190,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21204,7 +21204,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21235,7 +21235,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21258,7 +21258,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21272,7 +21272,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21303,7 +21303,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21326,7 +21326,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21340,7 +21340,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21371,7 +21371,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21394,7 +21394,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21408,7 +21408,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21439,7 +21439,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21462,7 +21462,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21476,7 +21476,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21507,7 +21507,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21530,7 +21530,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21544,7 +21544,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21575,7 +21575,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21598,7 +21598,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21612,7 +21612,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21643,7 +21643,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21666,7 +21666,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21680,7 +21680,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21711,7 +21711,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21734,7 +21734,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21748,7 +21748,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21779,7 +21779,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21802,7 +21802,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21816,7 +21816,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21847,7 +21847,7 @@
         "ip": "10.0.0.10",
         "pv1": null,
         "pv2": null,
-        "name": "Inversor 1 (Solis 6kW)",
+        "name": "Inverter 1 (Solis 6kW)",
         "alarm": "",
         "brand": "Solis",
         "fgrid": null,
@@ -21870,7 +21870,7 @@
       {
         "id": "inv_2",
         "ip": "10.0.0.20",
-        "name": "Inversor 2 (GoodWe 5kW - Inv 19)",
+        "name": "Inverter 2 (GoodWe 5kW - Inv 19)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",
@@ -21884,7 +21884,7 @@
       {
         "id": "inv_3",
         "ip": "10.0.0.30",
-        "name": "Inversor 3 (GoodWe 5kW - Inv 20)",
+        "name": "Inverter 3 (GoodWe 5kW - Inv 20)",
         "brand": "GoodWe",
         "error": "Unable to connect to the inverter at host=10.0.0.1, or your inverter is not supported yet.\nFailures=[MaxRetriesException(), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1), RequestFailedException('No valid response received even after 2 retries', 1)]",
         "status": "offline / standby",

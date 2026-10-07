@@ -30,6 +30,33 @@ export function formatCurrency(
   }).format(value);
 }
 
+/**
+ * Formats a utility portal date ("DD/MM/YYYY" or "MM/YYYY", optionally followed by a time) for the locale.
+ * Portuguese keeps the portal format; English spells the month out so the day/month order is unambiguous.
+ */
+export function formatPortalDate(raw: string | null | undefined, locale: Locale = DEFAULT_LOCALE): string {
+  const text = (raw ?? "").trim();
+  if (!text) return "—";
+  const value = text.split(" ")[0];
+  if (!/^\d{1,2}\/(\d{1,2}\/)?\d{4}$/.test(value)) return text;
+  if (locale === "pt-BR") return value;
+
+  const parts = value.split("/").map(Number);
+  if (parts.length === 3) {
+    const [day, month, year] = parts;
+    return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(
+      Date.UTC(year, month - 1, day),
+    );
+  }
+  if (parts.length === 2) {
+    const [month, year] = parts;
+    return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }).format(
+      Date.UTC(year, month - 1, 1),
+    );
+  }
+  return value;
+}
+
 export function formatRelativeTime(
   dateInput: Date | string,
   locale: Locale = DEFAULT_LOCALE,

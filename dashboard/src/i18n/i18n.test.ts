@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ptBR } from "./locales/pt-BR";
 import { en } from "./locales/en";
-import { formatNumber, formatKwh, formatKw, formatCurrency, formatRelativeTime } from "./formatters";
+import { formatNumber, formatKwh, formatKw, formatCurrency, formatRelativeTime, formatPortalDate } from "./formatters";
 
 describe("i18n dictionaries", () => {
   it("has matching translation keys between pt-BR and en", () => {
@@ -63,5 +63,13 @@ describe("i18n formatters", () => {
     const twoHoursAgo = new Date(now.getTime() - 2 * 3600000);
     expect(formatRelativeTime(twoHoursAgo, "pt-BR")).toBe("há 2 horas");
     expect(formatRelativeTime(twoHoursAgo, "en")).toBe("2h ago");
+  });
+
+  it("formats utility portal dates per locale", () => {
+    expect(formatPortalDate("13/10/2026 00:00:00", "pt-BR")).toBe("13/10/2026");
+    expect(formatPortalDate("13/10/2026", "en")).toBe("Oct 13, 2026");
+    expect(formatPortalDate("09/2026", "en")).toBe("Sep 2026");
+    expect(formatPortalDate(undefined, "en")).toBe("—");
+    expect(formatPortalDate("next cycle", "en")).toBe("next cycle");
   });
 });

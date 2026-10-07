@@ -107,7 +107,7 @@ export async function getDemoLatestUtilityData(): Promise<UtilityDataRow> {
   return {
     ...raw,
     id: 1,
-    titular: "Titular Demo",
+    titular: "Demo Account",
     cpf: "000.000.000-00",
     distribuidora: "Cooperaliança (Içara/SC)",
     updated_at: now.toISOString(),

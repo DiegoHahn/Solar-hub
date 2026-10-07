@@ -77,7 +77,7 @@ export const en: Translations = {
     peakPower: "Peak Power Today",
     peakPowerHint: "{pct}% of {cap} kWp",
     currentTariff: "Utility Tariff",
-    savingsOf: "Savings of ~${val}",
+    savingsOf: "Savings of ~{val}",
     inReserve: "in net metering reserve",
     staleTelemetryAlert: "Warning: Telemetry was last received over 1 hour ago.",
     noTelemetryYet: "Awaiting today's initial plant telemetry.",

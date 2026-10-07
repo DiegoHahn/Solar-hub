@@ -5,26 +5,11 @@ import { StatCard } from "@/components/StatCard";
 import { EnergyBalanceChart } from "@/components/EnergyBalanceChart";
 import { GdExtractList } from "@/components/GdExtractList";
 import { getDataSource } from "@/lib/dataSource";
-import { getGeneratorUc, maskUcCode, holderFirstName } from "@/lib/utility";
-import { formatCurrency, formatNumber } from "@/i18n";
+import { getGeneratorUc, maskUcCode, holderFirstName, tariffFlagVariant, translateTariffFlag } from "@/lib/utility";
+import { formatCurrency, formatNumber, formatPortalDate } from "@/i18n";
 import { getServerI18n } from "@/i18n/server";
-import type { BadgeProps } from "@/components/Badge";
 
 export const dynamic = "force-dynamic";
-
-function bandeiraVariant(bandeira: string | undefined): BadgeProps["variant"] {
-  if (!bandeira) return "neutral";
-  const b = bandeira.toLowerCase();
-  if (b.includes("verde") || b.includes("green")) return "success";
-  if (b.includes("amarela") || b.includes("yellow")) return "warning";
-  if (b.includes("vermelha") || b.includes("red")) return "error";
-  return "neutral";
-}
-
-function formatDateOnly(val: string | undefined | null): string {
-  if (!val) return "—";
-  return val.split(" ")[0];
-}
 
 export default async function CooperativaPage() {
   const { t, locale } = await getServerI18n();
@@ -65,7 +50,7 @@ export default async function CooperativaPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {bandeira && <Badge variant={bandeiraVariant(bandeira)}>{bandeira}</Badge>}
+          {bandeira && <Badge variant={tariffFlagVariant(bandeira)}>{translateTariffFlag(bandeira, t)}</Badge>}
         </div>
       </div>
 
@@ -93,7 +78,7 @@ export default async function CooperativaPage() {
             <RiCalendarEventLine className="size-4 shrink-0" />
             {t.utility.partialExpiry.replace(
               "{date}",
-              formatDateOnly(gd?.ProximoSaldoVencer) || t.utility.nextCycle
+              gd?.ProximoSaldoVencer ? formatPortalDate(gd.ProximoSaldoVencer, locale) : t.utility.nextCycle
             )}
           </div>
         </div>
@@ -105,13 +90,13 @@ export default async function CooperativaPage() {
           icon={RiFileTextLine}
           label={t.utility.currentInvoice}
           value={lastBill?.ValorFatura !== undefined ? formatCurrency(Number(lastBill.ValorFatura), locale) : "—"}
-          hint={lastBill?.KwhReal !== undefined ? `${formatNumber(lastBill.KwhReal, locale)} kWh · ${formatDateOnly(lastBill.AnoMes)}` : undefined}
+          hint={lastBill?.KwhReal !== undefined ? `${formatNumber(lastBill.KwhReal, locale)} kWh · ${formatPortalDate(lastBill.AnoMes, locale)}` : undefined}
           accent="amber"
         />
         <StatCard
           icon={RiCalendarEventLine}
           label={t.utility.nextDueDate}
-          value={formatDateOnly(lastBill?.DataLProxima)}
+          value={formatPortalDate(lastBill?.DataLProxima, locale)}
           hint={t.utility.readingDate}
           accent="blue"
         />
@@ -128,7 +113,7 @@ export default async function CooperativaPage() {
           label={t.utility.effectiveTariff}
           value={`R$ ${tariffPerKwh.toLocaleString(locale, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`}
           unit="/kWh"
-          hint={bandeira ?? "Rural B2"}
+          hint={bandeira ? translateTariffFlag(bandeira, t) : "Rural B2"}
           accent="violet"
         />
       </div>

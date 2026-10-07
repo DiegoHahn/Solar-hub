@@ -11,7 +11,7 @@
   "inverters": [
     {
       "id": "inv_1",
-      "name": "Inversor 1 (Solis 6kW)",
+      "name": "Inverter 1 (Solis 6kW)",
       "brand": "Solis",
       "type": "solarman_lsw3",
       "ip": "10.0.0.10",
@@ -21,7 +21,7 @@
     },
     {
       "id": "inv_2",
-      "name": "Inversor 2 (GoodWe 5kW)",
+      "name": "Inverter 2 (GoodWe 5kW)",
       "brand": "GoodWe",
       "type": "goodwe",
       "ip": "10.0.0.11",
@@ -31,7 +31,7 @@
     },
     {
       "id": "inv_3",
-      "name": "Inversor 3 (GoodWe 5kW)",
+      "name": "Inverter 3 (GoodWe 5kW)",
       "brand": "GoodWe",
       "type": "goodwe",
       "ip": "10.0.0.12",

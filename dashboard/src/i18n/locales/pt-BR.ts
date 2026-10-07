@@ -77,7 +77,7 @@ export const ptBR: Translations = {
     peakPower: "Pico de Potência Hoje",
     peakPowerHint: "{pct}% de {cap} kWp",
     currentTariff: "Tarifa Cooperaliança",
-    savingsOf: "Economia de ~R$ {val}",
+    savingsOf: "Economia de ~{val}",
     inReserve: "em reserva GD",
     staleTelemetryAlert: "Atenção: A última telemetria recebida foi há mais de 1 hora.",
     noTelemetryYet: "Aguardando primeiros dados de telemetria da usina hoje.",

@@ -11,7 +11,7 @@ import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import type { SolarTelemetryRow, UtilityDataRow } from "@/lib/types";
 import { getGeneratorUc, maskUcCode } from "@/lib/utility";
-import { useI18n, formatNumber, formatCurrency } from "@/i18n";
+import { useI18n, formatNumber, formatCurrency, formatPortalDate } from "@/i18n";
 
 interface EnergyFlowSectionProps {
   telemetry: SolarTelemetryRow | null;
@@ -240,7 +240,7 @@ export function EnergyFlowSection({
             <div className="flex items-center justify-between text-gray-600 dark:text-gray-300">
               <span>{t.combined.nextExpiry}</span>
               <strong className="text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                {gd?.ProximoSaldoVencer ?? t.utility.nextCycle}
+                {gd?.ProximoSaldoVencer ? formatPortalDate(gd.ProximoSaldoVencer, locale) : t.utility.nextCycle}
               </strong>
             </div>
           </div>

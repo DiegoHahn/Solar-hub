@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { UnidadeConsumidora, UtilityDataRow } from "./types";
-import { findGeneratorUcCode, getGeneratorUc, holderFirstName, maskUcCode } from "./utility";
+import { en } from "@/i18n/locales/en";
+import { ptBR } from "@/i18n/locales/pt-BR";
+import {
+  findGeneratorUcCode,
+  getGeneratorUc,
+  holderFirstName,
+  maskUcCode,
+  tariffFlagVariant,
+  translateTariffFlag,
+} from "./utility";
 
 const createMockUc = (overrides: Partial<UnidadeConsumidora> = {}): UnidadeConsumidora => ({
   codigo_uc: "UC-101",
@@ -142,5 +151,21 @@ describe("holderFirstName", () => {
 
   it("returns empty string when name is undefined", () => {
     expect(holderFirstName(undefined)).toBe("");
+  });
+});
+
+describe("tariff flag", () => {
+  it("maps the reported flag to a badge color", () => {
+    expect(tariffFlagVariant("Bandeira verde")).toBe("success");
+    expect(tariffFlagVariant("Bandeira amarela")).toBe("warning");
+    expect(tariffFlagVariant("Bandeira vermelha - Patamar 1")).toBe("error");
+    expect(tariffFlagVariant(undefined)).toBe("neutral");
+  });
+
+  it("translates the reported flag and keeps unknown values as reported", () => {
+    expect(translateTariffFlag("Bandeira amarela", en)).toBe(en.utility.flagYellow);
+    expect(translateTariffFlag("Bandeira amarela", ptBR)).toBe("Bandeira amarela");
+    expect(translateTariffFlag("Tarifa especial", en)).toBe("Tarifa especial");
+    expect(translateTariffFlag(undefined, en)).toBe("");
   });
 });
