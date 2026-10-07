@@ -25,6 +25,7 @@ export const dynamic = "force-dynamic";
 
 const STALE_THRESHOLD_MIN = 30;
 
+
 export default async function Home() {
   const [{ t, locale }, ds] = await Promise.all([getServerI18n(), getDataSource()]);
   const [telemetry, utilityData, sunCurve, weatherData] = await Promise.all([
@@ -85,10 +86,6 @@ export default async function Home() {
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {utilityData?.distribuidora ?? "Cooperaliança"} · UC {maskUcCode(utilityData?.generator_uc)}
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {bandeira && <Badge variant={tariffFlagVariant(bandeira)}>{translateTariffFlag(bandeira, t)}</Badge>}
         </div>
       </div>
 
@@ -157,15 +154,18 @@ export default async function Home() {
             )}
           </div>
 
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {telemetry
-              ? new Date(telemetry.recorded_at).toLocaleTimeString(locale === "pt-BR" ? "pt-BR" : "en-US", {
-                  timeZone: "America/Sao_Paulo",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "—"}
-          </span>
+          <div className="flex items-center gap-3">
+            {bandeira && <Badge variant={tariffFlagVariant(bandeira)}>{translateTariffFlag(bandeira, t)}</Badge>}
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {telemetry
+                ? new Date(telemetry.recorded_at).toLocaleTimeString(locale === "pt-BR" ? "pt-BR" : "en-US", {
+                    timeZone: "America/Sao_Paulo",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "—"}
+            </span>
+          </div>
         </div>
 
         {/* Hero Center: Circular Gauge + Impact Metrics */}
