@@ -15,6 +15,7 @@ import { getIcaraWeatherData } from "@/lib/weatherData";
 import { getGeneratorUc } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
+import { singleFlight } from "@/lib/singleFlight";
 
 import demoAdvisor from "@/lib/demo/data/advisor.json";
 import demoAdvisorEn from "@/lib/demo/data/advisor.en.json";
@@ -26,6 +27,18 @@ import { ptBR } from "@/i18n/locales/pt-BR";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
+const errorMessage = (err: unknown): string => (err instanceof Error ? err.message : String(err));
+
+/**
+ * Concurrent requests for the same locale (two tabs, or React Strict Mode mounting twice in development)
+ * share one Gemini generation instead of each spending quota. Each caller gets its own copy of the response.
+ */
+const generateOnce = singleFlight<NextResponse>();
+
+async function handleGenerate(locale: Locale): Promise<Response> {
+  const response = await generateOnce(locale, () => generate(locale));
+  return response.clone();
+}
 
 function respondFromDemo(locale: Locale): NextResponse {
   const data = locale === "en" ? demoAdvisorEn : demoAdvisor;
@@ -91,7 +104,7 @@ export async function POST(req: Request) {
   return handleGenerate(locale);
 }
 
-async function handleGenerate(locale: Locale = "pt-BR") {
+async function generate(locale: Locale): Promise<NextResponse> {
   try {
     const isEn = locale === "en";
     const apiKey = process.env.GEMINI_API_KEY;
@@ -320,13 +333,12 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
       } catch (err) {
         const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         lastError = err;
-        const message = err instanceof Error ? err.message : String(err);
-        console.warn(`[AI Advisor] ${modelToTry} errored/timed out (${message}) in ${elapsed}s. Trying next...`);
+        console.warn(`[AI Advisor] ${modelToTry} errored/timed out (${errorMessage(err)}) in ${elapsed}s. Trying next...`);
       }
     }
 
     if (!rawText) {
-      console.error("[AI Advisor] All models failed. Last error:", lastError);
+      console.error(`[AI Advisor] All models failed. Last error: ${errorMessage(lastError)}`);
       const cached = await getAdvisorCache(locale);
       if (cached) {
         return NextResponse.json({
