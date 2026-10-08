@@ -36,7 +36,8 @@ export default async function CooperativaPage() {
   const gd = uc.geracao_distribuida;
   const lastBill = uc.resumo_ultima_fatura;
   const tariffPerKwh = getTariffPerKwh(utilityData);
-  const reserveValue = tariffPerKwh !== null ? (gd?.ValorProximoSaldoVencer ?? 0) * tariffPerKwh : null;
+  const balanceKwh = gd?.ValorProximoSaldoVencer;
+  const reserveValue = balanceKwh !== undefined && tariffPerKwh !== null ? balanceKwh * tariffPerKwh : null;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -67,7 +68,7 @@ export default async function CooperativaPage() {
               {t.utility.accumulatedCreditBalance}
             </p>
             <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900 dark:text-gray-50">
-              {formatNumber(gd?.ValorProximoSaldoVencer ?? 0, locale)}
+              {balanceKwh !== undefined ? formatNumber(balanceKwh, locale) : "—"}
               <span className="ml-1 text-lg font-medium text-gray-400 dark:text-gray-500">kWh</span>
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -103,9 +104,17 @@ export default async function CooperativaPage() {
         <StatCard
           icon={RiBuilding2Line}
           label={t.utility.installedPower}
-          value={formatNumber(gd?.PotenciaInstalada ?? 16.0, locale, { minimumFractionDigits: 1 })}
+          value={
+            gd?.PotenciaInstalada !== undefined
+              ? formatNumber(gd.PotenciaInstalada, locale, { minimumFractionDigits: 1 })
+              : "—"
+          }
           unit="kWp"
-          hint={t.utility.directedToThisUc.replace("{percent}", String(gd?.PercentualFatUcGeradora ?? 100))}
+          hint={
+            gd?.PercentualFatUcGeradora !== undefined
+              ? t.utility.directedToThisUc.replace("{percent}", String(gd.PercentualFatUcGeradora))
+              : undefined
+          }
           accent="emerald"
         />
         <StatCard
@@ -122,7 +131,7 @@ export default async function CooperativaPage() {
       {uc.balanco_energetico && (
         <EnergyBalanceChart
           data={uc.balanco_energetico}
-          currentBalanceKwh={gd?.ValorProximoSaldoVencer}
+          currentBalanceKwh={balanceKwh}
         />
       )}
 

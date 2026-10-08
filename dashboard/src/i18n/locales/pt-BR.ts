@@ -117,6 +117,8 @@ export const ptBR: Translations = {
     engineeringTitle: "Painel de Engenharia & Qualidade de Energia",
     engineeringSubtitle: "Métricas agregadas dos módulos fotovoltaicos (CC) e conversão para a rede (CA)",
     totalDcPower: "Potência CC Total",
+    dcUnit: "kW CC",
+    dcToAcShort: "CC➔CA",
     activeStrings: "6 strings ativas",
     dcToAcYield: "Rendimento CC➔CA",
     conversionEfficiency: "Eficiência de conversão",

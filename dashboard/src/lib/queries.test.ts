@@ -48,6 +48,28 @@ describe("normalizeUnidadeConsumidora", () => {
     }
   });
 
+  it("leaves balance, capacity and allocation undefined when no source reports them", () => {
+    const normalized = normalizeUnidadeConsumidora({ codigo_uc: "UC-101", geracao_distribuida: {} } as UnidadeConsumidora);
+
+    expect(normalized.geracao_distribuida?.ValorProximoSaldoVencer).toBeUndefined();
+    expect(normalized.geracao_distribuida?.PotenciaInstalada).toBeUndefined();
+    expect(normalized.geracao_distribuida?.PercentualFatUcGeradora).toBeUndefined();
+  });
+
+  it("takes the balance from the GD statement when the portal omits it", () => {
+    const normalized = normalizeUnidadeConsumidora({
+      codigo_uc: "UC-101",
+      geracao_distribuida: {},
+      extrato_historico_gd: {
+        RetornoDadosHistoricoGeracaoKwhNormal: [
+          { Operacao: "Energia injetada", MesFaturamento: "01/09/2026 00:00:00", KwhGerado: 900, kwhCreditado: 0, Saldo: 4321 },
+        ],
+      },
+    } as unknown as UnidadeConsumidora);
+
+    expect(normalized.geracao_distribuida?.ValorProximoSaldoVencer).toBe(4321);
+  });
+
   it("preserves balance and extract if already previously normalized", () => {
     const baseUc: UnidadeConsumidora = {
       codigo_uc: "UC-101",

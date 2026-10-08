@@ -121,6 +121,8 @@ export interface Translations {
     engineeringTitle: string;
     engineeringSubtitle: string;
     totalDcPower: string;
+    dcUnit: string;
+    dcToAcShort: string;
     activeStrings: string;
     dcToAcYield: string;
     conversionEfficiency: string;

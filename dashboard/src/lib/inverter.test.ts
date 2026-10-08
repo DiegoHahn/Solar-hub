@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { InverterReading } from "./types";
-import { getNominalKw, readNumericSensor } from "./inverter";
+import { conversionEfficiencyPct, getNominalKw, readNumericSensor } from "./inverter";
 
 const inverter = (overrides: Partial<InverterReading> = {}): InverterReading => ({
   id: "inv_2",
@@ -45,5 +45,19 @@ describe("readNumericSensor", () => {
     expect(readNumericSensor(inv, "mode")).toBeNull();
     expect(readNumericSensor(inv, "empty")).toBeNull();
     expect(readNumericSensor(inverter(), "vbus")).toBeNull();
+  });
+});
+
+describe("conversionEfficiencyPct", () => {
+  it("returns AC output as a percentage of DC input", () => {
+    expect(conversionEfficiencyPct(5470, 5747)).toBe(95.2);
+  });
+
+  it("returns null without DC input", () => {
+    expect(conversionEfficiencyPct(0, 0)).toBeNull();
+  });
+
+  it("returns null when AC is above DC, since the readings are inconsistent", () => {
+    expect(conversionEfficiencyPct(5850, 5831)).toBeNull();
   });
 });

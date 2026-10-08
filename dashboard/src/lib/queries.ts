@@ -71,19 +71,19 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
     });
   }
 
-  // Normalizes geracao_distribuida ensuring balance and capacity if object is empty
+  // When the portal returns no balance, it is taken from the GD statement or the 12-month chart;
+  // values missing from every source stay undefined and are shown as unavailable.
   const gd = uc.geracao_distribuida;
   if (!gd || Object.keys(gd).length === 0 || !gd.ValorProximoSaldoVencer) {
-    // Extracts latest balance from GD extract or 12-month chart
     const histItems = hist12 || [];
-    const fallbackBalance = gdStatement?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo ?? 9900;
+    const fallbackBalance = gdStatement?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo;
 
     uc.geracao_distribuida = {
       ...gd,
       ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer || fallbackBalance,
       ProximoSaldoVencer: gd?.ProximoSaldoVencer ? gd.ProximoSaldoVencer.split(" ")[0] : undefined,
-      PotenciaInstalada: gd?.PotenciaInstalada || NOMINAL_CAPACITY_KW,
-      PercentualFatUcGeradora: gd?.PercentualFatUcGeradora || 100,
+      PotenciaInstalada: gd?.PotenciaInstalada || undefined,
+      PercentualFatUcGeradora: gd?.PercentualFatUcGeradora || undefined,
     };
   } else if (gd.ProximoSaldoVencer) {
     gd.ProximoSaldoVencer = gd.ProximoSaldoVencer.split(" ")[0];

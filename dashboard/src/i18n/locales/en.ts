@@ -117,6 +117,8 @@ export const en: Translations = {
     engineeringTitle: "Engineering & Power Quality Panel",
     engineeringSubtitle: "Aggregated metrics from PV modules (DC) and grid conversion (AC)",
     totalDcPower: "Total DC Power",
+    dcUnit: "kW DC",
+    dcToAcShort: "DC➔AC",
     activeStrings: "6 active strings",
     dcToAcYield: "DC➔AC Yield",
     conversionEfficiency: "Conversion efficiency",
