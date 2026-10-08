@@ -41,14 +41,7 @@ interface UnifiedAdvisorData {
   warning?: string;
 }
 
-interface AiEnergyAdvisorProps {
-  plantName?: string;
-  nominalKwp?: number;
-}
-
-export function AiEnergyAdvisor({
-  nominalKwp = 16.0,
-}: AiEnergyAdvisorProps) {
+export function AiEnergyAdvisor() {
   const { t, locale } = useI18n();
   const [period, setPeriod] = useState<"daily" | "monthly">("daily");
   const [data, setData] = useState<UnifiedAdvisorData | null>(null);
@@ -96,7 +89,7 @@ export function AiEnergyAdvisor({
       const res = await fetch("/api/ai-advisor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force: true, nominalKwp }),
+        body: JSON.stringify({ force: true }),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));

@@ -10,7 +10,7 @@ ignore = ["E501"]
 testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
-    "live: testes que conectam de verdade nos inversores locais ou Cooperaliança (apenas no Pi)",
+    "live: tests that connect to the real inverters or the Cooperaliança portal (Pi only)",
 ]
 addopts = "-m 'not live' --cov=. --cov-report=term-missing --cov-fail-under=80"
 

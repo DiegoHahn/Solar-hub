@@ -1,4 +1,4 @@
-# Variáveis de ambiente e segredos
+# Environment variables and secrets
 .env
 .env.*
 *.env
@@ -16,7 +16,7 @@ venv/
 .coverage.*
 htmlcov/
 
-# Editores e sistema operacional
+# Editors and operating system
 .idea/
 .vscode/
 *.swp
@@ -25,7 +25,7 @@ Thumbs.db
 
 *.log
 
-# Configuração local do coletor (IPs e seriais dos inversores) e dados gerados em execução
+# Collector local configuration (inverter IPs and serial numbers) and runtime data
 collector/config.json
 /data/
 /collector/data/

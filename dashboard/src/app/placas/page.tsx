@@ -58,11 +58,11 @@ export default async function PlacasPage() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
             {t.inverters.title}
           </h1>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {telemetry
-              ? `${onlineCount} / ${telemetry.inverters_count} ${t.inverters.operatingSummary}`
-              : "Solis 6kW + 2x GoodWe 5kW"}
-          </p>
+          {telemetry && (
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              {`${onlineCount} / ${telemetry.inverters_count} ${t.inverters.operatingSummary}`}
+            </p>
+          )}
         </div>
       </div>
 

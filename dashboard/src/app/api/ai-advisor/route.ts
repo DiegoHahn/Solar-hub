@@ -23,7 +23,7 @@ import { isDemoMode } from "@/lib/dataSource";
 import type { Locale } from "@/i18n";
 import { getServerLocale } from "@/i18n/server";
 import { en } from "@/i18n/locales/en";
-import { ptBR } from "@/i18n/locales/pt-BR";
+import { getDictionary } from "@/i18n/dictionaries";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
@@ -44,7 +44,7 @@ function respondFromDemo(locale: Locale): NextResponse {
   const data = locale === "en" ? demoAdvisorEn : demoAdvisor;
   return NextResponse.json({
     ...data,
-    modelUsed: locale === "en" ? "demo mode" : "demonstração",
+    modelUsed: getDictionary(locale).aiAdvisor.demoModelLabel,
     quotaCount: 1,
     maxPrimaryQuota: getMaxPrimaryQuota(),
     isCached: true,
@@ -354,12 +354,12 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
           maxPrimaryQuota,
           isCached: true,
           updatedAt: cached.updatedAt,
-          warning: isEn ? en.aiAdvisor.showingLastAnalysis : ptBR.aiAdvisor.showingLastAnalysis,
+          warning: getDictionary(locale).aiAdvisor.showingLastAnalysis,
         });
       }
 
       return NextResponse.json(
-        { error: isEn ? en.aiAdvisor.unavailable : ptBR.aiAdvisor.unavailable, unavailable: true },
+        { error: getDictionary(locale).aiAdvisor.unavailable, unavailable: true },
         { status: 503 },
       );
     }
