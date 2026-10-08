@@ -27,7 +27,6 @@ import { Card } from "@/components/Card";
 import { cx } from "@/lib/utils";
 import {
   DailyWeather,
-  fallbackDailyWeather,
   calculatePerformanceRatio,
   calculateCloudLoss,
   PLANT_DC_KWP,
@@ -113,7 +112,7 @@ interface WeatherEfficiencySectionProps {
 }
 
 export function WeatherEfficiencySection({
-  weatherData = fallbackDailyWeather,
+  weatherData = [],
   compact = false,
 }: WeatherEfficiencySectionProps) {
   const { t, locale } = useI18n();
@@ -132,6 +131,14 @@ export function WeatherEfficiencySection({
     displayedData[displayedData.length - 1] || weatherData[weatherData.length - 1]
   );
   const resetCooldownRef = useRef(false);
+
+  if (weatherData.length === 0) {
+    return (
+      <Card>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t.combined.weatherUnavailable}</p>
+      </Card>
+    );
+  }
 
   const point = displayedData.find((d) => d.date === activePoint?.date) || displayedData[displayedData.length - 1];
 
