@@ -1,13 +1,7 @@
 import { cookies } from "next/headers";
 import type { Locale, Translations } from "./types";
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, SUPPORTED_LOCALES } from "./types";
-import { ptBR } from "./locales/pt-BR";
-import { en } from "./locales/en";
-
-const dictionaries: Record<Locale, Translations> = {
-  "pt-BR": ptBR,
-  en,
-};
+import { getDictionary } from "./dictionaries";
 
 export async function getServerLocale(): Promise<Locale> {
   try {
@@ -29,6 +23,6 @@ export async function getServerI18n(): Promise<{
   const locale = await getServerLocale();
   return {
     locale,
-    t: dictionaries[locale] || ptBR,
+    t: getDictionary(locale),
   };
 }

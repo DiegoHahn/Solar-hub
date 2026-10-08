@@ -11,6 +11,8 @@ import {
   type SunCurveRow,
 } from "./queries";
 import type { UnidadeConsumidora, InverterMonthlyHistoryRow } from "./types";
+import { en } from "@/i18n/locales/en";
+import { ptBR } from "@/i18n/locales/pt-BR";
 
 import dailyGenFixture from "../test/fixtures/daily-generation.json";
 import monthlyHistoryFixture from "../test/fixtures/monthly-history.json";
@@ -219,16 +221,16 @@ describe("buildMultiYearHistory", () => {
       "2026-09-03": { kwh: 70, isReal: true },
     };
 
-    const history = buildMultiYearHistory(monthlyRows, dailyEntries, "2026-09", "2026-09-29");
+    const history = buildMultiYearHistory(monthlyRows, dailyEntries, "2026-09", "2026-09-29", en.common.monthsShort);
 
     // In 2026, September should reflect daily sum (50 + 60 + 70 = 180), not the partial 300
     const points2026 = history.byYear["2026"];
     expect(points2026).toBeDefined();
 
-    const sepPoint = points2026.find((p) => p.label === "Set");
+    const sepPoint = points2026.find((p) => p.label === "Sep");
     expect(sepPoint?.kwh).toBe(180);
 
-    const augPoint = points2026.find((p) => p.label === "Ago");
+    const augPoint = points2026.find((p) => p.label === "Aug");
     expect(augPoint?.kwh).toBe(1200);
   });
 
@@ -239,7 +241,7 @@ describe("buildMultiYearHistory", () => {
       dailyGenFixture.history as InverterDailyHistoryRow[],
     );
 
-    const history = buildMultiYearHistory(monthlyRows, dailyEntries, "2026-09", "2026-09-29");
+    const history = buildMultiYearHistory(monthlyRows, dailyEntries, "2026-09", "2026-09-29", en.common.monthsShort);
 
     expect(history.last12Months).toHaveLength(12);
     expect(history.availableYears.length).toBeGreaterThanOrEqual(1);
@@ -248,5 +250,16 @@ describe("buildMultiYearHistory", () => {
     for (const p of history.last12Months) {
       expect(p.kwh).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it("labels months in the language of the given month names", () => {
+    const monthlyRows: InverterMonthlyHistoryRow[] = [{ month: "2026-02", inverter_id: "plant_total", kwh: 900 }];
+
+    const english = buildMultiYearHistory(monthlyRows, {}, "2026-09", "2026-09-29", en.common.monthsShort);
+    const portuguese = buildMultiYearHistory(monthlyRows, {}, "2026-09", "2026-09-29", ptBR.common.monthsShort);
+
+    expect(english.byYear["2026"][1].label).toBe("Feb");
+    expect(english.last12Months[0].label).toBe("Feb/26");
+    expect(portuguese.byYear["2026"][1].label).toBe("Fev");
   });
 });

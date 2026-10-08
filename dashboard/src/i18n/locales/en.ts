@@ -2,6 +2,7 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     today: "Today",
     yesterday: "Yesterday",
     days: "days",
@@ -247,6 +248,7 @@ export const en: Translations = {
     ruralSubgroup: "Rural",
   },
   combined: {
+    weatherUnavailable: "Weather data is unavailable right now. The chart returns as soon as Open-Meteo responds.",
     title: "Analysis",
     subtitle: "AI Energy Advisor & Energy Flow",
     energyFlowTitle: "Real Energy Flow",
@@ -395,6 +397,7 @@ export const en: Translations = {
     recalculate: "Regenerate",
     consulting: "Consulting...",
     demoNotice: "New analysis generation is disabled in demo mode.",
+    demoModelLabel: "demo mode",
     defaultError: "Could not connect to AI.",
     retryHint: "Click \"Regenerate\" to try again.",
     unavailable: "The AI advisor is unavailable right now",

@@ -20,7 +20,7 @@ export default async function PlacasPage() {
     ds.getLatestTelemetry(),
     ds.getTodaySunCurve(),
     ds.getMonthlyGeneration(),
-    ds.getMultiYearHistory(),
+    ds.getMultiYearHistory(locale),
   ]);
 
   const inverters = telemetry?.inverters_data ?? [];

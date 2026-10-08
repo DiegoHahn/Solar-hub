@@ -11,6 +11,8 @@ import type {
 } from "@/lib/types";
 import { findGeneratorUcCode } from "@/lib/utility";
 import { brasiliaIsoDaysAgo, toBrasiliaIsoDate } from "@/lib/dates";
+import { getDictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/types";
 
 const NOMINAL_CAPACITY_KW = 16.0;
 const TZ = "America/Sao_Paulo";
@@ -345,36 +347,40 @@ export async function getGenerationByDay(daysBack: number = 90): Promise<Record<
   }
 }
 
+/** One chart point per day in chronological order, labeled "DD/MM". */
+export function toDailyGenerationPoints(byDay: Record<string, DailyGenerationEntry>): GenerationPoint[] {
+  return Object.entries(byDay)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([iso, { kwh }]) => {
+      const parts = iso.split("-");
+      return {
+        label: `${parts[2]}/${parts[1]}`,
+        kwh,
+      };
+    });
+}
+
 export async function getMonthlyGeneration(): Promise<GenerationPoint[]> {
   try {
-    const byDay = await getGenerationByDay(31);
-    return Object.entries(byDay)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([iso, { kwh }]) => {
-        const parts = iso.split("-");
-        return {
-          label: `${parts[2]}/${parts[1]}`,
-          kwh,
-        };
-      });
+    return toDailyGenerationPoints(await getGenerationByDay(31));
   } catch (err) {
     console.error("Error calculating monthly generation:", err);
     return [];
   }
 }
 
-const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-
 /**
  * Builds multi-year gross generation history from `inverter_monthly_history`.
  * Months from `dailyFromMonth` (YYYY-MM) onward are summed from daily telemetry,
  * as the latest month imported into monthly table might be partial and subsequent months do not exist in it yet.
+ * `monthNames` holds the twelve short month labels of the display language.
  */
 export function buildMultiYearHistory(
   monthlyRows: InverterMonthlyHistoryRow[],
   dailyEntries: Record<string, DailyGenerationEntry>,
   dailyFromMonth: string,
   todayIso: string,
+  monthNames: string[],
 ): MultiYearHistory {
   const currentYear = todayIso.slice(0, 4);
   const currentMonthNum = Number(todayIso.slice(5, 7));
@@ -436,7 +442,7 @@ export function buildMultiYearHistory(
     const maxMonth = yr === currentYear ? currentMonthNum : 12;
     const pts: GenerationPoint[] = [];
     for (let m = 1; m <= maxMonth; m++) {
-      pts.push({ label: MONTH_NAMES[m - 1], kwh: Math.round(months[m] || 0) });
+      pts.push({ label: monthNames[m - 1], kwh: Math.round(months[m] || 0) });
     }
     byYear[yr] = pts;
   }
@@ -450,7 +456,7 @@ export function buildMultiYearHistory(
     const parts = m.split("-");
     const mIndex = parseInt(parts[1], 10) - 1;
     return {
-      label: `${MONTH_NAMES[mIndex]}/${parts[0].slice(-2)}`,
+      label: `${monthNames[mIndex]}/${parts[0].slice(-2)}`,
       kwh: Math.round(monthlyTotals[m] || 0),
     };
   });
@@ -463,7 +469,7 @@ export function buildMultiYearHistory(
   };
 }
 
-export async function getMultiYearHistory(): Promise<MultiYearHistory> {
+export async function getMultiYearHistory(locale: Locale): Promise<MultiYearHistory> {
   try {
     const todayIso = toBrasiliaIsoDate(new Date());
     const supabase = await createClient();
@@ -483,15 +489,21 @@ export async function getMultiYearHistory(): Promise<MultiYearHistory> {
     );
     const dailyEntries = await getGenerationByDay(daysSince + 1);
 
-    return buildMultiYearHistory(monthlyRows, dailyEntries, dailyFromMonth, todayIso);
+    return buildMultiYearHistory(
+      monthlyRows,
+      dailyEntries,
+      dailyFromMonth,
+      todayIso,
+      getDictionary(locale).common.monthsShort,
+    );
   } catch (err) {
     console.error("Error querying multi-year history:", err);
     return { last12Months: [], yearsTotals: [], byYear: {}, availableYears: [] };
   }
 }
 
-export async function getYearlyGeneration(): Promise<GenerationPoint[]> {
-  const multi = await getMultiYearHistory();
+export async function getYearlyGeneration(locale: Locale): Promise<GenerationPoint[]> {
+  const multi = await getMultiYearHistory(locale);
   return multi.last12Months;
 }
 

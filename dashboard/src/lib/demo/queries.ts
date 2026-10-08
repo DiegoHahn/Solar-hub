@@ -17,6 +17,7 @@ import {
   mergeDailyGeneration,
   buildMultiYearHistory,
   normalizeUnidadeConsumidora,
+  toDailyGenerationPoints,
   type DailyGenerationEntry,
   type SunCurveRow,
 } from "@/lib/queries";
@@ -25,6 +26,8 @@ import {
   brasiliaClock,
   brasiliaIsoDaysAgo,
 } from "@/lib/dates";
+import { getDictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/types";
 import {
   toWeatherRows,
   toDailyWeather,
@@ -170,7 +173,7 @@ export async function getDemoGenerationByDay(
   return mergeDailyGeneration(viewRows, historyRows);
 }
 
-export async function getDemoMultiYearHistory(): Promise<MultiYearHistory> {
+export async function getDemoMultiYearHistory(locale: Locale): Promise<MultiYearHistory> {
   const now = getDemoNow();
   const todayIso = toBrasiliaIsoDate(now);
   const currentYear = Number(todayIso.slice(0, 4));
@@ -206,17 +209,17 @@ export async function getDemoMultiYearHistory(): Promise<MultiYearHistory> {
     dailyEntries,
     dailyFromMonth,
     todayIso,
+    getDictionary(locale).common.monthsShort,
   );
 }
 
 export async function getDemoMonthlyGeneration(): Promise<GenerationPoint[]> {
-  const history = await getDemoMultiYearHistory();
-  return history.last12Months;
+  return toDailyGenerationPoints(await getDemoGenerationByDay(31));
 }
 
-export async function getDemoYearlyGeneration(): Promise<GenerationPoint[]> {
-  const history = await getDemoMultiYearHistory();
-  return history.yearsTotals;
+export async function getDemoYearlyGeneration(locale: Locale): Promise<GenerationPoint[]> {
+  const history = await getDemoMultiYearHistory(locale);
+  return history.last12Months;
 }
 
 /**
