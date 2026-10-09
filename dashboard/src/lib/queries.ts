@@ -74,13 +74,13 @@ export function normalizeUnidadeConsumidora(raw: UnidadeConsumidora): UnidadeCon
   // When the portal returns no balance, it is taken from the GD statement or the 12-month chart;
   // values missing from every source stay undefined and are shown as unavailable.
   const gd = uc.geracao_distribuida;
-  if (!gd || Object.keys(gd).length === 0 || !gd.ValorProximoSaldoVencer) {
+  if (!gd || Object.keys(gd).length === 0 || gd.ValorProximoSaldoVencer == null) {
     const histItems = hist12 || [];
     const fallbackBalance = gdStatement?.[0]?.Saldo ?? histItems[histItems.length - 1]?.Saldo;
 
     uc.geracao_distribuida = {
       ...gd,
-      ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer || fallbackBalance,
+      ValorProximoSaldoVencer: gd?.ValorProximoSaldoVencer ?? fallbackBalance,
       ProximoSaldoVencer: gd?.ProximoSaldoVencer ? gd.ProximoSaldoVencer.split(" ")[0] : undefined,
       PotenciaInstalada: gd?.PotenciaInstalada || undefined,
       PercentualFatUcGeradora: gd?.PercentualFatUcGeradora || undefined,
