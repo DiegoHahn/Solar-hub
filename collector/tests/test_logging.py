@@ -2,12 +2,10 @@ import logging
 import sys
 
 import pytest
+from conftest import make_settings
 
-try:
-    from collector import common, inverters
-except ImportError:
-    import common
-    import inverters
+from collector import common, inverters
+from collector.settings import CollectorState
 
 
 @pytest.mark.parametrize(
@@ -48,23 +46,19 @@ def test_configure_logging_format(monkeypatch, journal_stream, has_time):
     assert ("%(asctime)s" in captured["format"]) is has_time
 
 
-def test_unreadable_last_known_energies_logs_warning(monkeypatch, tmp_path, caplog):
+def test_unreadable_last_known_energies_logs_warning(tmp_path, caplog):
     latest_file = tmp_path / "latest.json"
     latest_file.write_text("[1]", encoding="utf-8")
-    monkeypatch.setattr(inverters, "LATEST_FILE", str(latest_file))
-    monkeypatch.setattr(inverters, "_LATEST_IN_MEMORY", None)
 
     with caplog.at_level(logging.WARNING, logger="collector.inverters"):
-        assert inverters.get_last_known_energies() == {}
+        assert inverters.get_last_known_energies(CollectorState(), str(latest_file)) == {}
 
     assert "Could not read last known energies" in caplog.text
 
 
-def test_unsupported_inverter_type_fails_the_cycle(monkeypatch):
-    monkeypatch.setattr(
-        inverters, "config", {"inverters": [{"id": "inv_x", "type": "generic_custom"}]}
-    )
-    monkeypatch.setattr(inverters, "push_to_supabase", lambda p: None)
+def test_unsupported_inverter_type_fails_the_cycle(monkeypatch, tmp_path):
+    settings = make_settings(tmp_path, inverters=[{"id": "inv_x", "type": "generic_custom"}])
+    monkeypatch.setattr(inverters, "push_to_supabase", lambda *a: None)
 
     with pytest.raises(ValueError, match="unsupported type 'generic_custom'"):
-        inverters.run_collection_cycle()
+        inverters.run_collection_cycle(settings, CollectorState())

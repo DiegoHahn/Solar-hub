@@ -1,10 +1,7 @@
 import json
 import os
 
-try:
-    from collector.inverters import normalize_goodwe_runtime, parse_solis_status
-except ImportError:
-    from inverters import normalize_goodwe_runtime, parse_solis_status
+from collector.inverters import normalize_goodwe_runtime, parse_solis_status
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 

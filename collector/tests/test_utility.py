@@ -6,26 +6,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-try:
-    import collector.utility as utility
-    from collector.utility import (
-        download_informativo_pdf,
-        login_cooperalianca,
-        main,
-        portal_headers,
-        safe_api_get,
-        sync_cooperalianca,
-    )
-except ImportError:
-    import utility
-    from utility import (
-        download_informativo_pdf,
-        login_cooperalianca,
-        main,
-        portal_headers,
-        safe_api_get,
-        sync_cooperalianca,
-    )
+import collector.utility as utility
+from collector.utility import (
+    download_informativo_pdf,
+    login_cooperalianca,
+    main,
+    portal_headers,
+    safe_api_get,
+    sync_cooperalianca,
+)
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "cooperalianca"
 

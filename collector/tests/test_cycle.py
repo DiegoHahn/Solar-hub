@@ -2,12 +2,12 @@ import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-try:
-    import collector.inverters as inverters
-    from collector.inverters import collect_inverter, run_collection_cycle
-except ImportError:
-    import inverters
-    from inverters import collect_inverter, run_collection_cycle
+import pytest
+from conftest import make_settings
+
+import collector.inverters as inverters
+from collector.inverters import collect_inverter, run_collection_cycle
+from collector.settings import CollectorState
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -135,38 +135,30 @@ def test_run_collection_cycle_full(httpserver, monkeypatch, tmp_path):
         ],
     }
 
-    latest_file = str(tmp_path / "latest.json")
-    history_file = str(tmp_path / "history.json")
-    offline_file = str(tmp_path / "offline_queue.json")
-
-    monkeypatch.setattr(inverters, "config", mock_config)
-    monkeypatch.setattr(inverters, "DATA_DIR", str(tmp_path))
-    monkeypatch.setattr(inverters, "LATEST_FILE", latest_file)
-    monkeypatch.setattr(inverters, "HISTORY_FILE", history_file)
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", offline_file)
-    monkeypatch.setattr("sys.argv", ["inverters.py", "--save-local"])
-    monkeypatch.setattr(
-        inverters,
-        "ENV",
-        {
-            "SUPABASE_URL": httpserver.url_for("/"),
-            "SUPABASE_SERVICE_ROLE_KEY": "test-key",
-        },
+    settings = make_settings(
+        tmp_path,
+        env={"SUPABASE_URL": httpserver.url_for("/"), "SUPABASE_SERVICE_ROLE_KEY": "test-key"},
+        **mock_config,
     )
+    state = CollectorState()
 
     with patch.object(inverters.goodwe, "connect", AsyncMock(return_value=mock_inv)):
-        plant_summary = run_collection_cycle()
+        plant_summary = run_collection_cycle(settings, state, save_local=True)
 
     assert plant_summary is not None
     assert plant_summary["plant_name"] == "Test Plant 16kW"
     assert plant_summary["inverters_count"] == 2
     assert plant_summary["total_power_w"] == 988.0
 
-    assert Path(latest_file).exists()
-    assert Path(history_file).exists()
+    assert Path(settings.latest_file).exists()
+    assert Path(settings.history_file).exists()
+    assert state.latest is plant_summary
+    assert state.history[-1]["inv_1_w"] == 440.0
+    assert state.history[-1]["inv_2_w"] == 548.0
+    assert state.history[-1]["inv_3_w"] == 0
 
 
-def test_run_collection_cycle_offline_fallback(httpserver, monkeypatch, tmp_path):
+def test_run_collection_cycle_offline_fallback(httpserver, tmp_path):
     httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_data(
         "Server Error", status=500
     )
@@ -177,41 +169,28 @@ def test_run_collection_cycle_offline_fallback(httpserver, monkeypatch, tmp_path
         "inverters": [],
     }
 
-    latest_file = str(tmp_path / "latest.json")
-    history_file = str(tmp_path / "history.json")
-    offline_file = str(tmp_path / "offline_queue.json")
-
-    monkeypatch.setattr(inverters, "config", mock_config)
-    monkeypatch.setattr(inverters, "DATA_DIR", str(tmp_path))
-    monkeypatch.setattr(inverters, "LATEST_FILE", latest_file)
-    monkeypatch.setattr(inverters, "HISTORY_FILE", history_file)
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", offline_file)
-    monkeypatch.setattr(
-        inverters,
-        "ENV",
-        {
-            "SUPABASE_URL": httpserver.url_for("/"),
-            "SUPABASE_SERVICE_ROLE_KEY": "test-key",
-        },
+    settings = make_settings(
+        tmp_path,
+        env={"SUPABASE_URL": httpserver.url_for("/"), "SUPABASE_SERVICE_ROLE_KEY": "test-key"},
+        **mock_config,
     )
 
-    run_collection_cycle()
-    assert Path(offline_file).exists()
+    run_collection_cycle(settings, CollectorState())
+    assert Path(settings.offline_queue_file).exists()
+    assert not Path(settings.latest_file).exists()
 
 
-def test_inverter_disabled_is_skipped(monkeypatch):
-    mock_config = {
-        "plant_name": "Plant",
-        "inverters": [{"id": "inv_off", "enabled": False}],
-    }
-    monkeypatch.setattr(inverters, "config", mock_config)
-    monkeypatch.setattr(inverters, "push_to_supabase", lambda p: None)
+def test_inverter_disabled_is_skipped(monkeypatch, tmp_path):
+    settings = make_settings(
+        tmp_path, plant_name="Plant", inverters=[{"id": "inv_off", "enabled": False}]
+    )
+    monkeypatch.setattr(inverters, "push_to_supabase", lambda *a: None)
 
-    summary = run_collection_cycle()
+    summary = run_collection_cycle(settings, CollectorState())
     assert summary["inverters_count"] == 0
 
 
-def test_inverter_offline_recovers_last_known(monkeypatch):
+def test_inverter_offline_recovers_last_known(monkeypatch, tmp_path):
     mock_config = {
         "plant_name": "Plant",
         "inverters": [
@@ -229,12 +208,12 @@ def test_inverter_offline_recovers_last_known(monkeypatch):
             "energy_total_kwh": 3400.0,
         }
     }
-    monkeypatch.setattr(inverters, "config", mock_config)
-    monkeypatch.setattr(inverters, "get_last_known_energies", lambda: last_known_mock)
-    monkeypatch.setattr(inverters, "push_to_supabase", lambda p: None)
+    settings = make_settings(tmp_path, **mock_config)
+    monkeypatch.setattr(inverters, "get_last_known_energies", lambda *a: last_known_mock)
+    monkeypatch.setattr(inverters, "push_to_supabase", lambda *a: None)
 
     with patch.object(inverters, "fetch_goodwe_async", side_effect=RuntimeError("Offline")):
-        summary = run_collection_cycle()
+        summary = run_collection_cycle(settings, CollectorState())
 
     assert summary["inverters_count"] == 1
     inv = summary["inverters"][0]
@@ -242,25 +221,74 @@ def test_inverter_offline_recovers_last_known(monkeypatch):
     assert inv["energy_total_kwh"] == 3400.0
 
 
-def test_inverters_main_once(monkeypatch):
-    called = []
+def test_inverters_main_once(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setenv("COLLECTOR_HOME", str(tmp_path))
+    monkeypatch.setattr(
+        inverters,
+        "run_collection_cycle",
+        lambda settings, state, save_local: calls.append((settings.home, save_local)),
+    )
+    inverters.main(["--once", "--save-local"])
+    assert calls == [(tmp_path, True)]
+    # The data directory is created by main(), not when the module is imported
+    assert (tmp_path / "data").is_dir()
+
+
+def test_inverters_main_reads_sys_argv(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setenv("COLLECTOR_HOME", str(tmp_path))
     monkeypatch.setattr("sys.argv", ["inverters.py", "--once"])
-    monkeypatch.setattr(inverters, "run_collection_cycle", lambda: called.append(True))
+    monkeypatch.setattr(
+        inverters, "run_collection_cycle", lambda *a, save_local: calls.append(save_local)
+    )
     inverters.main()
-    assert called == [True]
+    assert calls == [False]
 
 
-def test_inverters_main_continuous_loop(monkeypatch):
-    import pytest
-
-    monkeypatch.setattr("sys.argv", ["inverters.py"])
+def test_inverters_main_continuous_loop(monkeypatch, tmp_path):
+    monkeypatch.setenv("COLLECTOR_HOME", str(tmp_path))
     monkeypatch.setattr(inverters, "start_http_server", lambda *a, **k: None)
     monkeypatch.setattr(inverters, "run_collection_cycle", lambda *a, **k: None)
     monkeypatch.setattr(inverters.time, "sleep", MagicMock(side_effect=KeyboardInterrupt()))
 
     with pytest.raises(SystemExit) as exc:
-        inverters.main()
+        inverters.main([])
     assert exc.value.code == 0
+
+
+def test_history_has_one_field_per_inverter(tmp_path, monkeypatch):
+    """More than three inverters: inv_4_w and beyond are added, the first three keep their names."""
+    monkeypatch.setattr(inverters, "push_to_supabase", lambda *a: None)
+    fake_results = {f"inv_{n}": float(n * 100) for n in range(1, 6)}
+    monkeypatch.setattr(
+        inverters,
+        "collect_inverter",
+        lambda cfg: {"id": cfg["id"], "status": "online", "power_w": fake_results[cfg["id"]]},
+    )
+    settings = make_settings(tmp_path, inverters=[{"id": inv_id} for inv_id in fake_results])
+    state = CollectorState()
+
+    summary = run_collection_cycle(settings, state)
+
+    assert summary["inverters_count"] == 5
+    assert summary["total_power_w"] == 1500.0
+    entry = state.history[-1]
+    assert [entry[f"inv_{n}_w"] for n in range(1, 6)] == [100.0, 200.0, 300.0, 400.0, 500.0]
+
+
+def test_history_is_trimmed_to_max_records(tmp_path, monkeypatch):
+    monkeypatch.setattr(inverters, "push_to_supabase", lambda *a: None)
+    settings = make_settings(tmp_path, history_max_records=2)
+    state = CollectorState()
+    previous = state.history
+
+    for _ in range(3):
+        run_collection_cycle(settings, state)
+
+    assert len(state.history) == 2
+    # Replaced, never mutated, so the API thread never sees a half-updated list
+    assert previous == []
 
 
 def test_collect_inverter_goodwe_udp_fallback():

@@ -11,10 +11,10 @@ import sys
 import unicodedata
 from pathlib import Path
 
-# Add parent directory to sys.path to import utility module
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Makes the collector package importable from a plain checkout (no `pip install -e .` needed)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from utility import (
+from collector.utility import (
     API_BASE,
     ENV,
     UCS,
