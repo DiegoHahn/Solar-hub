@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.4.0...v1.5.0) (2026-10-09)
+
+
+### Features
+
+* **db:** roll telemetry up into daily and monthly history and keep raw rows for 90 days ([#37](https://github.com/DiegoHahn/Solar-hub/issues/37)) ([51cc1de](https://github.com/DiegoHahn/Solar-hub/commit/51cc1de7201039e63a299ecbc04a62689184c0f1))
+
+
+### Bug Fixes
+
+* **dashboard:** localize month labels and stop showing invented values ([#36](https://github.com/DiegoHahn/Solar-hub/issues/36)) ([9f62260](https://github.com/DiegoHahn/Solar-hub/commit/9f6226091c41d81b4350095bc72575553fd17387))
+
 ## [1.4.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.3.0...v1.4.0) (2026-10-07)
 
 
