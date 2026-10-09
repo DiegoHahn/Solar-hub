@@ -17,7 +17,7 @@ For Solar Hub, maintaining an intermediate custom API service would introduce:
 
 We adopted Supabase (managed PostgreSQL) with Row Level Security (RLS) as our unified data and authentication layer, queried directly by Next.js via React Server Components and Route Handlers:
 
-1. **Authentication:** Supabase Auth manages identities via JWT tokens transmitted in secure cookies (`httpOnly`, `sameSite=lax`), operated through the `@supabase/ssr` package. Public registrations are disabled in the project; only accounts pre-authorized via the `ALLOWED_EMAILS` environment variable can access application routes.
+1. **Authentication:** Supabase Auth manages identities via JWT tokens stored in cookies managed by the `@supabase/ssr` package (`sameSite=lax`). These session cookies are **not** `httpOnly`: the browser client reads them so it can refresh the session (only the demo-mode cookie is `httpOnly`). Public registrations are disabled in the project; only accounts pre-authorized via the `ALLOWED_EMAILS` environment variable can access application routes.
 2. **Data isolation via RLS:**
    - **Restricted reads:** All tables enforce `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`. Anonymous (`anon`) users have no read permissions on telemetry or utility billing tables.
    - **Restricted writes on telemetry:** The `solar_telemetry` and `utility_data` tables reject write operations (INSERT, UPDATE, DELETE) from users with the `authenticated` role. Only the administrative `service_role` key, held exclusively on the local edge hardware, can write these records.
@@ -33,7 +33,7 @@ We adopted Supabase (managed PostgreSQL) with Row Level Security (RLS) as our un
 ### Positive
 
 * **Lean architecture:** Zero intermediate backend servers or reverse proxies to orchestrate and scale.
-* **Database-level centralized access control:** Security policies applied directly at the row level in PostgreSQL (*defense-in-depth*), guaranteeing that rendering bugs or compromised client queries cannot bypass authorization rules.
+* **Database-level centralized access control:** Security policies are applied at the row level in PostgreSQL. As originally written (`USING (true)`), they only separated anonymous from authenticated sessions; *who* may use the dashboard was decided by the Next.js middleware alone, so a valid session could bypass it through the Data API. Since [ADR 0006](0006-email-allowlist-enforced-in-rls.md), the policies also check the email allowlist, so the middleware and the database enforce the same rule independently.
 * **Serverless execution without master keys:** Weather and AI caching functions run seamlessly on Vercel without exposing the `service_role` key to frontend bundles or cloud hosting environment configurations.
 
 ### Negative and Mitigations
