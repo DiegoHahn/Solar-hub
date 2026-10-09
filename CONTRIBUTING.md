@@ -38,7 +38,7 @@ To execute checks manually:
 
 ```bash
 cd dashboard && npm run lint && npm run typecheck && npm run test:coverage
-cd collector && ruff check . && ruff format --check . && pytest
+cd collector && ruff check . && ruff format --check . && mypy && pytest
 ```
 
 ## Releases

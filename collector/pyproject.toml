@@ -16,3 +16,15 @@ addopts = "-m 'not live' --cov=. --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
 omit = ["tests/*", "scripts/*"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["common.py", "inverters.py", "utility.py"]
+# The collector modules import each other as top-level modules (`from common import ...`)
+explicit_package_bases = true
+strict = true
+
+[[tool.mypy.overrides]]
+# Inverter protocol libraries ship without type information
+module = ["goodwe", "goodwe.*", "pysolarmanv5", "pysolarmanv5.*"]
+ignore_missing_imports = true
