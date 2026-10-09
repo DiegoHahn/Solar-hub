@@ -233,3 +233,131 @@ def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
         lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Network")),
     )
     assert utility.push_utility_to_supabase(sample_result) is False
+
+
+class FakePostgrest:
+    """Minimal solar_telemetry endpoint with the unique constraint on recorded_at.
+
+    Mirrors PostgREST: with on_conflict=recorded_at and Prefer: resolution=ignore-duplicates a
+    repeated recorded_at is skipped (201); without them the insert hits the constraint (409).
+    `commit_then_fail` stores the row and then answers 500, like a response lost after the commit.
+    """
+
+    def __init__(self, commit_then_fail=()):
+        self.rows = []
+        self.requests = []
+        self.commit_then_fail = set(commit_then_fail)
+
+    def __call__(self, request):
+        item = request.get_json()
+        self.requests.append((dict(request.args), request.headers.get("Prefer"), item))
+        idempotent = (
+            request.args.get("on_conflict") == "recorded_at"
+            and request.headers.get("Prefer") == "resolution=ignore-duplicates"
+        )
+        if any(row["recorded_at"] == item["recorded_at"] for row in self.rows):
+            if not idempotent:
+                return Response(status=409, response='{"code":"23505"}')
+        else:
+            self.rows.append(item)
+        if item["recorded_at"] in self.commit_then_fail:
+            self.commit_then_fail.discard(item["recorded_at"])
+            return Response(status=500, response="Gateway Timeout")
+        return Response(status=201)
+
+
+def _supabase_env(monkeypatch, httpserver, tmp_path):
+    queue_file = str(tmp_path / "offline_queue.json")
+    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
+    monkeypatch.setattr(
+        inverters,
+        "ENV",
+        {"SUPABASE_URL": httpserver.url_for(""), "SUPABASE_SERVICE_ROLE_KEY": "fake-key"},
+    )
+    return queue_file
+
+
+def test_push_to_supabase_sends_conflict_params(httpserver, monkeypatch, tmp_path):
+    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+    fake = FakePostgrest()
+    httpserver.expect_request(
+        "/rest/v1/solar_telemetry",
+        method="POST",
+        query_string="on_conflict=recorded_at",
+        headers={"Prefer": "resolution=ignore-duplicates"},
+    ).respond_with_handler(fake)
+
+    snapshot = {"timestamp": "2026-09-29T12:00:00-03:00", "total_power_w": 1.0}
+    inverters.push_to_supabase(snapshot)
+    inverters.push_to_supabase(snapshot)
+
+    assert len(fake.requests) == 2
+    assert [row["recorded_at"] for row in fake.rows] == ["2026-09-29T12:00:00-03:00"]
+    assert not os.path.exists(queue_file)
+
+
+def test_push_to_supabase_never_sends_null_recorded_at(httpserver, monkeypatch, tmp_path):
+    _supabase_env(monkeypatch, httpserver, tmp_path)
+    fake = FakePostgrest()
+    httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(fake)
+
+    inverters.push_to_supabase({"total_power_w": 1.0})
+
+    assert fake.rows[0]["recorded_at"]
+
+
+def test_interrupted_queue_replay_is_retried_without_duplicates(httpserver, tmp_path, monkeypatch):
+    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+    pending = [
+        {"recorded_at": f"2026-09-29T11:{minute:02d}:00-03:00", "total_power_w": float(minute)}
+        for minute in (0, 10, 20, 30)
+    ]
+    inverters.atomic_write_json(queue_file, pending)
+
+    # The second snapshot is stored but its response is lost, so the replay stops there
+    fake = FakePostgrest(commit_then_fail={pending[1]["recorded_at"]})
+    httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(fake)
+    headers = {
+        "apikey": "fake-key",
+        "Authorization": "Bearer fake-key",
+        "Content-Type": "application/json",
+        "Prefer": "resolution=ignore-duplicates",
+    }
+
+    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+
+    with open(queue_file, "r", encoding="utf-8") as f:
+        assert json.load(f) == pending[1:]
+    assert len(fake.rows) == 2
+
+    # Next cycle: the replay resends the snapshot that was already stored, and it is skipped
+    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+
+    assert not os.path.exists(queue_file)
+    assert [row["recorded_at"] for row in fake.rows] == [item["recorded_at"] for item in pending]
+    assert len(fake.requests) == 5
+    assert all(args == {"on_conflict": "recorded_at"} for args, _, _ in fake.requests)
+    assert all(prefer == "resolution=ignore-duplicates" for _, prefer, _ in fake.requests)
+
+
+def test_cycles_after_outage_drain_queue_without_duplicates(httpserver, monkeypatch, tmp_path):
+    """A live push whose replay is cut mid-way, then a clean push: one row per snapshot."""
+    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+    queued = [
+        {"recorded_at": f"2026-09-29T10:{minute:02d}:00-03:00", "total_power_w": 0.0}
+        for minute in (0, 10)
+    ]
+    inverters.atomic_write_json(queue_file, queued)
+
+    fake = FakePostgrest(commit_then_fail={queued[0]["recorded_at"]})
+    httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(fake)
+
+    inverters.push_to_supabase({"timestamp": "2026-09-29T10:20:00-03:00", "total_power_w": 5.0})
+    with open(queue_file, "r", encoding="utf-8") as f:
+        assert json.load(f) == queued
+
+    inverters.push_to_supabase({"timestamp": "2026-09-29T10:30:00-03:00", "total_power_w": 6.0})
+
+    assert not os.path.exists(queue_file)
+    recorded = [row["recorded_at"] for row in fake.rows]
+    assert len(recorded) == len(set(recorded)) == 4

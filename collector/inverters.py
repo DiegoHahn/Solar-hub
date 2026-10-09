@@ -61,6 +61,11 @@ LATEST_FILE = os.path.join(DATA_DIR, "latest.json")
 HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 OFFLINE_QUEUE_FILE = os.path.join(DATA_DIR, "offline_queue.json")
 
+# Inserts are idempotent: a snapshot whose recorded_at already exists is skipped by PostgREST
+# (INSERT ... ON CONFLICT (recorded_at) DO NOTHING), so an interrupted queue replay can be resent.
+# Requires the unique constraint from migration 20261009150000_unique_solar_telemetry_recorded_at.
+TELEMETRY_ENDPOINT = "/rest/v1/solar_telemetry?on_conflict=recorded_at"
+
 
 def queue_offline_telemetry(payload):
     """Queues telemetry snapshot in local offline buffer if Supabase is temporarily unreachable."""
@@ -99,7 +104,7 @@ def flush_offline_queue(supabase_url, headers):
     for idx, item in enumerate(queue):
         try:
             resp = requests.post(
-                f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=item, timeout=8
+                f"{supabase_url}{TELEMETRY_ENDPOINT}", headers=headers, json=item, timeout=8
             )
             if resp.status_code not in [200, 201]:
                 remaining.extend(queue[idx:])
@@ -392,7 +397,8 @@ def push_to_supabase(plant_summary):
         return
 
     payload = {
-        "recorded_at": plant_summary.get("timestamp"),
+        # Never null: recorded_at is the deduplication key of the offline queue replay
+        "recorded_at": plant_summary.get("timestamp") or datetime.now().astimezone().isoformat(),
         "plant_name": plant_summary.get("plant_name"),
         "total_nominal_capacity_kw": plant_summary.get("total_nominal_capacity_kw"),
         "total_power_w": plant_summary.get("total_power_w", 0.0),
@@ -408,11 +414,12 @@ def push_to_supabase(plant_summary):
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
         "Content-Type": "application/json",
+        "Prefer": "resolution=ignore-duplicates",
     }
 
     try:
         resp = requests.post(
-            f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=payload, timeout=8
+            f"{supabase_url}{TELEMETRY_ENDPOINT}", headers=headers, json=payload, timeout=8
         )
         if resp.status_code in [200, 201]:
             print(
