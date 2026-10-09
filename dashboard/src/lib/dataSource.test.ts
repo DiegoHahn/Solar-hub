@@ -117,7 +117,7 @@ describe("dataSource", () => {
       expect(ds.getMonthlyGeneration).toBe(demoQueries.getDemoMonthlyGeneration);
       expect(ds.getMultiYearHistory).toBe(demoQueries.getDemoMultiYearHistory);
       expect(ds.getYearlyGeneration).toBe(demoQueries.getDemoYearlyGeneration);
-      expect(ds.getIcaraWeatherData).toBe(demoQueries.getDemoIcaraWeatherData);
+      expect(ds.getPlantWeatherData).toBe(demoQueries.getDemoPlantWeatherData);
     });
 
     it("executes all demo queries without touching Supabase", async () => {
@@ -133,7 +133,7 @@ describe("dataSource", () => {
       const monthly = await ds.getMonthlyGeneration();
       const multiYear = await ds.getMultiYearHistory("en");
       const yearly = await ds.getYearlyGeneration("en");
-      const weather = await ds.getIcaraWeatherData();
+      const weather = await ds.getPlantWeatherData();
 
       expect(telemetry).not.toBeNull();
       expect(utility).not.toBeNull();
@@ -165,7 +165,7 @@ describe("dataSource", () => {
       expect(ds.getMonthlyGeneration).toBe(realQueries.getMonthlyGeneration);
       expect(ds.getMultiYearHistory).toBe(realQueries.getMultiYearHistory);
       expect(ds.getYearlyGeneration).toBe(realQueries.getYearlyGeneration);
-      expect(ds.getIcaraWeatherData).toBe(realWeather.getIcaraWeatherData);
+      expect(ds.getPlantWeatherData).toBe(realWeather.getPlantWeatherData);
     });
   });
 });

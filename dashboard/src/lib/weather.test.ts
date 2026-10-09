@@ -14,7 +14,7 @@ import {
   calculateCloudLoss,
   type DailyWeather,
 } from "./weather";
-import { getIcaraWeatherData } from "./weatherData";
+import { getPlantWeatherData } from "./weatherData";
 
 describe("parseWmoCode", () => {
   it.each([
@@ -130,7 +130,7 @@ describe("calculateCloudLoss", () => {
   });
 });
 
-describe("getIcaraWeatherData", () => {
+describe("getPlantWeatherData", () => {
   // Simulated current time: 2026-09-25 12:00 BRT -> 90-day window starting 2026-06-27; recent window starting 2026-09-18
   const NOW = new Date("2026-09-25T12:00:00-03:00");
 
@@ -207,7 +207,7 @@ describe("getIcaraWeatherData", () => {
       "2026-09-24": { kwh: 71.26, isReal: true },
     });
 
-    const result = await getIcaraWeatherData();
+    const result = await getPlantWeatherData();
 
     const saved = vi.mocked(saveDailyWeather).mock.calls[0][0];
     expect(saved.map((r) => [r.date, r.source])).toEqual([
@@ -249,7 +249,7 @@ describe("getIcaraWeatherData", () => {
     ]);
     mockFetch(() => daily([["2026-09-24", 18, 0], ["2026-09-25", 7.2, 61]]));
 
-    const result = await getIcaraWeatherData();
+    const result = await getPlantWeatherData();
 
     const calls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
     expect(calls).toHaveLength(1);
@@ -267,7 +267,7 @@ describe("getIcaraWeatherData", () => {
       url.includes("archive-api") ? daily([["2026-06-27", 18, 0]], 5.8) : daily([["2026-09-25", 18, 0]], 4.2),
     );
 
-    const result = await getIcaraWeatherData();
+    const result = await getPlantWeatherData();
 
     const calls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
     expect(calls.some((u) => u.includes("archive-api") && u.includes("start_date=2026-06-27"))).toBe(true);
@@ -282,13 +282,13 @@ describe("getIcaraWeatherData", () => {
   it("returns no days when there is no stored weather and Open-Meteo fails", async () => {
     mockFetch(() => null);
 
-    await expect(getIcaraWeatherData()).resolves.toEqual([]);
+    await expect(getPlantWeatherData()).resolves.toEqual([]);
   });
 
   it("sends every Open-Meteo request with an abort signal", async () => {
     mockFetch(() => null);
 
-    await getIcaraWeatherData();
+    await getPlantWeatherData();
 
     const calls = vi.mocked(fetch).mock.calls as unknown as [string, RequestInit][];
     expect(calls.length).toBeGreaterThan(0);

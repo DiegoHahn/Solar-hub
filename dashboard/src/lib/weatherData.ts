@@ -230,7 +230,7 @@ export function toDailyWeather(
  * Weather is cached in `daily_weather`: on each call only the recent window is re-polled and only
  * changed days are re-saved. Days without recorded telemetry receive an irradiance-based estimate.
  */
-export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
+export async function getPlantWeatherData(): Promise<DailyWeather[]> {
   try {
     const now = new Date();
     const todayIso = toBrasiliaIsoDate(now);
