@@ -6,6 +6,7 @@ export const LOCALE_COOKIE_NAME = "solar_hub_locale";
 
 export interface Translations {
   common: {
+    monthsShort: string[];
     today: string;
     yesterday: string;
     days: string;
@@ -120,6 +121,8 @@ export interface Translations {
     engineeringTitle: string;
     engineeringSubtitle: string;
     totalDcPower: string;
+    dcUnit: string;
+    dcToAcShort: string;
     activeStrings: string;
     dcToAcYield: string;
     conversionEfficiency: string;
@@ -251,6 +254,7 @@ export interface Translations {
     ruralSubgroup: string;
   };
   combined: {
+    weatherUnavailable: string;
     title: string;
     subtitle: string;
     energyFlowTitle: string;
@@ -399,6 +403,7 @@ export interface Translations {
     recalculate: string;
     consulting: string;
     demoNotice: string;
+    demoModelLabel: string;
     defaultError: string;
     retryHint: string;
     unavailable: string;

@@ -15,7 +15,7 @@ import {
   RiTimeLine,
 } from "@remixicon/react";
 import type { InverterReading } from "@/lib/types";
-import { getNominalKw, readNumericSensor } from "@/lib/inverter";
+import { conversionEfficiencyPct, getNominalKw, readNumericSensor } from "@/lib/inverter";
 import { useI18n } from "@/i18n";
 import { formatNumber } from "@/i18n/formatters";
 
@@ -91,7 +91,7 @@ export function InverterCard({
   const pv1W = inverter.pv1?.w ?? 0;
   const pv2W = inverter.pv2?.w ?? 0;
   const totalDcW = pv1W + pv2W;
-  const efficiencyPct = totalDcW > 0 ? Math.min(99.5, Math.round((inverter.power_w / totalDcW) * 1000) / 10) : null;
+  const efficiencyPct = conversionEfficiencyPct(inverter.power_w, totalDcW);
 
   return (
     <Card className="relative flex flex-col justify-between overflow-hidden transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-800">
@@ -209,9 +209,9 @@ export function InverterCard({
           <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-900">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-gray-500 dark:text-gray-400">{t.inverters.pvStringsDc}</span>
-              {efficiencyPct && (
+              {efficiencyPct !== null && (
                 <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                  η {efficiencyPct}% CC➔CA
+                  η {efficiencyPct}% {t.inverters.dcToAcShort}
                 </span>
               )}
             </div>

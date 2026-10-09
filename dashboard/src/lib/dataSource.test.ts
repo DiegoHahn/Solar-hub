@@ -131,8 +131,8 @@ describe("dataSource", () => {
       const sunCurve = await ds.getTodaySunCurve();
       const genByDay = await ds.getGenerationByDay(7);
       const monthly = await ds.getMonthlyGeneration();
-      const multiYear = await ds.getMultiYearHistory();
-      const yearly = await ds.getYearlyGeneration();
+      const multiYear = await ds.getMultiYearHistory("en");
+      const yearly = await ds.getYearlyGeneration("en");
       const weather = await ds.getIcaraWeatherData();
 
       expect(telemetry).not.toBeNull();

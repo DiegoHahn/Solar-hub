@@ -6,7 +6,7 @@ import { EnergyBalanceTooltip } from "./EnergyBalanceChart";
 import { GenerationTooltip } from "./GenerationBarChart";
 import { WeatherTooltip } from "./WeatherEfficiencySection";
 import { buildSunCurveGrid, normalizeUnidadeConsumidora, type SunCurveRow } from "@/lib/queries";
-import { fallbackDailyWeather } from "@/lib/weather";
+import { parseWmoCode, type DailyWeather } from "@/lib/weather";
 import { ptBR } from "@/i18n/locales/pt-BR";
 import type { UnidadeConsumidora } from "@/lib/types";
 import telemetryDayFixture from "../test/fixtures/telemetry-day.json";
@@ -22,7 +22,18 @@ const balance = normalizeUnidadeConsumidora(
   utilityDataFixture.unidades_consumidoras["UC-GERADORA"] as unknown as UnidadeConsumidora,
 ).balanco_energetico!;
 const balanceMonth = balance[balance.length - 1];
-const weatherDay = fallbackDailyWeather[0];
+const weatherDay: DailyWeather = {
+  date: "2026-08-28",
+  isToday: false,
+  weatherCode: 80,
+  ...parseWmoCode(80),
+  tempMax: 27.2,
+  tempMin: 17.0,
+  sunshineHours: 2.1,
+  solarRadiationHsp: 1.73,
+  precipitationMm: 4.2,
+  estimatedKwh: 22.8,
+};
 
 describe("chart tooltips", () => {
   it("sun curve: displays time and total power and notifies active point", () => {

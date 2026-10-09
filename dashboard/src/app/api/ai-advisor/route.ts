@@ -23,7 +23,7 @@ import { isDemoMode } from "@/lib/dataSource";
 import type { Locale } from "@/i18n";
 import { getServerLocale } from "@/i18n/server";
 import { en } from "@/i18n/locales/en";
-import { ptBR } from "@/i18n/locales/pt-BR";
+import { getDictionary } from "@/i18n/dictionaries";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
 
@@ -44,7 +44,7 @@ function respondFromDemo(locale: Locale): NextResponse {
   const data = locale === "en" ? demoAdvisorEn : demoAdvisor;
   return NextResponse.json({
     ...data,
-    modelUsed: locale === "en" ? "demo mode" : "demonstração",
+    modelUsed: getDictionary(locale).aiAdvisor.demoModelLabel,
     quotaCount: 1,
     maxPrimaryQuota: getMaxPrimaryQuota(),
     isCached: true,
@@ -167,22 +167,32 @@ async function generate(locale: Locale): Promise<NextResponse> {
     const peakKw = peakPoint.power_kw ?? (telemetry?.total_power_kw ?? 0);
     const peakTime = peakPoint.time || "—";
 
-    // Weather data for today and recent days (Open-Meteo)
-    const todayWeather = weatherHistory[weatherHistory.length - 1];
-    const recentSunnyDays = weatherHistory.filter((w) => w.solarRadiationHsp >= 4.5);
+    // Weather for today and the measured production of recent complete sunny days (Open-Meteo)
+    const todayWeather = weatherHistory.find((w) => w.isToday);
+    const recentSunnyDays = weatherHistory.filter((w) => w.isReal && !w.isToday && w.solarRadiationHsp >= 4.5);
     const avgRecentProduction =
       recentSunnyDays.length > 0
         ? (recentSunnyDays.reduce((acc, d) => acc + d.estimatedKwh, 0) / recentSunnyDays.length).toFixed(1)
-        : "75.0";
+        : null;
 
-    const todayCondition = en.weather[todayWeather?.conditionKey ?? "partlyCloudy"];
-    const todaySunshineHours = todayWeather?.sunshineHours ?? 0;
-    const todayHsp = todayWeather?.solarRadiationHsp ?? 0;
-    const todayRainMm = todayWeather?.precipitationMm ?? 0;
-    const todayMaxTempC = todayWeather?.tempMax ?? 24;
+    const todayWeatherBlock = todayWeather
+      ? `- Weather measured in Içara today:
+  * Condition: ${en.weather[todayWeather.conditionKey]}
+  * Effective full sun hours: ${todayWeather.sunshineHours} h
+  * Solar irradiation (HSP): ${todayWeather.solarRadiationHsp} kWh/m²
+  * Accumulated rain: ${todayWeather.precipitationMm} mm
+  * Maximum temperature: ${todayWeather.tempMax}°C`
+      : "- Weather measured in Içara today: not available (do not infer weather conditions).";
+    const plantReferenceLine = avgRecentProduction
+      ? `- Plant reference: on typical sunny days (full day completed), daily production averages about ${avgRecentProduction} kWh.`
+      : "- Plant reference: no complete sunny day in the recent history; do not compare with a typical day.";
+    const todaySavingsText = tariffPerKwh > 0 ? ` (accumulated savings: R$ ${todaySavingsBrl.toFixed(2)})` : "";
 
-    const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? 0;
-    const creditReserveBrl = Math.round(creditBalanceKwh * tariffPerKwh);
+    const creditBalanceKwh = gd?.ValorProximoSaldoVencer;
+    const creditBalanceLine =
+      creditBalanceKwh !== undefined
+        ? `${creditBalanceKwh} kWh${tariffPerKwh > 0 ? ` (estimated reserve of R$ ${Math.round(creditBalanceKwh * tariffPerKwh)})` : ""}.`
+        : "not available (do not estimate the reserve).";
 
     const monthInjectedKwh = lastMonthItem?.KwhGerado ?? 0;
     const monthCompensatedKwh = lastMonthItem?.kwhCreditado ?? 0;
@@ -207,7 +217,7 @@ CORE ANALYSIS GUIDELINES:
        ? `- THE DAY IS STILL IN PROGRESS (daytime). The plant is running and producing ${currentPowerKw.toFixed(1)} kW right now.
    - The ${todayGenerationKwh.toFixed(1)} kWh value is a PARTIAL total accumulated until ${brasiliaTimeStr}, NOT the final total for the day. The sun has not set and the plant will keep generating until dusk.
    - NEVER write as if the day were over (avoid phrases like "limited production to X kWh today", "resulted in only X kWh today" or "the day closed with"). Use phrases like "production accumulated until ${brasiliaTimeStr}" or "the pace observed this morning/afternoon".
-   - NEVER compare the partial generation of an ongoing day with the full-day average of a sunny day (${avgRecentProduction} kWh) as if it were the final result. There are still sun hours ahead.`
+   - NEVER compare the partial generation of an ongoing day with the full-day average of a sunny day${avgRecentProduction ? ` (${avgRecentProduction} kWh)` : ""} as if it were the final result. There are still sun hours ahead.`
        : `- NIGHTTIME (daytime generation finished): it is ${brasiliaTimeStr} and the sun has set. The ${todayGenerationKwh.toFixed(1)} kWh value is the final, consolidated production for today.`
    }
 3. LANGUAGE AND TONE:
@@ -227,18 +237,13 @@ REAL PLANT DATA (USE ONLY THIS DATA):
 TODAY'S MEASUREMENTS:
 - Analysis time: ${brasiliaTimeStr} (Brasília time)
 - Plant status: ${isDaytime ? `Generating during daytime (${currentPowerKw.toFixed(1)} kW right now)` : "Daytime generation finished (nighttime)"}
-- Production accumulated until ${brasiliaTimeStr}: ${todayGenerationKwh.toFixed(1)} kWh ${isDaytime ? "(partial, day in progress)" : "(final total for the day)"} (accumulated savings: R$ ${todaySavingsBrl.toFixed(2)})
+- Production accumulated until ${brasiliaTimeStr}: ${todayGenerationKwh.toFixed(1)} kWh ${isDaytime ? "(partial, day in progress)" : "(final total for the day)"}${todaySavingsText}
 - Peak power recorded today: ${peakKw.toFixed(1)} kW ${peakTime !== "—" ? `at ${peakTime}` : ""} (out of 16 kWp installed capacity)
-- Weather measured in Içara today:
-  * Condition: ${todayCondition}
-  * Effective full sun hours: ${todaySunshineHours} h
-  * Solar irradiation (HSP): ${todayHsp} kWh/m²
-  * Accumulated rain: ${todayRainMm} mm
-  * Maximum temperature: ${todayMaxTempC}°C
-- Plant reference: on typical sunny days (full day completed), daily production averages about ${avgRecentProduction} kWh.
+${todayWeatherBlock}
+${plantReferenceLine}
 
 COOPERALIANÇA HISTORY AND CREDIT RESERVE:
-- Total credit balance accumulated with the cooperative: ${creditBalanceKwh} kWh (estimated reserve of R$ ${creditReserveBrl}).
+- Total credit balance accumulated with the cooperative: ${creditBalanceLine}
 - Last billed month:
   * Surplus injected: ${monthInjectedKwh} kWh
   * Offset on the bill: ${monthCompensatedKwh} kWh
@@ -349,12 +354,12 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
           maxPrimaryQuota,
           isCached: true,
           updatedAt: cached.updatedAt,
-          warning: isEn ? en.aiAdvisor.showingLastAnalysis : ptBR.aiAdvisor.showingLastAnalysis,
+          warning: getDictionary(locale).aiAdvisor.showingLastAnalysis,
         });
       }
 
       return NextResponse.json(
-        { error: isEn ? en.aiAdvisor.unavailable : ptBR.aiAdvisor.unavailable, unavailable: true },
+        { error: getDictionary(locale).aiAdvisor.unavailable, unavailable: true },
         { status: 503 },
       );
     }

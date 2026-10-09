@@ -17,19 +17,25 @@ describe("i18n dictionaries", () => {
   });
 
   it("does not have empty translation values in pt-BR or en", () => {
-    for (const section of Object.values(ptBR)) {
-      for (const val of Object.values(section)) {
-        expect(typeof val).toBe("string");
-        expect((val as string).length).toBeGreaterThan(0);
+    for (const dictionary of [ptBR, en]) {
+      for (const section of Object.values(dictionary)) {
+        for (const val of Object.values(section)) {
+          const texts = Array.isArray(val) ? val : [val];
+          expect(texts.length).toBeGreaterThan(0);
+          for (const text of texts) {
+            expect(typeof text).toBe("string");
+            expect((text as string).length).toBeGreaterThan(0);
+          }
+        }
       }
     }
+  });
 
-    for (const section of Object.values(en)) {
-      for (const val of Object.values(section)) {
-        expect(typeof val).toBe("string");
-        expect((val as string).length).toBeGreaterThan(0);
-      }
-    }
+  it("has twelve short month names in each language", () => {
+    expect(ptBR.common.monthsShort).toHaveLength(12);
+    expect(en.common.monthsShort).toHaveLength(12);
+    expect(en.common.monthsShort[1]).toBe("Feb");
+    expect(ptBR.common.monthsShort[1]).toBe("Fev");
   });
 });
 
