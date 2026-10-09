@@ -6,6 +6,7 @@ import weatherFixture from "@/test/fixtures/daily-weather.json";
 import type { DailyWeatherRow } from "@/lib/types";
 import { I18nProvider } from "@/i18n/context";
 import { en } from "@/i18n/locales/en";
+import { ptBR } from "@/i18n/locales/pt-BR";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
@@ -14,6 +15,11 @@ describe("WeatherEfficiencySection", () => {
   const dailyWeatherList = (weatherFixture as DailyWeatherRow[]).slice(0, 30).map((row) =>
     toDailyWeather(row, todayIso, undefined),
   );
+
+  it("shows an unavailable notice when there is no weather data", () => {
+    render(<WeatherEfficiencySection weatherData={[]} />);
+    expect(screen.getByText(ptBR.combined.weatherUnavailable)).toBeInTheDocument();
+  });
 
   it("renders full header, badges, and aggregated statistics in default view", () => {
     render(<WeatherEfficiencySection weatherData={dailyWeatherList} compact={false} />);

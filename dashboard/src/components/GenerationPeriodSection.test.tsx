@@ -33,6 +33,7 @@ describe("GenerationPeriodSection", () => {
     dailyEntries,
     "2026-09",
     targetDate,
+    ptBR.common.monthsShort,
   );
   const monthData: GenerationPoint[] = [
     { label: "01", kwh: 45.2 },

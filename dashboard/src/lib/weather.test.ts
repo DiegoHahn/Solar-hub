@@ -9,7 +9,6 @@ vi.mock("./queries", () => ({
 
 import { getGenerationByDay, getStoredDailyWeather, saveDailyWeather } from "./queries";
 import {
-  fallbackDailyWeather,
   parseWmoCode,
   calculatePerformanceRatio,
   calculateCloudLoss,
@@ -34,8 +33,23 @@ describe("parseWmoCode", () => {
   });
 });
 
+const sampleDay: DailyWeather = {
+  date: "2026-09-01",
+  isToday: false,
+  weatherCode: 1,
+  ...parseWmoCode(1),
+  tempMax: 25,
+  tempMin: 15,
+  sunshineHours: 9.5,
+  solarRadiationHsp: 5.1,
+  precipitationMm: 0,
+  estimatedKwh: 70,
+  isReal: true,
+  realKwh: 70,
+};
+
 const day = (overrides: Partial<DailyWeather>): DailyWeather => ({
-  ...fallbackDailyWeather[0],
+  ...sampleDay,
   isReal: true,
   isToday: false,
   ...overrides,
@@ -265,10 +279,20 @@ describe("getIcaraWeatherData", () => {
     expect(result.find((d) => d.date === "2026-09-25")?.solarRadiationHsp).toBe(4.2);
   });
 
-  it("returns fallback when there is no stored weather and Open-Meteo fails", async () => {
+  it("returns no days when there is no stored weather and Open-Meteo fails", async () => {
     mockFetch(() => null);
 
-    await expect(getIcaraWeatherData()).resolves.toBe(fallbackDailyWeather);
+    await expect(getIcaraWeatherData()).resolves.toEqual([]);
+  });
+
+  it("sends every Open-Meteo request with an abort signal", async () => {
+    mockFetch(() => null);
+
+    await getIcaraWeatherData();
+
+    const calls = vi.mocked(fetch).mock.calls as unknown as [string, RequestInit][];
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every(([, init]) => init?.signal instanceof AbortSignal)).toBe(true);
   });
 });
 

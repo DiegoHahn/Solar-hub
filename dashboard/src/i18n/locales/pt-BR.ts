@@ -2,6 +2,7 @@ import type { Translations } from "../types";
 
 export const ptBR: Translations = {
   common: {
+    monthsShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
     today: "Hoje",
     yesterday: "Ontem",
     days: "dias",
@@ -116,6 +117,8 @@ export const ptBR: Translations = {
     engineeringTitle: "Painel de Engenharia & Qualidade de Energia",
     engineeringSubtitle: "Métricas agregadas dos módulos fotovoltaicos (CC) e conversão para a rede (CA)",
     totalDcPower: "Potência CC Total",
+    dcUnit: "kW CC",
+    dcToAcShort: "CC➔CA",
     activeStrings: "6 strings ativas",
     dcToAcYield: "Rendimento CC➔CA",
     conversionEfficiency: "Eficiência de conversão",
@@ -247,6 +250,7 @@ export const ptBR: Translations = {
     ruralSubgroup: "Rural",
   },
   combined: {
+    weatherUnavailable: "Os dados de clima não estão disponíveis no momento. O gráfico volta assim que a Open-Meteo responder.",
     title: "Análise",
     subtitle: "Consultor IA & Balanço Energético",
     energyFlowTitle: "Fluxo de Energia Real",
@@ -395,6 +399,7 @@ export const ptBR: Translations = {
     recalculate: "Regerar",
     consulting: "Consultando...",
     demoNotice: "A geração de novas análises está desativada no modo demonstração.",
+    demoModelLabel: "demonstração",
     defaultError: "Não foi possível conectar à IA.",
     retryHint: "Clique em \"Regerar\" para tentar novamente.",
     unavailable: "O consultor de IA está indisponível no momento",

@@ -12,6 +12,7 @@ import type {
   MultiYearHistory,
 } from "@/lib/types";
 import type { DailyWeather } from "@/lib/weather";
+import type { Locale } from "@/i18n/types";
 
 export interface DataSource {
   isDemo: boolean;
@@ -22,8 +23,8 @@ export interface DataSource {
     daysBack?: number,
   ): Promise<Record<string, DailyGenerationEntry>>;
   getMonthlyGeneration(): Promise<GenerationPoint[]>;
-  getMultiYearHistory(): Promise<MultiYearHistory>;
-  getYearlyGeneration(): Promise<GenerationPoint[]>;
+  getMultiYearHistory(locale: Locale): Promise<MultiYearHistory>;
+  getYearlyGeneration(locale: Locale): Promise<GenerationPoint[]>;
   getIcaraWeatherData(): Promise<DailyWeather[]>;
 }
 

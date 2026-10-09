@@ -46,10 +46,7 @@ export default async function CombinadaPage() {
       </div>
 
       {/* 1. TOP SECTION: AI ENERGY ADVISOR */}
-      <AiEnergyAdvisor
-        plantName={telemetry?.plant_name || "Solar Plant (16 kWp)"}
-        nominalKwp={telemetry?.total_nominal_capacity_kw || 16.0}
-      />
+      <AiEnergyAdvisor />
 
       {/* 2. MIDDLE SECTION: REAL ENERGY FLOW */}
       <EnergyFlowSection telemetry={telemetry} utilityData={utilityData} monthSolarKwh={monthSolarKwh} />

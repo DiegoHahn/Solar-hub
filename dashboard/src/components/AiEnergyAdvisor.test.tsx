@@ -54,7 +54,7 @@ afterAll(() => server.close());
 
 describe("AiEnergyAdvisor", () => {
   it("loads and displays cached analysis and recommendations", async () => {
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
 
     expect(screen.getByRole("button", { name: /Consultando|Regerar/ })).toBeInTheDocument();
 
@@ -69,7 +69,7 @@ describe("AiEnergyAdvisor", () => {
   });
 
   it("allows toggling between Daily and Monthly views", async () => {
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
 
     await waitFor(() => {
       expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe("AiEnergyAdvisor", () => {
       }),
     );
 
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
 
     await waitFor(() => {
       expect(screen.getByText(/Daily quota exhausted/)).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("AiEnergyAdvisor", () => {
   });
 
   it("sends POST with force: true and updates data when clicking Regenerate", async () => {
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
 
     await waitFor(() => {
       expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
@@ -111,7 +111,6 @@ describe("AiEnergyAdvisor", () => {
 
     expect(lastPostPayload).toEqual({
       force: true,
-      nominalKwp: 16,
     });
   });
 
@@ -122,7 +121,7 @@ describe("AiEnergyAdvisor", () => {
       ),
     );
 
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
 
     await waitFor(() => {
       expect(screen.getByText(new RegExp(ptBR.aiAdvisor.unavailable))).toBeInTheDocument();
@@ -137,7 +136,7 @@ describe("AiEnergyAdvisor", () => {
       ),
     );
 
-    render(<AiEnergyAdvisor nominalKwp={16} />);
+    render(<AiEnergyAdvisor />);
     await waitFor(() => {
       expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
     });

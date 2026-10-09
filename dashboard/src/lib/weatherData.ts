@@ -5,12 +5,14 @@ import {
   type DailyGenerationEntry,
 } from "@/lib/queries";
 import { brasiliaIsoDaysAgo, toBrasiliaIsoDate } from "@/lib/dates";
-import { fallbackDailyWeather, parseWmoCode, PLANT_DC_KWP, type DailyWeather } from "@/lib/weather";
+import { parseWmoCode, PLANT_DC_KWP, type DailyWeather } from "@/lib/weather";
 import type { DailyWeatherRow } from "@/lib/types";
 
 const HISTORY_DAYS = 90;
 /** Sliding refresh window: period in which Open-Meteo replaces forecasts with observed data. */
 const REFRESH_DAYS = 7;
+/** Open-Meteo requests are abandoned after this time so a slow API cannot hold up the page. */
+const OPEN_METEO_TIMEOUT_MS = 8000;
 /** Performance ratio used to estimate PV generation from Peak Sun Hours (HSP). */
 const PERFORMANCE_RATIO = 0.81;
 
@@ -62,7 +64,10 @@ function locationQuery({ lat, lon, tilt, azimuth }: PlantLocation): string {
 
 async function fetchWeather(url: string): Promise<OpenMeteoResponse | null> {
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(OPEN_METEO_TIMEOUT_MS),
+    });
     if (!res.ok) return null;
     const json = (await res.json()) as Partial<OpenMeteoResponse>;
     return json.daily?.time?.length ? { daily: json.daily, hourly: json.hourly } : null;
@@ -246,10 +251,9 @@ export async function getIcaraWeatherData(): Promise<DailyWeather[]> {
       .filter((r) => r.date >= startIso && r.date <= todayIso)
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    if (rows.length === 0) return fallbackDailyWeather;
     return rows.map((row) => toDailyWeather(row, todayIso, generationByDay[row.date]));
   } catch (err) {
     console.error("Error building weather dataset:", err);
-    return fallbackDailyWeather;
+    return [];
   }
 }

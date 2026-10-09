@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     httpOnly: true,
     sameSite: "lax",
     secure: isSecure,
-    maxAge: 8 * 60 * 60, // 8 horas
+    maxAge: 8 * 60 * 60, // 8 hours
   });
 
   return response;

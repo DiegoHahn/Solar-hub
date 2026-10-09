@@ -33,8 +33,10 @@ export function EnergyFlowSection({
   const lastMonthItem = hist12.length > 0 ? hist12[hist12.length - 1] : null;
 
   const tariffPerKwh = getTariffPerKwh(utilityData);
-  const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? 0;
-  const creditReserveBrl = tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
+  const creditBalanceKwh = gd?.ValorProximoSaldoVencer ?? null;
+  const creditBalanceLabel = creditBalanceKwh !== null ? formatNumber(creditBalanceKwh, locale) : "—";
+  const creditReserveBrl =
+    creditBalanceKwh !== null && tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
 
   // Today's inverter telemetry data
   const todayGenerationKwh = telemetry?.total_today_kwh ?? 0;
@@ -223,7 +225,7 @@ export function EnergyFlowSection({
           <div className="mt-4">
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {formatNumber(creditBalanceKwh, locale)}
+                {creditBalanceLabel}
               </span>
               <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                 {t.combined.kwhBalance}
@@ -283,7 +285,7 @@ export function EnergyFlowSection({
             {t.combined.accumulatedBalanceKpi}
           </div>
           <div className="mt-1 text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-            {formatNumber(creditBalanceKwh, locale)} kWh
+            {creditBalanceLabel} kWh
           </div>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {t.combined.totalCreditsStock}

@@ -35,11 +35,12 @@ export default async function Home() {
     ds.getIcaraWeatherData(),
   ]);
 
-  const creditBalanceKwh = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? 0;
+  const creditBalanceKwh = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? null;
 
   const tariffPerKwh = getTariffPerKwh(utilityData);
   const bandeira = utilityData?.tarifa_referencia?.bandeira_vigente;
-  const creditBalanceBrl = tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
+  const creditBalanceBrl =
+    creditBalanceKwh !== null && tariffPerKwh !== null ? creditBalanceKwh * tariffPerKwh : null;
 
   const capacityKw = telemetry?.total_nominal_capacity_kw ?? 16.0;
   const currentPowerKw = telemetry?.total_power_kw ?? 0.0;
@@ -253,7 +254,7 @@ export default async function Home() {
         <StatCard
           icon={RiWallet3Line}
           label={t.overview.accumulatedBalance}
-          value={formatNumber(creditBalanceKwh, locale)}
+          value={creditBalanceKwh !== null ? formatNumber(creditBalanceKwh, locale) : "—"}
           unit={t.common.kwh}
           hint={creditBalanceBrl !== null ? `~${formatCurrencyEstimate(creditBalanceBrl, locale)} ${t.overview.inReserve}` : undefined}
           accent="emerald"
