@@ -1,15 +1,12 @@
 import pytest
 
-try:
-    from collector import inverters, utility
-except ImportError:
-    import inverters
-    import utility
+from collector import inverters, utility
+from collector.settings import CollectorSettings
 
 
 @pytest.mark.live
 def test_live_inverters_connection():
-    config = inverters.load_config()
+    config = CollectorSettings.load().config
     assert "inverters" in config, "config.json must contain inverters list"
 
     for inv_cfg in config["inverters"]:
