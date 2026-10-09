@@ -6,6 +6,9 @@ from datetime import datetime
 
 import requests
 
+from common import atomic_write_json
+from common import load_env as _load_env
+
 # Ensures UTF-8 support in Windows terminal
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -14,15 +17,7 @@ ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
 
 
 def load_env():
-    env_vars = {}
-    if os.path.exists(ENV_FILE):
-        with open(ENV_FILE, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    env_vars[k.strip()] = v.strip().strip('"').strip("'")
-    return env_vars
+    return _load_env(ENV_FILE)
 
 
 ENV = load_env()
@@ -80,26 +75,6 @@ def push_utility_to_supabase(result):
     except Exception as e:
         print(f" [SUPABASE] Network error synchronizing utility data: {e}")
     return False
-
-
-def atomic_write_json(filepath, data):
-    """Writes JSON atomically using a temporary file to avoid corruption."""
-    dir_name = os.path.dirname(filepath)
-    os.makedirs(dir_name, exist_ok=True)
-    temp_file = filepath + f".tmp_{os.getpid()}_{int(time.time() * 1000)}"
-    try:
-        with open(temp_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(temp_file, filepath)
-    except Exception as e:
-        if os.path.exists(temp_file):
-            try:
-                os.remove(temp_file)
-            except OSError:
-                pass
-        raise e
 
 
 def safe_api_get(url, headers, timeout=12, default=None):
