@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.0...v1.5.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **ai-advisor:** validate the model response and limit forced regenerations ([#40](https://github.com/DiegoHahn/Solar-hub/issues/40)) ([5b45b4a](https://github.com/DiegoHahn/Solar-hub/commit/5b45b4a03a62e8a502eb62728e7390f2eb1e12f5))
+
 ## [1.5.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.4.0...v1.5.0) (2026-10-09)
 
 
