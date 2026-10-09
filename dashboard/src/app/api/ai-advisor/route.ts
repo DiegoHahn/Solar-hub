@@ -143,10 +143,6 @@ async function generate(locale: Locale): Promise<NextResponse> {
     if (primaryCount >= maxPrimaryQuota) {
       switchedDueToQuota = true;
       candidateModels = [...configuredFallbacks];
-      console.log(
-        `[AI Advisor] Daily limit of ${maxPrimaryQuota} calls for primary model (${configuredModel}) reached (${primaryCount}). Using fallbacks configured in .env:`,
-        candidateModels
-      );
     } else {
       candidateModels = [configuredModel, ...configuredFallbacks];
     }
@@ -161,13 +157,11 @@ async function generate(locale: Locale): Promise<NextResponse> {
 
     const systemPrompt = buildAdvisorPrompt({ telemetry, utilityData, sunCurve, weatherHistory }, locale);
 
-    let lastError: unknown = null;
+    const failures: string[] = [];
     let parsed: AdvisorResult | null = null;
     let modelSuccessfullyUsed = candidateModels[0] || configuredModel;
 
     for (const modelToTry of candidateModels) {
-      const modelStart = Date.now();
-      console.log(`[AI Advisor] Attempting generation with ${modelToTry}...`);
       try {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent`,
@@ -188,7 +182,6 @@ async function generate(locale: Locale): Promise<NextResponse> {
           }
         );
 
-        const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         if (res.ok) {
           const data = await res.json();
           const rawText: string | undefined = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -196,25 +189,19 @@ async function generate(locale: Locale): Promise<NextResponse> {
           if (candidate) {
             parsed = candidate;
             modelSuccessfullyUsed = modelToTry;
-            console.log(`[AI Advisor] Success with ${modelToTry} in ${elapsed}s!`);
             break;
           }
-          lastError = new Error(`Model ${modelToTry} returned an unexpected response shape`);
-          console.warn(`[AI Advisor] ${modelToTry} returned an unexpected response shape in ${elapsed}s. Trying next...`);
+          failures.push(`${modelToTry}: unexpected response shape`);
         } else {
-          const errText = await res.text();
-          lastError = new Error(`Model ${modelToTry} returned ${res.status}: ${errText}`);
-          console.warn(`[AI Advisor] ${modelToTry} failed (${res.status}) in ${elapsed}s. Trying next...`);
+          failures.push(`${modelToTry}: HTTP ${res.status} ${await res.text()}`);
         }
       } catch (err) {
-        const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
-        lastError = err;
-        console.warn(`[AI Advisor] ${modelToTry} errored/timed out (${errorMessage(err)}) in ${elapsed}s. Trying next...`);
+        failures.push(`${modelToTry}: ${errorMessage(err)}`);
       }
     }
 
     if (!parsed) {
-      console.error(`[AI Advisor] All models failed. Last error: ${errorMessage(lastError)}`);
+      console.error(`[AI Advisor] All models failed. ${failures.join(" | ") || "No model configured."}`);
       const cached = await getAdvisorCache(locale);
       if (cached) {
         return NextResponse.json({
