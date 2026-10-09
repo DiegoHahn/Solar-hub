@@ -1,13 +1,18 @@
 import json
+import logging
 import os
 import sys
 import time
+from collections.abc import Sequence
 from datetime import datetime
+from typing import Any
 
 import requests
 
-from common import atomic_write_json
+from common import atomic_write_json, configure_logging
 from common import load_env as _load_env
+
+logger = logging.getLogger("collector.utility")
 
 # Ensures UTF-8 support in Windows terminal
 if hasattr(sys.stdout, "reconfigure"):
@@ -16,7 +21,7 @@ if hasattr(sys.stdout, "reconfigure"):
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
 
 
-def load_env():
+def load_env() -> dict[str, str]:
     return _load_env(ENV_FILE)
 
 
@@ -33,7 +38,7 @@ UCS = [uc.strip() for uc in ENV.get("COOPERALIANCA_UCS", "").split(",") if uc.st
 LOGIN_RETRY_DELAYS = (60, 300)
 
 
-def push_utility_to_supabase(result):
+def push_utility_to_supabase(result: dict[str, Any]) -> bool:
     """Pushes Cooperaliança utility snapshot to Supabase; returns False if push fails."""
     supabase_url = ENV.get("SUPABASE_URL")
     service_key = ENV.get("SUPABASE_SERVICE_ROLE_KEY")
@@ -67,17 +72,20 @@ def push_utility_to_supabase(result):
             timeout=12,
         )
         if resp.status_code in [200, 201]:
-            print(
-                f" [SUPABASE] Cooperaliança utility data synchronized to cloud successfully! (Status {resp.status_code})"
+            logger.info(
+                "[SUPABASE] Cooperaliança utility data synchronized to cloud successfully! (Status %d)",
+                resp.status_code,
             )
             return True
-        print(f" [SUPABASE] Sync warning for utility data (Status {resp.status_code})")
+        logger.warning("[SUPABASE] Sync warning for utility data (Status %d)", resp.status_code)
     except Exception as e:
-        print(f" [SUPABASE] Network error synchronizing utility data: {e}")
+        logger.warning("[SUPABASE] Network error synchronizing utility data: %s", e)
     return False
 
 
-def safe_api_get(url, headers, timeout=12, default=None):
+def safe_api_get(
+    url: str, headers: dict[str, str], timeout: float = 12, default: Any = None
+) -> Any:
     """Executes GET request safely shielded against individual endpoint failures."""
     try:
         r = requests.get(url, headers=headers, timeout=timeout)
@@ -85,10 +93,10 @@ def safe_api_get(url, headers, timeout=12, default=None):
             return r.json().get("Content", default)
         else:
             endpoint_name = url.split("?")[0].split("/")[-1]
-            print(f"    Endpoint {endpoint_name} returned status {r.status_code}")
+            logger.warning("Endpoint %s returned status %d", endpoint_name, r.status_code)
     except Exception as e:
         endpoint_name = url.split("?")[0].split("/")[-1]
-        print(f"    Network failure requesting {endpoint_name}: {e}")
+        logger.warning("Network failure requesting %s: %s", endpoint_name, e)
     return default
 
 
@@ -99,7 +107,7 @@ TARIFF_FLAGS = (
 )
 
 
-def portal_date_to_iso(value):
+def portal_date_to_iso(value: str | None) -> str | None:
     """Converts a portal date ("DD/MM/YYYY HH:MM:SS") to ISO "YYYY-MM-DD"; returns None if malformed."""
     try:
         return datetime.strptime((value or "").split(" ")[0], "%d/%m/%Y").date().isoformat()
@@ -107,7 +115,7 @@ def portal_date_to_iso(value):
         return None
 
 
-def fetch_current_tariff(uc, headers):
+def fetch_current_tariff(uc: str, headers: dict[str, str]) -> dict[str, Any] | None:
     """Tariff in force for the consumer unit, from the flag the portal marks as current for this billing month.
 
     Values are per kWh before taxes (TE + TUSD). Returns None when the portal does not report a current flag.
@@ -127,7 +135,7 @@ def fetch_current_tariff(uc, headers):
     return None
 
 
-def portal_headers():
+def portal_headers() -> dict[str, str]:
     """Headers required by the Cooperaliança portal Useall API."""
     return {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -139,7 +147,12 @@ def portal_headers():
     }
 
 
-def login_cooperalianca(cpf, senha, headers, retry_delays=LOGIN_RETRY_DELAYS):
+def login_cooperalianca(
+    cpf: str,
+    senha: str,
+    headers: dict[str, str],
+    retry_delays: Sequence[float] = LOGIN_RETRY_DELAYS,
+) -> dict[str, Any] | None:
     """Authenticates with utility portal and returns response content (with `Token` and `Nome`), or None.
 
     Network errors and 5xx responses are retried according to `retry_delays` (seconds):
@@ -156,49 +169,50 @@ def login_cooperalianca(cpf, senha, headers, retry_delays=LOGIN_RETRY_DELAYS):
             resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=30)
             if resp.status_code < 500:
                 break
-            print(
-                f" [COOPERALIANCA] Portal unavailable (Status {resp.status_code}, attempt {attempt})"
+            logger.warning(
+                "[COOPERALIANCA] Portal unavailable (Status %d, attempt %d)",
+                resp.status_code,
+                attempt,
             )
         except requests.RequestException as e:
-            print(f" [COOPERALIANCA] Connection error with utility portal (attempt {attempt}): {e}")
+            logger.warning(
+                "[COOPERALIANCA] Connection error with utility portal (attempt %d): %s", attempt, e
+            )
         if delay is None:
             return None
         time.sleep(delay)
 
     if resp.status_code in [401, 403]:
-        print(
-            f" [COOPERALIANCA] Authentication failure ({resp.status_code}). Verify if COOPERALIANCA_TOKEN_EXTERNO in .env expired."
+        logger.error(
+            "[COOPERALIANCA] Authentication failure (%d). Verify if COOPERALIANCA_TOKEN_EXTERNO in .env expired.",
+            resp.status_code,
         )
         return None
     elif resp.status_code != 200:
-        print(f" [COOPERALIANCA] Authentication failed (Status {resp.status_code})")
+        logger.error("[COOPERALIANCA] Authentication failed (Status %d)", resp.status_code)
         return None
 
-    content = resp.json().get("Content", {})
+    content: dict[str, Any] = resp.json().get("Content", {})
     if not content.get("Token"):
-        print(" [COOPERALIANCA] JWT token missing from authentication response.")
+        logger.error("[COOPERALIANCA] JWT token missing from authentication response.")
         return None
     return content
 
 
-def sync_cooperalianca(cpf=None, senha=None):
+def sync_cooperalianca(cpf: str | None = None, senha: str | None = None) -> dict[str, Any] | None:
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
 
     if not cpf or not senha:
-        print(" [COOPERALIANCA] CPF or Password not configured in .env file.")
+        logger.error("[COOPERALIANCA] CPF or Password not configured in .env file.")
         return None
     if not UCS:
-        print(" [COOPERALIANCA] COOPERALIANCA_UCS not configured in .env file.")
+        logger.error("[COOPERALIANCA] COOPERALIANCA_UCS not configured in .env file.")
         return None
 
     headers = portal_headers()
 
-    print("\n=======================================================")
-    print(
-        f"[{datetime.now().strftime('%H:%M:%S')}] [COOPERALIANCA] STARTING UTILITY SYNC (USEALL API)"
-    )
-    print("=======================================================")
+    logger.info("[COOPERALIANCA] Starting utility sync (Useall API)")
 
     auth = login_cooperalianca(cpf, senha, headers)
     if not auth:
@@ -206,7 +220,7 @@ def sync_cooperalianca(cpf=None, senha=None):
 
     headers["Authorization"] = f"Bearer {auth['Token']}"
     titular_nome = auth.get("Nome", "")
-    print(" -> Successfully authenticated!")
+    logger.info("[COOPERALIANCA] Successfully authenticated!")
 
     # User profile
     perfil_usuario = safe_api_get(
@@ -215,7 +229,7 @@ def sync_cooperalianca(cpf=None, senha=None):
         default={},
     )
 
-    result = {
+    result: dict[str, Any] = {
         "timestamp": datetime.now().astimezone().isoformat(),
         "distribuidora": "Cooperaliança (Içara/SC)",
         "titular": titular_nome,
@@ -227,12 +241,16 @@ def sync_cooperalianca(cpf=None, senha=None):
     tariff = fetch_current_tariff(UCS[0], headers)
     if tariff:
         result["tarifa_referencia"] = tariff
-        print(f" -> Tariff: {tariff['bandeira_vigente']}, R$ {tariff['tarifa_kwh']:.5f}/kWh")
+        logger.info(
+            "[COOPERALIANCA] Tariff: %s, R$ %.5f/kWh",
+            tariff["bandeira_vigente"],
+            tariff["tarifa_kwh"],
+        )
     else:
-        print(" -> Tariff unavailable; keeping the last stored one")
+        logger.warning("[COOPERALIANCA] Tariff unavailable; keeping the last stored one")
 
     for uc in UCS:
-        uc_data = {"codigo_uc": uc}
+        uc_data: dict[str, Any] = {"codigo_uc": uc}
 
         # A. 60-month invoice and consumption history
         uc_data["historico_faturas_60_meses"] = safe_api_get(
@@ -278,18 +296,21 @@ def sync_cooperalianca(cpf=None, senha=None):
         faturas_count = len(uc_data.get("historico_faturas_60_meses") or [])
 
         gd_tag = f" | Plant: {pot:.0f} kW | GD Balance: {saldo:,.0f} kWh" if pot > 0 else ""
-        print(f" -> Consumer Unit ••••{uc[-4:]}: {faturas_count} invoices in history{gd_tag}")
+        logger.info(
+            "[COOPERALIANCA] Consumer Unit ••••%s: %d invoices in history%s",
+            uc[-4:],
+            faturas_count,
+            gd_tag,
+        )
 
     # Persist to disk only if explicitly requested via --save-local
     if "--save-local" in sys.argv:
         out_path = os.path.join(DATA_DIR, "cooperalianca_latest.json")
         try:
             atomic_write_json(out_path, result)
-            print("-------------------------------------------------------")
-            print(f" Data saved locally to: {out_path}")
-            print("=======================================================")
+            logger.info("[DISK] Data saved locally to: %s", out_path)
         except Exception as e:
-            print(f" [DISK] Error saving cooperalianca_latest.json: {e}")
+            logger.error("[DISK] Error saving cooperalianca_latest.json: %s", e)
 
     if not push_utility_to_supabase(result):
         return None
@@ -298,15 +319,20 @@ def sync_cooperalianca(cpf=None, senha=None):
 
 
 def download_informativo_pdf(
-    competencia=None, uc=None, cpf=None, senha=None, output_file=None, data_payload=None
-):
+    competencia: str | None = None,
+    uc: str | None = None,
+    cpf: str | None = None,
+    senha: str | None = None,
+    output_file: str | None = None,
+    data_payload: dict[str, Any] | None = None,
+) -> str | None:
     cpf = cpf or ENV.get("COOPERALIANCA_CPF")
     senha = senha or ENV.get("COOPERALIANCA_SENHA")
     uc = uc or (UCS[0] if UCS else None)
     output_file = output_file or os.path.join(DATA_DIR, "informativo_microgeracao.pdf")
 
     if not cpf or not senha or not uc:
-        print(" [PDF] CPF, Password, or UC missing for statement PDF download.")
+        logger.error("[PDF] CPF, Password, or UC missing for statement PDF download.")
         return None
 
     # If billing cycle is not specified, resolve latest cycle from payload or local cache
@@ -319,8 +345,9 @@ def download_informativo_pdf(
                     with open(latest_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     uc_info = data.get("unidades_consumidoras", {}).get(str(uc), {})
-                except Exception:
-                    pass
+                except Exception as e:
+                    # Without the cache the current month is used below as the billing cycle
+                    logger.warning("[PDF] Could not read %s: %s", latest_file, e)
         faturas = uc_info.get("historico_faturas_60_meses", [])
         if faturas and isinstance(faturas, list):
             primeira_fat = faturas[0]
@@ -348,11 +375,11 @@ def download_informativo_pdf(
     try:
         resp = requests.post(API_BASE + "Auth", headers=headers, json=payload, timeout=12)
         if resp.status_code != 200:
-            print(f" [PDF] Authentication failed for PDF download: {resp.status_code}")
+            logger.error("[PDF] Authentication failed for PDF download: %d", resp.status_code)
             return None
         token = resp.json().get("Content", {}).get("Token")
         if not token:
-            print(" [PDF] Token missing for PDF download.")
+            logger.error("[PDF] Token missing for PDF download.")
             return None
         headers["Authorization"] = f"Bearer {token}"
 
@@ -367,21 +394,26 @@ def download_informativo_pdf(
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
             with open(output_file, "wb") as f:
                 f.write(r_pdf.content)
-            print(
-                f" Official microgeneration statement ({competencia[:10]}) saved to: {output_file}"
+            logger.info(
+                "[PDF] Official microgeneration statement (%s) saved to: %s",
+                competencia[:10],
+                output_file,
             )
             return output_file
         else:
-            print(
-                f" [PDF] Warning downloading microgeneration statement ({r_pdf.status_code}): {r_pdf.text[:100]}"
+            logger.warning(
+                "[PDF] Warning downloading microgeneration statement (%d): %s",
+                r_pdf.status_code,
+                r_pdf.text[:100],
             )
             return None
     except Exception as e:
-        print(f" [PDF] Network error downloading PDF: {e}")
+        logger.warning("[PDF] Network error downloading PDF: %s", e)
         return None
 
 
-def main():
+def main() -> None:
+    configure_logging(ENV)
     sync_result = sync_cooperalianca()
 
     # Exit code 1 marks failure in systemd (visible via `systemctl --failed`)
@@ -392,19 +424,19 @@ def main():
         try:
             download_informativo_pdf(data_payload=sync_result)
         except Exception as e:
-            print(f" [!] Warning processing PDF: {e}")
+            logger.warning("[PDF] Warning processing PDF: %s", e)
 
     if "--loop" in sys.argv:
-        print("\n[*] Periodic utility sync started (24-hour interval). Press Ctrl+C to exit.")
+        logger.info("Periodic utility sync started (24-hour interval). Press Ctrl+C to exit.")
         try:
             while True:
                 time.sleep(86400)
                 try:
                     sync_cooperalianca()
-                except Exception as e:
-                    print(f" [!] Error in periodic sync: {e}")
+                except Exception:
+                    logger.exception("Error in periodic sync")
         except KeyboardInterrupt:
-            print("\n[*] Utility synchronizer stopped by user (Ctrl+C).")
+            logger.info("Utility synchronizer stopped by user (Ctrl+C).")
             sys.exit(0)
 
 

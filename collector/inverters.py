@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import logging
 import os
 import re
 import sys
@@ -9,11 +10,14 @@ import urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
+from typing import Any, cast
 
 import requests
 
-from common import atomic_write_json
+from common import atomic_write_json, configure_logging
 from common import load_env as _load_env
+
+logger = logging.getLogger("collector.inverters")
 
 # Ensures UTF-8 support in Windows terminal
 if hasattr(sys.stdout, "reconfigure"):
@@ -21,29 +25,30 @@ if hasattr(sys.stdout, "reconfigure"):
 
 try:
     import goodwe
-except ImportError:
+except ImportError:  # pragma: no cover - the dependency is installed on every supported setup
     goodwe = None
 
 try:
     from pysolarmanv5 import PySolarmanV5
-except ImportError:
+except ImportError:  # pragma: no cover - the dependency is installed on every supported setup
     PySolarmanV5 = None
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
 
 
-def load_env():
+def load_env() -> dict[str, str]:
     return _load_env(ENV_FILE)
 
 
 ENV = load_env()
 
 
-def load_config():
+def load_config() -> dict[str, Any]:
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            loaded: dict[str, Any] = json.load(f)
+            return loaded
     return {
         "poll_interval_seconds": 600,
         "data_dir": "data",
@@ -62,14 +67,15 @@ HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 OFFLINE_QUEUE_FILE = os.path.join(DATA_DIR, "offline_queue.json")
 
 
-def queue_offline_telemetry(payload):
+def queue_offline_telemetry(payload: dict[str, Any]) -> None:
     """Queues telemetry snapshot in local offline buffer if Supabase is temporarily unreachable."""
     queue = []
     if os.path.exists(OFFLINE_QUEUE_FILE):
         try:
             with open(OFFLINE_QUEUE_FILE, "r", encoding="utf-8") as f:
                 queue = json.load(f)
-        except Exception:
+        except (OSError, ValueError) as e:
+            logger.warning("[BUFFER] Unreadable offline queue, starting a new one: %s", e)
             queue = []
     queue.append(payload)
     if len(queue) > 500:
@@ -77,23 +83,25 @@ def queue_offline_telemetry(payload):
     try:
         atomic_write_json(OFFLINE_QUEUE_FILE, queue)
     except Exception as e:
-        print(f" [BUFFER] Error saving to offline queue: {e}")
+        logger.error("[BUFFER] Error saving to offline queue: %s", e)
 
 
-def flush_offline_queue(supabase_url, headers):
+def flush_offline_queue(supabase_url: str, headers: dict[str, str]) -> None:
     """Flushes queued offline telemetry snapshots to Supabase once connectivity is restored."""
     if not os.path.exists(OFFLINE_QUEUE_FILE):
         return
     try:
         with open(OFFLINE_QUEUE_FILE, "r", encoding="utf-8") as f:
             queue = json.load(f)
-    except Exception:
+    except (OSError, ValueError) as e:
+        logger.warning("[BUFFER] Could not read offline queue, skipping flush: %s", e)
         return
     if not queue:
         return
 
-    print(
-        f" [SUPABASE] Active connection detected! Sending {len(queue)} pending record(s) from offline queue..."
+    logger.info(
+        "[SUPABASE] Active connection detected! Sending %d pending record(s) from offline queue...",
+        len(queue),
     )
     remaining = []
     for idx, item in enumerate(queue):
@@ -102,29 +110,32 @@ def flush_offline_queue(supabase_url, headers):
                 f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=item, timeout=8
             )
             if resp.status_code not in [200, 201]:
+                logger.warning(
+                    "[SUPABASE] Offline queue replay stopped (Status %d)", resp.status_code
+                )
                 remaining.extend(queue[idx:])
                 break
-        except Exception:
+        except Exception as e:
+            logger.warning("[SUPABASE] Offline queue replay interrupted (%s)", type(e).__name__)
             remaining.extend(queue[idx:])
             break
 
     if remaining:
         try:
             atomic_write_json(OFFLINE_QUEUE_FILE, remaining)
-            print(f" [SUPABASE] {len(remaining)} record(s) retained in queue for next cycle.")
-        except Exception:
-            pass
+            logger.info("[SUPABASE] %d record(s) retained in queue for next cycle.", len(remaining))
+        except Exception as e:
+            logger.error("[BUFFER] Error saving remaining offline queue: %s", e)
     else:
         try:
             os.remove(OFFLINE_QUEUE_FILE)
-            print(" [SUPABASE] All offline records successfully synchronized!")
+            logger.info("[SUPABASE] All offline records successfully synchronized!")
         except OSError:
             atomic_write_json(OFFLINE_QUEUE_FILE, [])
 
 
-def get_last_known_energies():
+def get_last_known_energies() -> dict[str, dict[str, float]]:
     """Retrieves today's last known energy generation values in case an inverter is standby or offline at night."""
-    global _LATEST_IN_MEMORY
     try:
         data = _LATEST_IN_MEMORY
         if not data and os.path.exists(LATEST_FILE):
@@ -144,20 +155,21 @@ def get_last_known_energies():
                         "energy_total_kwh": inv.get("energy_total_kwh", 0.0),
                     }
             return last_known
-    except Exception:
-        pass
+    except Exception as e:
+        # A malformed snapshot only disables the night-time fallback; it must not stop the cycle
+        logger.warning("Could not read last known energies: %s", e)
     return {}
 
 
 STATUS_VAR_PATTERN = re.compile(r'var\s+([a-zA-Z0-9_]+)\s*=\s*["\']([^"\']*)["\'];')
 
 
-def parse_status_vars(html):
+def parse_status_vars(html: str | None) -> dict[str, str]:
     """Extracts JavaScript variables (`var name = "value";`) from logger status.html."""
     return dict(STATUS_VAR_PATTERN.findall(html)) if html else {}
 
 
-def resolve_logger_serial(logger_sn, status_vars):
+def resolve_logger_serial(logger_sn: int | str | None, status_vars: dict[str, str]) -> int | None:
     """Resolves numeric logger serial: configured logger_sn or status.html `cover_mid`."""
     try:
         return int(str(logger_sn or status_vars.get("cover_mid", "")).strip())
@@ -165,11 +177,13 @@ def resolve_logger_serial(logger_sn, status_vars):
         return None
 
 
-def parse_solis_status(html, regs=None, logger_sn=None):
+def parse_solis_status(
+    html: str | None, regs: list[int] | None = None, logger_sn: int | str | None = None
+) -> dict[str, Any]:
     """Extracts raw metrics from Solis LSW-3 logger status HTML and Modbus holding registers."""
     raw_vars = parse_status_vars(html)
 
-    def parse_float(val, default=0.0):
+    def parse_float(val: Any, default: float = 0.0) -> float:
         try:
             return float(str(val).strip())
         except (ValueError, AttributeError):
@@ -180,12 +194,12 @@ def parse_solis_status(html, regs=None, logger_sn=None):
     total_e = parse_float(raw_vars.get("webdata_total_e", "0"))
     sn_int = resolve_logger_serial(logger_sn, raw_vars)
 
-    temp_c = None
-    vgrid = None
-    igrid = None
-    fgrid = None
-    pv1_data = None
-    pv2_data = None
+    temp_c: float | None = None
+    vgrid: float | None = None
+    igrid: float | None = None
+    fgrid: float | None = None
+    pv1_data: dict[str, float] | None = None
+    pv2_data: dict[str, float] | None = None
 
     # Process Solarman V5 Modbus holding registers if available (holding registers 0..39)
     if regs and len(regs) >= 37:
@@ -243,7 +257,12 @@ def parse_solis_status(html, regs=None, logger_sn=None):
     }
 
 
-def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
+def fetch_solis_lsw3(
+    ip: str,
+    logger_sn: int | str | None = None,
+    auth_str: str = "admin:admin",
+    timeout: float = 4,
+) -> dict[str, Any]:
     """Queries Solis inverter via Solarman LSW-3 HTTP status.html and Solarman V5 Modbus."""
     url = f"http://{ip}/status.html"
     html = ""
@@ -252,8 +271,9 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
         req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
         with urllib.request.urlopen(req, timeout=timeout) as response:
             html = response.read().decode("utf-8", errors="ignore")
-    except Exception:
-        pass
+    except Exception as e:
+        # Expected every night when the logger powers down with the inverter, hence DEBUG
+        logger.debug("Solis status.html unavailable at %s: %s", ip, e)
 
     sn_int = resolve_logger_serial(logger_sn, parse_status_vars(html))
     regs = None
@@ -264,16 +284,19 @@ def fetch_solis_lsw3(ip, logger_sn=None, auth_str="admin:admin", timeout=4):
             )
             regs = m.read_holding_registers(0, 40)
             m.disconnect()
-        except Exception:
-            pass
+        except Exception as e:
+            # pysolarmanv5 raises several unrelated exception types; also expected at night
+            logger.debug("Solarman V5 registers unavailable at %s: %s", ip, e)
 
     return parse_solis_status(html, regs=regs, logger_sn=logger_sn)
 
 
-def normalize_goodwe_runtime(runtime_data, model_name="", serial_number="", firmware=""):
+def normalize_goodwe_runtime(
+    runtime_data: dict[str, Any], model_name: str = "", serial_number: str = "", firmware: str = ""
+) -> dict[str, Any]:
     """Normalizes raw metrics from GoodWe inverter into standard telemetry schema."""
 
-    def parse_f(k, default=0.0):
+    def parse_f(k: str, default: float = 0.0) -> float:
         val = runtime_data.get(k)
         if val is None:
             return default
@@ -323,7 +346,9 @@ def normalize_goodwe_runtime(runtime_data, model_name="", serial_number="", firm
     }
 
 
-async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
+async def fetch_goodwe_async(
+    ip: str, port: int = 502, family: str = "DT", timeout: int = 3, retries: int = 2
+) -> dict[str, Any]:
     """Queries GoodWe inverter via Modbus TCP (port 502) with UDP fallback (port 8899)."""
     if goodwe is None:
         raise ImportError("GoodWe library not available.")
@@ -331,7 +356,8 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
     inv = None
     try:
         inv = await goodwe.connect(ip, port=port, family=family, timeout=timeout, retries=retries)
-    except Exception:
+    except Exception as e:
+        logger.debug("GoodWe Modbus TCP connection to %s failed (%s), trying UDP", ip, e)
         # Fallback to UDP port 8899 if Modbus TCP is unavailable
         inv = await goodwe.connect(ip, timeout=timeout, retries=retries)
 
@@ -344,13 +370,13 @@ async def fetch_goodwe_async(ip, port=502, family="DT", timeout=3, retries=2):
     )
 
 
-def collect_inverter(inv_cfg):
+def collect_inverter(inv_cfg: dict[str, Any]) -> dict[str, Any] | None:
     """Executes telemetry polling for an individual inverter."""
     inv_id = inv_cfg.get("id")
     inv_name = inv_cfg.get("name", inv_id)
     inv_type = inv_cfg.get("type")
     brand = inv_cfg.get("brand", "Unknown")
-    ip = inv_cfg.get("ip")
+    ip = cast(str, inv_cfg.get("ip"))
 
     try:
         if inv_type == "solarman_lsw3":
@@ -370,6 +396,7 @@ def collect_inverter(inv_cfg):
             return {"id": inv_id, "name": inv_name, "brand": brand, "ip": ip, **res}
 
     except Exception as e:
+        logger.debug("Inverter %s unreachable: %s", inv_id, e)
         err_msg = str(e)
         return {
             "id": inv_id,
@@ -382,9 +409,10 @@ def collect_inverter(inv_cfg):
             "energy_total_kwh": 0.0,
             "error": err_msg,
         }
+    return None
 
 
-def push_to_supabase(plant_summary):
+def push_to_supabase(plant_summary: dict[str, Any]) -> None:
     """Pushes telemetry snapshot to Supabase cloud with Offline-First queue support."""
     supabase_url = ENV.get("SUPABASE_URL")
     service_key = ENV.get("SUPABASE_SERVICE_ROLE_KEY")
@@ -415,21 +443,23 @@ def push_to_supabase(plant_summary):
             f"{supabase_url}/rest/v1/solar_telemetry", headers=headers, json=payload, timeout=8
         )
         if resp.status_code in [200, 201]:
-            print(
-                f" [SUPABASE] Telemetry synchronized with cloud successfully! (Status {resp.status_code})"
+            logger.info(
+                "[SUPABASE] Telemetry synchronized with cloud successfully! (Status %d)",
+                resp.status_code,
             )
             flush_offline_queue(supabase_url, headers)
         else:
-            print(f" [SUPABASE] Sync warning (Status {resp.status_code})")
+            logger.warning("[SUPABASE] Sync warning (Status %d)", resp.status_code)
             queue_offline_telemetry(payload)
     except Exception as e:
-        print(
-            f" [SUPABASE] No cloud connection ({type(e).__name__}). Saving snapshot to local offline queue..."
+        logger.warning(
+            "[SUPABASE] No cloud connection (%s). Saving snapshot to local offline queue...",
+            type(e).__name__,
         )
         queue_offline_telemetry(payload)
 
 
-def run_collection_cycle():
+def run_collection_cycle() -> dict[str, Any]:
     """Executes a full polling cycle across all configured inverters and consolidates plant summary."""
     timestamp = datetime.now().astimezone().isoformat()
     inverters_results = []
@@ -438,9 +468,7 @@ def run_collection_cycle():
     total_today_kwh = 0.0
     total_lifetime_kwh = 0.0
 
-    print("\n=======================================================")
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] [SOLAR TELEMETRY] STARTING POLLING CYCLE")
-    print("=======================================================")
+    logger.info("[SOLAR TELEMETRY] Starting polling cycle")
 
     last_known = get_last_known_energies()
 
@@ -448,6 +476,11 @@ def run_collection_cycle():
         if not inv_cfg.get("enabled", True):
             continue
         res = collect_inverter(inv_cfg)
+        if res is None:
+            # Same outcome as before (the cycle fails and main() logs it), with a clearer message
+            raise ValueError(
+                f"Inverter {inv_cfg.get('id')!r} has unsupported type {inv_cfg.get('type')!r}"
+            )
         inv_id = res.get("id")
 
         # If inverter is offline (e.g. night/standby), reuse last known daily energy from today
@@ -468,8 +501,15 @@ def run_collection_cycle():
         status_tag = "[ONLINE]" if res.get("status") == "online" else "[OFFLINE]"
         temp_info = f" | {res['temperature_c']}°C" if res.get("temperature_c") else ""
         vgrid_info = f" | {int(res['vgrid'])}V" if res.get("vgrid") else ""
-        print(
-            f" {status_tag} {res.get('name')}: {p_w:7.1f} W | Today: {e_today:5.2f} kWh | Total: {e_tot:7.1f} kWh{temp_info}{vgrid_info}"
+        logger.info(
+            "%s %s: %7.1f W | Today: %5.2f kWh | Total: %7.1f kWh%s%s",
+            status_tag,
+            res.get("name"),
+            p_w,
+            e_today,
+            e_tot,
+            temp_info,
+            vgrid_info,
         )
 
     nominal_kw = config.get("nominal_capacity_kw", 16.0)
@@ -486,14 +526,17 @@ def run_collection_cycle():
         "inverters": inverters_results,
     }
 
-    print("-------------------------------------------------------")
-    print(
-        f" PLANT TOTAL    : {total_power_w:7.1f} W ({total_power_w / 1000.0:.2f} kW) | {plant_summary['capacity_factor_pct']}% capacity factor"
+    logger.info(
+        "PLANT TOTAL    : %7.1f W (%.2f kW) | %s%% capacity factor",
+        total_power_w,
+        total_power_w / 1000.0,
+        plant_summary["capacity_factor_pct"],
     )
-    print(
-        f" TODAY GENERATED: {total_today_kwh:7.2f} kWh | LIFETIME TOTAL : {total_lifetime_kwh:,.1f} kWh"
+    logger.info(
+        "TODAY GENERATED: %7.2f kWh | LIFETIME TOTAL : %s kWh",
+        total_today_kwh,
+        f"{total_lifetime_kwh:,.1f}",
     )
-    print("=======================================================")
 
     # Keep in-memory state for embedded REST API
     global _LATEST_IN_MEMORY, _HISTORY_IN_MEMORY
@@ -517,12 +560,12 @@ def run_collection_cycle():
         try:
             atomic_write_json(LATEST_FILE, plant_summary)
         except Exception as e:
-            print(f" [DISK] Error writing latest.json: {e}")
+            logger.error("[DISK] Error writing latest.json: %s", e)
 
         try:
             atomic_write_json(HISTORY_FILE, _HISTORY_IN_MEMORY)
         except Exception as e:
-            print(f" [DISK] Error writing history.json: {e}")
+            logger.error("[DISK] Error writing history.json: %s", e)
 
     # Automatically synchronize with Supabase (Cloud)
     push_to_supabase(plant_summary)
@@ -531,13 +574,13 @@ def run_collection_cycle():
 
 
 # In-memory cache to prevent SD card wear on Orange Pi
-_LATEST_IN_MEMORY = None
-_HISTORY_IN_MEMORY = []
+_LATEST_IN_MEMORY: dict[str, Any] | None = None
+_HISTORY_IN_MEMORY: list[dict[str, Any]] = []
 
 
 # Thread-Safe Embedded REST API
 class SolarApiHandler(BaseHTTPRequestHandler):
-    def _send_json(self, data, status=200):
+    def _send_json(self, data: Any, status: int = 200) -> None:
         try:
             body = json.dumps(data, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
@@ -548,7 +591,7 @@ class SolarApiHandler(BaseHTTPRequestHandler):
         except (ConnectionResetError, BrokenPipeError):
             pass
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if self.path == "/api/latest":
             if _LATEST_IN_MEMORY:
                 self._send_json(_LATEST_IN_MEMORY)
@@ -557,7 +600,8 @@ class SolarApiHandler(BaseHTTPRequestHandler):
                     with open(LATEST_FILE, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     self._send_json(data)
-                except Exception:
+                except (OSError, ValueError) as e:
+                    logger.warning("[API] Could not read %s: %s", LATEST_FILE, e)
                     self._send_json({"error": "Telemetry file read error"}, 500)
             else:
                 self._send_json({"error": "No telemetry data collected yet"}, 404)
@@ -570,7 +614,8 @@ class SolarApiHandler(BaseHTTPRequestHandler):
                     with open(HISTORY_FILE, "r", encoding="utf-8") as f:
                         data = json.load(f)
                     self._send_json(data)
-                except Exception:
+                except (OSError, ValueError) as e:
+                    logger.warning("[API] Could not read %s: %s", HISTORY_FILE, e)
                     self._send_json([])
             else:
                 self._send_json([])
@@ -588,11 +633,12 @@ class SolarApiHandler(BaseHTTPRequestHandler):
                 404,
             )
 
-    def log_message(self, format, *args):
-        pass
+    def log_message(self, format: str, *args: Any) -> None:
+        # Access log goes to DEBUG instead of stderr, to keep the journal quiet
+        logger.debug("[API] " + format, *args)
 
 
-def start_http_server(host="127.0.0.1", port=5000):
+def start_http_server(host: str = "127.0.0.1", port: int = 5000) -> None:
     server = None
     selected_port = port
     for p in [port, port + 1, port + 2]:
@@ -604,22 +650,26 @@ def start_http_server(host="127.0.0.1", port=5000):
             if getattr(e, "errno", None) == 10048 or "Address already in use" in str(e):
                 continue
             else:
-                print(f" [!] Warning starting HTTP server on {host}:{p}: {e}")
+                logger.warning("[API] Could not start HTTP server on %s:%d: %s", host, p, e)
                 return
 
     if server:
-        print(f" [*] Local REST API started at: http://{host}:{selected_port}/api/latest")
+        logger.info("[API] Local REST API started at: http://%s:%d/api/latest", host, selected_port)
         try:
             server.serve_forever()
         except Exception:
-            pass
+            # The API is optional: the collection loop keeps running without it
+            logger.exception("[API] Local REST API stopped unexpectedly")
     else:
-        print(
-            f" [!] Warning: Ports {port} to {port + 2} are occupied. Collector will continue running normally."
+        logger.warning(
+            "[API] Ports %d to %d are occupied. Collector will continue running normally.",
+            port,
+            port + 2,
         )
 
 
-def main():
+def main() -> None:
+    configure_logging(ENV)
     api_cfg = config.get("api", {})
     if isinstance(api_cfg, dict):
         api_host = api_cfg.get("host", "127.0.0.1")
@@ -636,17 +686,17 @@ def main():
 
     server_thread = Thread(target=start_http_server, args=(api_host, api_port), daemon=True)
     server_thread.start()
-    print(f"[*] Configured polling interval: {poll_sec} seconds ({poll_sec / 60:.1f} min)")
+    logger.info("Configured polling interval: %s seconds (%.1f min)", poll_sec, poll_sec / 60)
 
     try:
         while True:
             try:
                 run_collection_cycle()
-            except Exception as e:
-                print(f" [!] Error in polling cycle: {e}")
+            except Exception:
+                logger.exception("Error in polling cycle")
             time.sleep(poll_sec)
     except KeyboardInterrupt:
-        print("\n[*] Collector cleanly stopped by user (Ctrl+C).")
+        logger.info("Collector cleanly stopped by user (Ctrl+C).")
         sys.exit(0)
 
 
