@@ -1,6 +1,6 @@
 # 2. Supabase with Row Level Security (RLS) without an Intermediate API Layer
 
-* **Status:** Accepted
+* **Status:** Accepted, amended by [ADR 0006](0006-email-allowlist-enforced-in-rls.md)
 * **Date:** 2026-09-25 (retroactive record)
 * **Decision Makers:** Diego Hahn
 
@@ -25,6 +25,8 @@ We adopted Supabase (managed PostgreSQL) with Row Level Security (RLS) as our un
    - The dashboard consumes weather forecasts from Open-Meteo and recommendations from the Gemini AI Energy Advisor. To prevent API cost spikes and rate limit exhaustion, responses are cached by date.
    - Vercel serverless functions execute under the identity of the logged-in user (`authenticated`). To persist daily cache entries without exposing the privileged `service_role` key in the Vercel cloud environment, we grant write permissions for the `authenticated` role on `ai_advisor_daily` and `daily_weather`.
    - **Accepted risk:** The `authenticated` role can perform INSERT/UPDATE queries on these cache tables for any date. This risk is accepted because public user signups are disabled in Supabase Auth, and only trusted emails explicitly specified in `ALLOWED_EMAILS` can establish authenticated sessions.
+
+> **Update (2026-10-09):** the assumption above did not hold: with Google sign-in enabled, any Google account can obtain an `authenticated` session, and `ALLOWED_EMAILS` is only checked by the Next.js middleware, not by the Data API. [ADR 0006](0006-email-allowlist-enforced-in-rls.md) moves the allowlist into the database (`public.allowed_users` + `public.is_allowed_user()`), and every `authenticated` policy now requires it instead of `USING (true)`.
 
 ## Consequences
 
