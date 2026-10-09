@@ -6,6 +6,7 @@ export interface QuotaState {
   date: string; // YYYY-MM-DD (Brasília timezone)
   primary_count: number; // calls to primary model configured in GEMINI_MODEL
   total_calls: number;
+  last_call_at: string | null; // ISO timestamp of the last successful generation on this date
 }
 
 export interface CachedAdvisorData {
@@ -31,6 +32,30 @@ export interface AdvisorResult {
       icon: "flashlight" | "temp" | "compass" | "shield" | "dollar" | "tools" | string;
     }>;
   };
+}
+
+type Period = AdvisorResult["daily"];
+
+function isPeriod(value: unknown): value is Period {
+  if (!value || typeof value !== "object") return false;
+  const period = value as Record<string, unknown>;
+  if (typeof period.summary !== "string" || period.summary.trim() === "") return false;
+  if (!Array.isArray(period.recommendations) || period.recommendations.length === 0) return false;
+  return period.recommendations.every((rec) => {
+    if (!rec || typeof rec !== "object") return false;
+    const r = rec as Record<string, unknown>;
+    return typeof r.title === "string" && typeof r.description === "string" && typeof r.icon === "string";
+  });
+}
+
+/** Parses the model output; returns null when it is not valid JSON in the AdvisorResult shape. */
+export function parseAdvisorResult(rawText: string): AdvisorResult | null {
+  try {
+    const value = JSON.parse(rawText) as { daily?: unknown; monthly?: unknown } | null;
+    return value && isPeriod(value.daily) && isPeriod(value.monthly) ? (value as AdvisorResult) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The `analysis` column holds one cached analysis per locale, generated on the same Brasília date. */
@@ -66,12 +91,17 @@ export async function getQuotaState(): Promise<QuotaState> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from(TABLE)
-    .select("primary_count, total_calls")
+    .select("primary_count, total_calls, last_call_at")
     .eq("date", date)
     .maybeSingle();
 
   if (error) console.error("Error reading AI Advisor quota:", error);
-  return { date, primary_count: data?.primary_count ?? 0, total_calls: data?.total_calls ?? 0 };
+  return {
+    date,
+    primary_count: data?.primary_count ?? 0,
+    total_calls: data?.total_calls ?? 0,
+    last_call_at: data?.last_call_at ?? null,
+  };
 }
 
 /** Records a successful Gemini call and returns the updated quota state. */
@@ -79,6 +109,8 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
   const date = getBrasiliaDate();
   const primaryModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const isPrimary = isPrimaryModel(modelUsed, primaryModel);
+
+  const lastCallAt = new Date().toISOString();
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -95,10 +127,9 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
       date,
       total_calls: current.total_calls + 1,
       primary_count: current.primary_count + (isPrimary ? 1 : 0),
+      last_call_at: lastCallAt,
     };
-    await supabase
-      .from(TABLE)
-      .upsert({ ...next, last_call_at: new Date().toISOString() }, { onConflict: "date" });
+    await supabase.from(TABLE).upsert(next, { onConflict: "date" });
     return next;
   }
 
@@ -107,6 +138,7 @@ export async function incrementQuota(modelUsed: string): Promise<QuotaState> {
     date,
     primary_count: row?.primary_count ?? 1,
     total_calls: row?.total_calls ?? 1,
+    last_call_at: lastCallAt,
   };
 }
 

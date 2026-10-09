@@ -47,6 +47,8 @@ export function AiEnergyAdvisor() {
   const [data, setData] = useState<UnifiedAdvisorData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // False when the server asked to wait (cooldown), so the error does not suggest clicking again
+  const [retryable, setRetryable] = useState(true);
   const mounted = useIsClient();
 
   useEffect(() => {
@@ -93,9 +95,11 @@ export function AiEnergyAdvisor() {
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
+        setRetryable(res.status !== 429);
         throw new Error(errJson.error || "Failed to regenerate the analysis");
       }
       const json: UnifiedAdvisorData = await res.json();
+      setRetryable(true);
       setData(json);
     } catch (err) {
       console.error("Failed to regenerate the AI advisor:", err);
@@ -235,7 +239,7 @@ export function AiEnergyAdvisor() {
       )}
       {error && activePeriodData && (
         <div className="mt-2 text-[11px] text-rose-500" role="alert">
-          {error}. {t.aiAdvisor.retryHint}
+          {error}{retryable ? `. ${t.aiAdvisor.retryHint}` : ""}
         </div>
       )}
 
@@ -249,7 +253,7 @@ export function AiEnergyAdvisor() {
           </div>
         ) : error && !activePeriodData ? (
           <p className="text-xs text-rose-500">
-            {error}. {t.aiAdvisor.retryHint}
+            {error}{retryable ? `. ${t.aiAdvisor.retryHint}` : ""}
           </p>
         ) : activePeriodData ? (
           <p className="text-xs sm:text-sm leading-relaxed text-gray-800 dark:text-gray-200">

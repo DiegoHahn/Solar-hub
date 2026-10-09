@@ -4,7 +4,8 @@ import {
   incrementQuota,
   getAdvisorCache,
   saveAdvisorCache,
-  AdvisorResult,
+  parseAdvisorResult,
+  type AdvisorResult,
 } from "@/lib/aiQuota";
 import {
   getLatestTelemetry,
@@ -26,6 +27,9 @@ import { en } from "@/i18n/locales/en";
 import { getDictionary } from "@/i18n/dictionaries";
 
 const getMaxPrimaryQuota = () => parseInt(process.env.GEMINI_PRIMARY_MAX_QUOTA || "4", 10);
+
+/** Minimum interval between forced regenerations, so repeated clicks do not spend model quota. */
+const FORCE_REGENERATE_COOLDOWN_MS = 10 * 60 * 1000;
 
 const errorMessage = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
@@ -99,6 +103,17 @@ export async function POST(req: Request) {
   if (!force) {
     const cachedResponse = await respondFromCache(locale);
     if (cachedResponse) return cachedResponse;
+    return handleGenerate(locale);
+  }
+
+  const quota = await getQuotaState();
+  const sinceLastMs = quota.last_call_at ? Date.now() - new Date(quota.last_call_at).getTime() : Infinity;
+  if (sinceLastMs < FORCE_REGENERATE_COOLDOWN_MS) {
+    const minutes = Math.ceil((FORCE_REGENERATE_COOLDOWN_MS - sinceLastMs) / 60000);
+    return NextResponse.json(
+      { error: getDictionary(locale).aiAdvisor.cooldown.replace("{minutes}", String(minutes)), cooldown: true },
+      { status: 429 },
+    );
   }
 
   return handleGenerate(locale);
@@ -295,7 +310,7 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
 }`;
 
     let lastError: unknown = null;
-    let rawText: string | null = null;
+    let parsed: AdvisorResult | null = null;
     let modelSuccessfullyUsed = candidateModels[0] || configuredModel;
 
     for (const modelToTry of candidateModels) {
@@ -324,12 +339,16 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
         const elapsed = ((Date.now() - modelStart) / 1000).toFixed(1);
         if (res.ok) {
           const data = await res.json();
-          rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
+          const rawText: string | undefined = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const candidate = rawText ? parseAdvisorResult(rawText) : null;
+          if (candidate) {
+            parsed = candidate;
             modelSuccessfullyUsed = modelToTry;
             console.log(`[AI Advisor] Success with ${modelToTry} in ${elapsed}s!`);
             break;
           }
+          lastError = new Error(`Model ${modelToTry} returned an unexpected response shape`);
+          console.warn(`[AI Advisor] ${modelToTry} returned an unexpected response shape in ${elapsed}s. Trying next...`);
         } else {
           const errText = await res.text();
           lastError = new Error(`Model ${modelToTry} returned ${res.status}: ${errText}`);
@@ -342,7 +361,7 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
       }
     }
 
-    if (!rawText) {
+    if (!parsed) {
       console.error(`[AI Advisor] All models failed. Last error: ${errorMessage(lastError)}`);
       const cached = await getAdvisorCache(locale);
       if (cached) {
@@ -363,8 +382,6 @@ Return ONLY the following strict JSON (no \`\`\`json markdown fences):
         { status: 503 },
       );
     }
-
-    const parsed: AdvisorResult = JSON.parse(rawText);
 
     // Increment registered quota
     const updatedQuota = await incrementQuota(modelSuccessfullyUsed);
