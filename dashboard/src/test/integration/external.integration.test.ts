@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getIcaraWeatherData } from "@/lib/weatherData";
+import { getPlantWeatherData } from "@/lib/weatherData";
 
 describe("External API Integration — Real Open-Meteo", () => {
   const QUERY =
@@ -40,8 +40,8 @@ describe("External API Integration — Real Open-Meteo", () => {
     expect(data.daily.shortwave_radiation_sum[0]).not.toBeNull();
   });
 
-  it("getIcaraWeatherData executes end-to-end returning plant weather history", async () => {
-    const weather = await getIcaraWeatherData();
+  it("getPlantWeatherData executes end-to-end returning plant weather history", async () => {
+    const weather = await getPlantWeatherData();
 
     expect(Array.isArray(weather)).toBe(true);
     expect(weather.length).toBeGreaterThanOrEqual(80);

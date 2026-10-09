@@ -226,7 +226,7 @@ export async function getDemoYearlyGeneration(locale: Locale): Promise<Generatio
  * Each demo day reuses the weather observed on the same source date as its generation fixture
  * (see getDemoGenerationByDay), so irradiation and kWh stay consistent.
  */
-export async function getDemoIcaraWeatherData(): Promise<DailyWeather[]> {
+export async function getDemoPlantWeatherData(): Promise<DailyWeather[]> {
   const now = getDemoNow();
   const todayIso = toBrasiliaIsoDate(now);
   const weatherBySourceDate = new Map(

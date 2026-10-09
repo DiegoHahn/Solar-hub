@@ -32,7 +32,7 @@ export default async function Home() {
     ds.getLatestTelemetry(),
     ds.getLatestUtilityData(),
     ds.getTodaySunCurve(),
-    ds.getIcaraWeatherData(),
+    ds.getPlantWeatherData(),
   ]);
 
   const creditBalanceKwh = getGeneratorUc(utilityData)?.geracao_distribuida?.ValorProximoSaldoVencer ?? null;

@@ -42,7 +42,7 @@ jobs:
       - run: npm run build
 
   collector:
-    name: Python Collector (lint, format, mypy, pytest)
+    name: Python Collector (lint, format, pytest)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -146,10 +146,16 @@ jobs:
   semgrep:
     name: Semgrep (static code analysis)
     runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v7
+
+      # Installed from PyPI instead of running in the semgrep/semgrep container,
+      # so a Docker Hub pull failure cannot block every pull request.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - run: pip install semgrep==1.180.0
 
       - run: >-
           semgrep scan --error --metrics=off

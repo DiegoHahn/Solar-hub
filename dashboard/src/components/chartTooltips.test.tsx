@@ -4,7 +4,7 @@ import { SunCurveTooltip } from "./SunCurveChart";
 import { InverterCurveTooltip } from "./InverterCurveChart";
 import { EnergyBalanceTooltip } from "./EnergyBalanceChart";
 import { GenerationTooltip } from "./GenerationBarChart";
-import { WeatherTooltip } from "./WeatherEfficiencySection";
+import { WeatherTooltip } from "./weather-efficiency/WeatherTooltip";
 import { buildSunCurveGrid, normalizeUnidadeConsumidora, type SunCurveRow } from "@/lib/queries";
 import { parseWmoCode, type DailyWeather } from "@/lib/weather";
 import { ptBR } from "@/i18n/locales/pt-BR";
