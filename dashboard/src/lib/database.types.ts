@@ -44,6 +44,21 @@ export type Database = {
         }
         Relationships: []
       }
+      allowed_users: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       daily_weather: {
         Row: {
           date: string
@@ -260,6 +275,7 @@ export type Database = {
           total_calls: number
         }[]
       }
+      is_allowed_user: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
