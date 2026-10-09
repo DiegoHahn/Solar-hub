@@ -13,6 +13,10 @@ LANGUAGE plpgsql
 SECURITY INVOKER
 SET search_path = ''
 AS $$
+DECLARE
+    -- Day boundaries as instants, so the range uses the index on recorded_at.
+    v_start timestamptz := p_date::timestamp AT TIME ZONE 'America/Sao_Paulo';
+    v_end timestamptz := (p_date + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo';
 BEGIN
     INSERT INTO public.inverter_daily_history (date, inverter_id, inverter_name, brand, kwh, is_estimated, source)
     SELECT
@@ -25,7 +29,7 @@ BEGIN
         'telemetry'
     FROM public.solar_telemetry t
     CROSS JOIN LATERAL jsonb_array_elements(t.inverters_data) inv
-    WHERE (t.recorded_at AT TIME ZONE 'America/Sao_Paulo')::date = p_date
+    WHERE t.recorded_at >= v_start AND t.recorded_at < v_end
       AND inv->>'id' IS NOT NULL
       AND inv->>'energy_today_kwh' IS NOT NULL
     GROUP BY inv->>'id'
@@ -41,7 +45,7 @@ BEGIN
     INSERT INTO public.inverter_daily_history (date, inverter_id, inverter_name, brand, kwh, is_estimated, source)
     SELECT p_date, 'plant_total', 'Plant total', 'combined', max(total_today_kwh), false, 'telemetry'
     FROM public.solar_telemetry
-    WHERE (recorded_at AT TIME ZONE 'America/Sao_Paulo')::date = p_date
+    WHERE recorded_at >= v_start AND recorded_at < v_end
     HAVING count(*) > 0
     ON CONFLICT (date, inverter_id) DO UPDATE
         SET kwh = EXCLUDED.kwh,
@@ -103,7 +107,7 @@ BEGIN
 END;
 $$;
 
--- Rolls up the last three days (Brasília) so readings the collector sends late from its offline queue
+-- Rolls up the last seven days (Brasília) so readings the collector sends late from its offline queue
 -- are included, refreshes the affected months and purges raw rows outside the retention window.
 CREATE OR REPLACE FUNCTION public.run_telemetry_maintenance()
 RETURNS void
@@ -116,12 +120,12 @@ DECLARE
     v_day DATE;
     v_month TEXT;
 BEGIN
-    FOR v_day IN SELECT generate_series(v_yesterday - 2, v_yesterday, interval '1 day')::date LOOP
+    FOR v_day IN SELECT generate_series(v_yesterday - 6, v_yesterday, interval '1 day')::date LOOP
         PERFORM public.rollup_daily_generation(v_day);
     END LOOP;
 
     FOR v_month IN SELECT DISTINCT to_char(d, 'YYYY-MM')
-                   FROM generate_series(v_yesterday - 2, v_yesterday, interval '1 day') d LOOP
+                   FROM generate_series(v_yesterday - 6, v_yesterday, interval '1 day') d LOOP
         PERFORM public.rollup_monthly_generation(v_month);
     END LOOP;
 

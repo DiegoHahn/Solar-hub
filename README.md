@@ -314,7 +314,7 @@ An automated heartbeat monitoring pipeline prevents silent failures in solar col
   * **Solar Telemetry (`solar_telemetry`):** Alerts if the latest telemetry timestamp is older than 30 minutes during active sunlight hours. Nighttime hours automatically enter standby to prevent false positives.
   * **Utility Data (`utility_data`):** Alerts if the daily net metering ledger sync is delayed by more than 26 hours.
 * **Immediate Alerting:** Any stale telemetry status triggers a job failure on GitHub Actions, delivering email alerts to the repository owner without reliance on external paid monitoring services.
-* **Roll-up and Retention:** A nightly `pg_cron` job (03:10 BRT) consolidates the last three days of raw telemetry into `inverter_daily_history` and `inverter_monthly_history`, then deletes raw readings older than 90 days. The dashboard reads the history tables first, so older days keep their totals after the raw rows are gone.
+* **Roll-up and Retention:** A nightly `pg_cron` job (03:10 BRT) consolidates the last seven days of raw telemetry into `inverter_daily_history` and `inverter_monthly_history`, then deletes raw readings older than 90 days. The dashboard reads the history tables first, so older days keep their totals after the raw rows are gone.
 
 ---
 
