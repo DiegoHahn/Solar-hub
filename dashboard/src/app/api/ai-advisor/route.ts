@@ -12,7 +12,7 @@ import {
   getLatestUtilityData,
   getTodaySunCurve,
 } from "@/lib/queries";
-import { getIcaraWeatherData } from "@/lib/weatherData";
+import { getPlantWeatherData } from "@/lib/weatherData";
 import { getGeneratorUc, getTariffPerKwh } from "@/lib/utility";
 import { brasiliaClock } from "@/lib/dates";
 import { requireUser } from "@/lib/authServer";
@@ -159,7 +159,7 @@ async function generate(locale: Locale): Promise<NextResponse> {
       getLatestTelemetry().catch(() => null),
       getLatestUtilityData().catch(() => null),
       getTodaySunCurve().catch(() => []),
-      getIcaraWeatherData().catch(() => []),
+      getPlantWeatherData().catch(() => []),
     ]);
 
     const uc = getGeneratorUc(utilityData);
