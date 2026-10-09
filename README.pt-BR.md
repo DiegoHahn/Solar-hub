@@ -317,6 +317,7 @@ O pipeline inclui vigilância contínua para assegurar que a geração solar e a
   * **Telemetria Solar (`solar_telemetry`):** Alerta se o registro mais recente tiver mais de 30 minutos durante o dia. No período noturno, a verificação entra em repouso automaticamente, evitando falsos alertas enquanto os inversores estão desligados.
   * **Concessionária (`utility_data`):** Alerta se a sincronização diária de faturas e balanço energético tiver mais de 26 horas de atraso.
 * **Notificação nativa:** Qualquer atraso dispara falha no job do GitHub Actions, gerando notificação imediata por e-mail ao proprietário do repositório sem necessidade de serviços externos.
+* **Consolidação e retenção:** Um job `pg_cron` noturno (03:10 de Brasília) consolida os últimos sete dias de telemetria bruta em `inverter_daily_history` e `inverter_monthly_history` e depois apaga as leituras brutas com mais de 90 dias. O dashboard lê primeiro as tabelas de histórico, então os dias antigos mantêm seus totais depois que as leituras brutas saem.
 * **Execução sob demanda:** O script pode ser disparado localmente com `npm run telemetry:check` a partir do diretório `dashboard/`.
 
 ---
