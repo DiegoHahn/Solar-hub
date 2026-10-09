@@ -6,6 +6,7 @@ import {
   incrementQuota,
   getAdvisorCache,
   saveAdvisorCache,
+  parseAdvisorResult,
   type AdvisorResult,
 } from "./aiQuota";
 
@@ -66,6 +67,42 @@ describe("isPrimaryModel", () => {
   });
 });
 
+describe("parseAdvisorResult", () => {
+  const recommendation = { title: "Title", description: "Description", icon: "tools" };
+  const valid = {
+    daily: { summary: "Daily summary", recommendations: [recommendation] },
+    monthly: { summary: "Monthly summary", recommendations: [recommendation] },
+  };
+
+  it("returns the analysis when both periods are complete", () => {
+    expect(parseAdvisorResult(JSON.stringify(valid))).toEqual(valid);
+  });
+
+  it("returns null without the monthly period", () => {
+    expect(parseAdvisorResult(JSON.stringify({ daily: valid.daily }))).toBeNull();
+  });
+
+  it("returns null when a period has no recommendations", () => {
+    const value = { ...valid, daily: { ...valid.daily, recommendations: [] } };
+    expect(parseAdvisorResult(JSON.stringify(value))).toBeNull();
+  });
+
+  it("returns null when a summary is empty", () => {
+    const value = { ...valid, monthly: { ...valid.monthly, summary: "  " } };
+    expect(parseAdvisorResult(JSON.stringify(value))).toBeNull();
+  });
+
+  it("returns null when a recommendation misses a field", () => {
+    const value = { ...valid, daily: { ...valid.daily, recommendations: [{ title: "Only title" }] } };
+    expect(parseAdvisorResult(JSON.stringify(value))).toBeNull();
+  });
+
+  it("returns null for text that is not JSON", () => {
+    expect(parseAdvisorResult("Sorry, I cannot help with that.")).toBeNull();
+    expect(parseAdvisorResult("null")).toBeNull();
+  });
+});
+
 describe("database access failures", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -88,6 +125,21 @@ describe("database access failures", () => {
     const state = await getQuotaState();
     expect(state.primary_count).toBe(0);
     expect(state.total_calls).toBe(0);
+    expect(state.last_call_at).toBeNull();
+  });
+
+  it("returns the time of the last call recorded for the day", async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { primary_count: 2, total_calls: 3, last_call_at: "2026-10-09T12:00:00+00:00" },
+        error: null,
+      }),
+    });
+
+    const state = await getQuotaState();
+    expect(state).toMatchObject({ primary_count: 2, total_calls: 3, last_call_at: "2026-10-09T12:00:00+00:00" });
   });
 
   it("applies fallback when RPC fails to increment quota", async () => {
@@ -116,7 +168,10 @@ describe("database access failures", () => {
     const state = await incrementQuota("gemini-3.8-flash");
     expect(state.total_calls).toBe(2);
     expect(state.primary_count).toBe(2);
-    expect(mockUpsert).toHaveBeenCalled();
+    expect(state.last_call_at).toEqual(expect.any(String));
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ last_call_at: state.last_call_at }), {
+      onConflict: "date",
+    });
   });
 
   it("treats advisor cache as absent when read fails", async () => {

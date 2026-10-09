@@ -407,6 +407,7 @@ export interface Translations {
     defaultError: string;
     retryHint: string;
     unavailable: string;
+    cooldown: string;
     showingLastAnalysis: string;
     primaryQuotaTooltip: string;
     configuredModelTooltip: string;

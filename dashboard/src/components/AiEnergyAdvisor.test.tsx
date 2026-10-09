@@ -146,4 +146,25 @@ describe("AiEnergyAdvisor", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(ptBR.aiAdvisor.unavailable);
     expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
   });
+
+  it("shows the cooldown message without the retry hint when regeneration is rate limited", async () => {
+    const cooldownMessage = ptBR.aiAdvisor.cooldown.replace("{minutes}", "7");
+    server.use(
+      http.post("/api/ai-advisor", () =>
+        HttpResponse.json({ error: cooldownMessage, cooldown: true }, { status: 429 }),
+      ),
+    );
+
+    render(<AiEnergyAdvisor />);
+    await waitFor(() => {
+      expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Regerar/ }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(cooldownMessage);
+    expect(alert).not.toHaveTextContent(ptBR.aiAdvisor.retryHint);
+    expect(screen.getByText("Geração prevista de 62 kWh para hoje com sol pleno.")).toBeInTheDocument();
+  });
 });
