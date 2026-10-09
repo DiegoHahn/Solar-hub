@@ -163,8 +163,8 @@ describe.skipIf(!hasEnv)("Supabase Integration — Production & Real RLS", () =>
     it("getMonthlyGeneration and getMultiYearHistory return sorted time series", async () => {
       const [monthly, multi, yearly] = await Promise.all([
         getMonthlyGeneration(),
-        getMultiYearHistory(),
-        getYearlyGeneration(),
+        getMultiYearHistory("en"),
+        getYearlyGeneration("en"),
       ]);
 
       expect(Array.isArray(monthly)).toBe(true);

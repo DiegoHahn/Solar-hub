@@ -7,7 +7,7 @@ import {
   RiPercentLine,
   RiPulseLine,
 } from "@remixicon/react";
-import { readNumericSensor } from "@/lib/inverter";
+import { conversionEfficiencyPct, readNumericSensor } from "@/lib/inverter";
 import { getDataSource } from "@/lib/dataSource";
 import { getServerI18n } from "@/i18n/server";
 import { formatNumber } from "@/i18n/formatters";
@@ -20,7 +20,7 @@ export default async function PlacasPage() {
     ds.getLatestTelemetry(),
     ds.getTodaySunCurve(),
     ds.getMonthlyGeneration(),
-    ds.getMultiYearHistory(),
+    ds.getMultiYearHistory(locale),
   ]);
 
   const inverters = telemetry?.inverters_data ?? [];
@@ -34,8 +34,7 @@ export default async function PlacasPage() {
   }, 0);
 
   const totalAcW = telemetry?.total_power_w ?? 0;
-  const overallEfficiency =
-    totalDcW > 0 ? Math.min(99.5, Math.round((totalAcW / totalDcW) * 1000) / 10) : null;
+  const overallEfficiency = conversionEfficiencyPct(totalAcW, totalDcW);
 
   const validVoltages = inverters
     .map((i) => i.vgrid)
@@ -49,9 +48,7 @@ export default async function PlacasPage() {
     .map((i) => readNumericSensor(i, "power_factor"))
     .filter((pf): pf is number => pf !== null && pf > 0);
   const avgPF =
-    validPF.length > 0
-      ? (validPF.reduce((a, b) => a + b, 0) / validPF.length).toFixed(3)
-      : "0.999";
+    validPF.length > 0 ? (validPF.reduce((a, b) => a + b, 0) / validPF.length).toFixed(3) : null;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 md:py-8">
@@ -61,11 +58,11 @@ export default async function PlacasPage() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
             {t.inverters.title}
           </h1>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {telemetry
-              ? `${onlineCount} / ${telemetry.inverters_count} ${t.inverters.operatingSummary}`
-              : "Solis 6kW + 2x GoodWe 5kW"}
-          </p>
+          {telemetry && (
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              {`${onlineCount} / ${telemetry.inverters_count} ${t.inverters.operatingSummary}`}
+            </p>
+          )}
         </div>
       </div>
 
@@ -110,7 +107,7 @@ export default async function PlacasPage() {
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">
                   {formatNumber(totalDcW / 1000, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
-                  <span className="text-xs font-normal text-gray-400">kW CC</span>
+                  <span className="text-xs font-normal text-gray-400">{t.inverters.dcUnit}</span>
                 </p>
                 <p className="mt-0.5 text-[11px] text-gray-400">{t.inverters.activeStrings}</p>
               </Card>
@@ -121,7 +118,7 @@ export default async function PlacasPage() {
                   {t.inverters.dcToAcYield}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {overallEfficiency ? `${overallEfficiency}%` : "—"}
+                  {overallEfficiency !== null ? `${overallEfficiency}%` : "—"}
                 </p>
                 <p className="mt-0.5 text-[11px] text-gray-400">{t.inverters.conversionEfficiency}</p>
               </Card>
@@ -143,9 +140,11 @@ export default async function PlacasPage() {
                   {t.inverters.powerFactor}
                 </span>
                 <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100">
-                  {avgPF}
+                  {avgPF ?? "—"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-emerald-500">{t.inverters.optimalQuality}</p>
+                {avgPF !== null && (
+                  <p className="mt-0.5 text-[11px] text-emerald-500">{t.inverters.optimalQuality}</p>
+                )}
               </Card>
             </div>
           </div>

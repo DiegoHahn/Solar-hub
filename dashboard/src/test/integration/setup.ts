@@ -28,7 +28,7 @@ export async function getAuthenticatedTestClient(): Promise<SupabaseClient<Datab
   if (email && password) {
     const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) {
-      console.error("Falha ao logar cliente de teste nos testes de integração:", error.message);
+      console.error("Failed to sign in the test client for the integration tests:", error.message);
     }
   }
   cachedAuthenticatedClient = client;

@@ -106,7 +106,7 @@ describe("demo/queries", () => {
 
   describe("getDemoMultiYearHistory, getDemoMonthlyGeneration and getDemoYearlyGeneration", () => {
     it("returns multi-year history adjusted to the current year", async () => {
-      const history = await getDemoMultiYearHistory();
+      const history = await getDemoMultiYearHistory("en");
       expect(history).toHaveProperty("yearsTotals");
       expect(history).toHaveProperty("last12Months");
       expect(history.last12Months.length).toBe(12);
@@ -118,10 +118,13 @@ describe("demo/queries", () => {
 
     it("returns monthly and yearly generation from getDemoMonthlyGeneration and getDemoYearlyGeneration", async () => {
       const monthly = await getDemoMonthlyGeneration();
-      expect(monthly.length).toBe(12);
+      expect(monthly.length).toBeGreaterThan(0);
+      for (const point of monthly) expect(point.label).toMatch(/^\d{2}\/\d{2}$/);
 
-      const yearly = await getDemoYearlyGeneration();
-      expect(yearly.length).toBeGreaterThan(0);
+      const yearly = await getDemoYearlyGeneration("en");
+      expect(yearly).toHaveLength(12);
+      expect(yearly.every((p) => /^[A-Z][a-z]{2}\/\d{2}$/.test(p.label))).toBe(true);
+      expect(yearly.some((p) => ["Fev", "Abr", "Ago", "Set", "Out", "Dez"].includes(p.label.slice(0, 3)))).toBe(false);
     });
   });
 

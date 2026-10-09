@@ -80,10 +80,10 @@ export interface TarifaReferencia {
 
 export interface GeracaoDistribuida {
   CodigoUc?: number;
-  PotenciaInstalada: number;
-  PercentualFatUcGeradora: number;
+  PotenciaInstalada?: number;
+  PercentualFatUcGeradora?: number;
   ProximoSaldoVencer?: string;
-  ValorProximoSaldoVencer: number;
+  ValorProximoSaldoVencer?: number;
 }
 
 export interface HistoricoConsumoMes {
