@@ -25,7 +25,7 @@ export interface DataSource {
   getMonthlyGeneration(): Promise<GenerationPoint[]>;
   getMultiYearHistory(locale: Locale): Promise<MultiYearHistory>;
   getYearlyGeneration(locale: Locale): Promise<GenerationPoint[]>;
-  getIcaraWeatherData(): Promise<DailyWeather[]>;
+  getPlantWeatherData(): Promise<DailyWeather[]>;
 }
 
 export async function isDemoMode(): Promise<boolean> {
@@ -67,7 +67,7 @@ export async function getDataSource(): Promise<DataSource> {
       getMonthlyGeneration: demoQueries.getDemoMonthlyGeneration,
       getMultiYearHistory: demoQueries.getDemoMultiYearHistory,
       getYearlyGeneration: demoQueries.getDemoYearlyGeneration,
-      getIcaraWeatherData: demoQueries.getDemoIcaraWeatherData,
+      getPlantWeatherData: demoQueries.getDemoPlantWeatherData,
     };
   }
 
@@ -80,7 +80,7 @@ export async function getDataSource(): Promise<DataSource> {
     getMonthlyGeneration: realQueries.getMonthlyGeneration,
     getMultiYearHistory: realQueries.getMultiYearHistory,
     getYearlyGeneration: realQueries.getYearlyGeneration,
-    getIcaraWeatherData: realWeather.getIcaraWeatherData,
+    getPlantWeatherData: realWeather.getPlantWeatherData,
   };
 }
 

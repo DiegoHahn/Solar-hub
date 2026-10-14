@@ -63,8 +63,11 @@ jobs:
             collector/requirements-dev.txt
 
       - run: pip install -r requirements.txt -r requirements-dev.txt
+      # Builds and installs the collector package itself; its dependencies come from the pins above
+      - run: pip install --no-deps -e .
       - run: ruff check .
       - run: ruff format --check .
+      - run: mypy
       - run: pytest -m "not live"
 
   integration:
@@ -143,10 +146,16 @@ jobs:
   semgrep:
     name: Semgrep (static code analysis)
     runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v7
+
+      # Installed from PyPI instead of running in the semgrep/semgrep container,
+      # so a Docker Hub pull failure cannot block every pull request.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - run: pip install semgrep==1.180.0
 
       - run: >-
           semgrep scan --error --metrics=off

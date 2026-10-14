@@ -151,7 +151,7 @@ export interface UnidadeConsumidora {
   historico_consumo?: HistoricoConsumoMes[];
   balanco_energetico?: BalancoEnergeticoMes[];
   extrato_gd?: ExtratoGdEntry[];
-  // Raw fields from utility API, normalized in lib/queries.ts
+  // Raw fields from utility API, normalized in lib/queries/utility.ts
   historico_faturas_60_meses?: CoopFatura[];
   grafico_historico_12_meses?: {
     RetornoDadosHistoricoGeracaoConsumoKwhNormal?: CoopHistoricoGeracaoConsumo[];
