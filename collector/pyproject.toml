@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "solar-hub-collector"
-version = "1.6.0" # x-release-please-version
+version = "1.6.1" # x-release-please-version
 description = "Solar Hub edge collectors: inverter telemetry and utility portal sync"
 license = "MIT"
 requires-python = ">=3.10"
