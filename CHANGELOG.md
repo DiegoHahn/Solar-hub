@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.1...v1.5.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **collector:** make offline queue replay idempotent ([#48](https://github.com/DiegoHahn/Solar-hub/issues/48)) ([cfa4495](https://github.com/DiegoHahn/Solar-hub/commit/cfa4495a85daa3fc87cbc73d6d7296903295cded))
+* **db:** enforce the email allowlist in RLS policies ([#45](https://github.com/DiegoHahn/Solar-hub/issues/45)) ([d252cef](https://github.com/DiegoHahn/Solar-hub/commit/d252cefc065aaf4e9df1d7f57a8aacf114b22458))
+
 ## [1.5.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.0...v1.5.1) (2026-10-09)
 
 
