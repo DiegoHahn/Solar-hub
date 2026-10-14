@@ -63,6 +63,8 @@ jobs:
             collector/requirements-dev.txt
 
       - run: pip install -r requirements.txt -r requirements-dev.txt
+      # Builds and installs the collector package itself; its dependencies come from the pins above
+      - run: pip install --no-deps -e .
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
