@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.2...v1.6.0) (2026-10-14)
+
+
+### Features
+
+* **dashboard:** installable home screen app with a web manifest ([#53](https://github.com/DiegoHahn/Solar-hub/issues/53)) ([0f1ebc5](https://github.com/DiegoHahn/Solar-hub/commit/0f1ebc525281cb4fa24a20473fb28d86623cc110))
+
 ## [1.5.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.1...v1.5.2) (2026-10-14)
 
 
