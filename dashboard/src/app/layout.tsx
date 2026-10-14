@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppShell } from "@/components/AppShell";
@@ -12,8 +12,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Solar Hub",
     description: t.overview.subtitle,
+    manifest: "/manifest.webmanifest",
+    icons: { apple: "/icons/apple-touch-icon.png" },
+    // iOS does not read the manifest: these tags make "Add to Home Screen" open full screen.
+    appleWebApp: { capable: true, title: "Solar Hub", statusBarStyle: "black-translucent" },
   };
 }
+
+export const viewport: Viewport = {
+  themeColor: "#030712",
+  // Lets the layout extend under the notch and the home indicator when installed.
+  viewportFit: "cover",
+};
 
 export default async function RootLayout({
   children,
