@@ -1,3 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solar-hub-collector"
+version = "1.5.1" # x-release-please-version
+description = "Solar Hub edge collectors: inverter telemetry and utility portal sync"
+license = "MIT"
+requires-python = ">=3.10"
+# Ranges only; requirements.txt pins the exact versions installed on the edge device
+dependencies = [
+    "goodwe>=0.4",
+    "pysolarmanv5>=3.0",
+    "requests>=2.32",
+    "urllib3>=2",
+]
+
+[project.scripts]
+solar-inverters = "collector.inverters:main"
+solar-utility = "collector.utility:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
@@ -6,22 +31,22 @@ target-version = "py310"
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["collector"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+# Lets the tests import the package from a plain checkout; `pip install -e .` resolves the same way
+pythonpath = ["src"]
 markers = [
     "live: tests that connect to the real inverters or the Cooperaliança portal (Pi only)",
 ]
-addopts = "-m 'not live' --cov=. --cov-report=term-missing --cov-fail-under=80"
-
-[tool.coverage.run]
-omit = ["tests/*", "scripts/*"]
+addopts = "-m 'not live' --cov=collector --cov-report=term-missing --cov-fail-under=80"
 
 [tool.mypy]
 python_version = "3.10"
-files = ["common.py", "inverters.py", "utility.py"]
-# The collector modules import each other as top-level modules (`from common import ...`)
-explicit_package_bases = true
+files = ["src/collector"]
+mypy_path = "src"
 strict = true
 
 [[tool.mypy.overrides]]

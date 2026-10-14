@@ -1,10 +1,7 @@
 import json
 import os
 
-try:
-    from collector.common import atomic_write_json, load_env
-except ImportError:
-    from common import atomic_write_json, load_env
+from collector.common import atomic_write_json, load_env
 
 
 def test_load_env_reads_pairs_and_skips_comments(tmp_path):

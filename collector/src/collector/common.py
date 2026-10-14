@@ -6,9 +6,29 @@ import os
 import sys
 import time
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 DEFAULT_LOG_LEVEL = "INFO"
+
+# Root of the collector project (holds pyproject.toml, .env, config.json and data/) when the
+# package runs from the repository, as on the edge device: src/collector/common.py -> collector/
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def collector_home() -> Path:
+    """Directory holding .env, config.json and the default data/ directory.
+
+    COLLECTOR_HOME wins when set. Otherwise the collector project directory of this checkout is
+    used (the layout on the edge device); a non-editable install falls back to the working
+    directory, which the systemd units set to the collector directory.
+    """
+    override = os.environ.get("COLLECTOR_HOME")
+    if override:
+        return Path(override)
+    if (_PROJECT_ROOT / "pyproject.toml").exists():
+        return _PROJECT_ROOT
+    return Path.cwd()
 
 
 def load_env(env_file: str) -> dict[str, str]:
@@ -60,6 +80,9 @@ def configure_logging(env: Mapping[str, str] | None = None) -> None:
     Output goes to stdout, which systemd forwards to journald. Under systemd (JOURNAL_STREAM set)
     the timestamp is left out because journald already records one for every line.
     """
+    # UTF-8 output on Windows terminals (°C, Cooperaliança); a no-op on the edge device
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     if os.environ.get("JOURNAL_STREAM"):
         fmt = "%(levelname)s %(name)s: %(message)s"
     else:

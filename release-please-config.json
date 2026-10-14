@@ -11,7 +11,8 @@
           "type": "json",
           "path": "dashboard/package.json",
           "jsonpath": "$.version"
-        }
+        },
+        "collector/pyproject.toml"
       ]
     }
   },
