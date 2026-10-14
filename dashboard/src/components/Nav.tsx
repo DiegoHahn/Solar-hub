@@ -138,7 +138,8 @@ export function Nav({ isDemo = false }: { isDemo?: boolean }) {
       </nav>
 
       {/* Mobile: top header with logo and language toggle */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-2.5 backdrop-blur-sm md:hidden dark:border-gray-900 dark:bg-[#030712]/95">
+      {/* pt adds the status bar height when installed on the home screen (viewport-fit=cover) */}
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 pb-2.5 pt-[calc(0.625rem_+_env(safe-area-inset-top))] backdrop-blur-sm md:hidden dark:border-gray-900 dark:bg-[#030712]/95">
         <span className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-50">
           <Image src="/logo.png" alt="" width={24} height={24} className="shrink-0" priority />
           Solar Hub
