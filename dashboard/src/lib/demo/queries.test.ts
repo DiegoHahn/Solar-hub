@@ -7,7 +7,7 @@ import {
   getDemoMultiYearHistory,
   getDemoMonthlyGeneration,
   getDemoYearlyGeneration,
-  getDemoIcaraWeatherData,
+  getDemoPlantWeatherData,
 } from "./queries";
 import * as datesModule from "@/lib/dates";
 
@@ -128,9 +128,9 @@ describe("demo/queries", () => {
     });
   });
 
-  describe("getDemoIcaraWeatherData", () => {
+  describe("getDemoPlantWeatherData", () => {
     it("returns combined weather forecast and history sorted by date", async () => {
-      const weather = await getDemoIcaraWeatherData();
+      const weather = await getDemoPlantWeatherData();
       expect(weather.length).toBeGreaterThan(0);
 
       // Verify chronological ordering

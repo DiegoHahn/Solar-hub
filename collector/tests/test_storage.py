@@ -1,10 +1,8 @@
 import json
 import os
 
-try:
-    from collector import inverters
-except ImportError:
-    import inverters
+from collector import inverters
+from collector.settings import CollectorSettings, CollectorState
 
 
 def test_atomic_write_json(tmp_path):
@@ -34,27 +32,25 @@ def test_load_config_with_example():
     assert len(cfg["inverters"]) >= 3
 
 
-def test_load_env(monkeypatch, tmp_path):
+def test_load_env(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text('FOO=bar\nBAZ="qux"\n# Comment\nSPACED = 123\n', encoding="utf-8")
 
-    monkeypatch.setattr(inverters, "ENV_FILE", str(env_file))
-    env_vars = inverters.load_env()
+    env_vars = CollectorSettings.load(tmp_path).env
 
     assert env_vars.get("FOO") == "bar"
     assert env_vars.get("BAZ") == "qux"
     assert env_vars.get("SPACED") == "123"
 
 
-def test_queue_offline_telemetry(monkeypatch, tmp_path):
+def test_queue_offline_telemetry(tmp_path):
     queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
 
     payload1 = {"id": 1, "power_w": 500}
     payload2 = {"id": 2, "power_w": 600}
 
-    inverters.queue_offline_telemetry(payload1)
-    inverters.queue_offline_telemetry(payload2)
+    inverters.queue_offline_telemetry(payload1, queue_file)
+    inverters.queue_offline_telemetry(payload2, queue_file)
 
     assert os.path.exists(queue_file)
     with open(queue_file, "r", encoding="utf-8") as f:
@@ -65,10 +61,8 @@ def test_queue_offline_telemetry(monkeypatch, tmp_path):
     assert queued[1] == payload2
 
 
-def test_get_last_known_energies(monkeypatch, tmp_path):
+def test_get_last_known_energies(tmp_path):
     latest_file = str(tmp_path / "latest.json")
-    monkeypatch.setattr(inverters, "LATEST_FILE", latest_file)
-    monkeypatch.setattr(inverters, "_LATEST_IN_MEMORY", None)
 
     from datetime import datetime
 
@@ -83,7 +77,7 @@ def test_get_last_known_energies(monkeypatch, tmp_path):
     }
     inverters.atomic_write_json(latest_file, dummy_latest)
 
-    last_known = inverters.get_last_known_energies()
+    last_known = inverters.get_last_known_energies(CollectorState(), latest_file)
     assert "inv_1" in last_known
     assert last_known["inv_1"]["energy_today_kwh"] == 5.4
     assert last_known["inv_2"]["energy_today_kwh"] == 4.1
@@ -98,14 +92,13 @@ def test_atomic_write_json_error(tmp_path):
     assert not os.path.exists(target_file)
 
 
-def test_queue_offline_telemetry_corrupted_and_trim(monkeypatch, tmp_path):
+def test_queue_offline_telemetry_corrupted_and_trim(tmp_path):
     queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
 
     with open(queue_file, "w", encoding="utf-8") as f:
         f.write("{invalid json")
 
-    inverters.queue_offline_telemetry({"power_w": 100})
+    inverters.queue_offline_telemetry({"power_w": 100}, queue_file)
     with open(queue_file, "r", encoding="utf-8") as f:
         queue = json.load(f)
     assert len(queue) == 1
@@ -114,19 +107,17 @@ def test_queue_offline_telemetry_corrupted_and_trim(monkeypatch, tmp_path):
     with open(queue_file, "w", encoding="utf-8") as f:
         json.dump(huge_queue, f)
 
-    inverters.queue_offline_telemetry({"power_w": 999})
+    inverters.queue_offline_telemetry({"power_w": 999}, queue_file)
     with open(queue_file, "r", encoding="utf-8") as f:
         queue = json.load(f)
     assert len(queue) == 500
     assert queue[-1]["power_w"] == 999
 
 
-def test_get_last_known_energies_corrupted(monkeypatch, tmp_path):
+def test_get_last_known_energies_corrupted(tmp_path):
     latest_file = str(tmp_path / "latest.json")
-    monkeypatch.setattr(inverters, "LATEST_FILE", latest_file)
-    monkeypatch.setattr(inverters, "_LATEST_IN_MEMORY", None)
 
     with open(latest_file, "w", encoding="utf-8") as f:
         f.write("corrupted")
 
-    assert inverters.get_last_known_energies() == {}
+    assert inverters.get_last_known_energies(CollectorState(), latest_file) == {}

@@ -22,7 +22,7 @@ export default async function CombinadaPage() {
   const [telemetry, utilityData, weatherData, generationByDay] = await Promise.all([
     ds.getLatestTelemetry(),
     ds.getLatestUtilityData(),
-    ds.getIcaraWeatherData(),
+    ds.getPlantWeatherData(),
     ds.getGenerationByDay(31),
   ]);
   const monthSolarKwh = currentMonthGenerationKwh(generationByDay, toBrasiliaIsoDate(new Date()));

@@ -1,4 +1,6 @@
+mypy==2.4.0
 pytest==9.1.1
 pytest-httpserver==1.2.0
 pytest-cov==7.1.0
 ruff==0.16.10
+types-requests==2.33.0.20261006

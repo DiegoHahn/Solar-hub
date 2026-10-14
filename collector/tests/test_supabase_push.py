@@ -1,24 +1,19 @@
 import json
 import os
 
+from conftest import make_settings
 from werkzeug.wrappers import Response
 
-try:
-    from collector import inverters, utility
-except ImportError:
-    import inverters
-    import utility
+from collector import inverters, utility
 
 
 def test_push_to_supabase_success(httpserver, monkeypatch, tmp_path):
-    queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
-
     fake_env = {
         "SUPABASE_URL": httpserver.url_for(""),
         "SUPABASE_SERVICE_ROLE_KEY": "fake-service-key-123",
     }
-    monkeypatch.setattr(inverters, "ENV", fake_env)
+    settings = make_settings(tmp_path, env=fake_env)
+    queue_file = settings.offline_queue_file
 
     httpserver.expect_request(
         "/rest/v1/solar_telemetry",
@@ -43,21 +38,19 @@ def test_push_to_supabase_success(httpserver, monkeypatch, tmp_path):
         "inverters": [],
     }
 
-    inverters.push_to_supabase(plant_summary)
+    inverters.push_to_supabase(plant_summary, settings)
 
     httpserver.check_assertions()
     assert not os.path.exists(queue_file)
 
 
 def test_push_to_supabase_offline_fallback(httpserver, monkeypatch, tmp_path):
-    queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
-
     fake_env = {
         "SUPABASE_URL": httpserver.url_for(""),
         "SUPABASE_SERVICE_ROLE_KEY": "fake-service-key-123",
     }
-    monkeypatch.setattr(inverters, "ENV", fake_env)
+    settings = make_settings(tmp_path, env=fake_env)
+    queue_file = settings.offline_queue_file
 
     httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_data(
         "Internal Server Error", status=500
@@ -68,7 +61,7 @@ def test_push_to_supabase_offline_fallback(httpserver, monkeypatch, tmp_path):
         "total_power_w": 4600.0,
     }
 
-    inverters.push_to_supabase(plant_summary)
+    inverters.push_to_supabase(plant_summary, settings)
 
     assert os.path.exists(queue_file)
     with open(queue_file, "r", encoding="utf-8") as f:
@@ -79,7 +72,6 @@ def test_push_to_supabase_offline_fallback(httpserver, monkeypatch, tmp_path):
 
 def test_flush_offline_queue(httpserver, monkeypatch, tmp_path):
     queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
 
     pending_items = [
         {"recorded_at": "2026-09-29T11:00:00Z", "total_power_w": 3000.0},
@@ -95,7 +87,7 @@ def test_flush_offline_queue(httpserver, monkeypatch, tmp_path):
     )
 
     headers = {"apikey": "fake-key", "Authorization": "Bearer fake-key"}
-    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+    inverters.flush_offline_queue(httpserver.url_for(""), headers, queue_file)
 
     if os.path.exists(queue_file):
         with open(queue_file, "r", encoding="utf-8") as f:
@@ -134,22 +126,20 @@ def test_push_utility_to_supabase(httpserver, monkeypatch):
     httpserver.check_assertions()
 
 
-def test_push_to_supabase_missing_env(monkeypatch):
-    monkeypatch.setattr(inverters, "ENV", {})
-    assert inverters.push_to_supabase({}) is None
+def test_push_to_supabase_missing_env(tmp_path):
+    assert inverters.push_to_supabase({}, make_settings(tmp_path)) is None
 
-    monkeypatch.setattr(inverters, "ENV", {"SUPABASE_URL": "https://SEU_PROJECT_REF.supabase.co"})
-    assert inverters.push_to_supabase({}) is None
+    placeholder = make_settings(
+        tmp_path, env={"SUPABASE_URL": "https://SEU_PROJECT_REF.supabase.co"}
+    )
+    assert inverters.push_to_supabase({}, placeholder) is None
 
 
 def test_push_to_supabase_network_exception(monkeypatch, tmp_path):
-    queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
-    monkeypatch.setattr(
-        inverters,
-        "ENV",
-        {"SUPABASE_URL": "http://127.0.0.1:9999", "SUPABASE_SERVICE_ROLE_KEY": "key"},
+    settings = make_settings(
+        tmp_path, env={"SUPABASE_URL": "http://127.0.0.1:9999", "SUPABASE_SERVICE_ROLE_KEY": "key"}
     )
+    queue_file = settings.offline_queue_file
     import requests
 
     monkeypatch.setattr(
@@ -158,13 +148,14 @@ def test_push_to_supabase_network_exception(monkeypatch, tmp_path):
         lambda *a, **k: (_ for _ in ()).throw(requests.RequestException("Network unavailable")),
     )
 
-    inverters.push_to_supabase({"timestamp": "2026-09-29T12:00:00Z", "total_power_w": 100})
+    inverters.push_to_supabase(
+        {"timestamp": "2026-09-29T12:00:00Z", "total_power_w": 100}, settings
+    )
     assert os.path.exists(queue_file)
 
 
 def test_flush_offline_queue_partial_failure(httpserver, monkeypatch, tmp_path):
     queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
 
     pending_items = [
         {"recorded_at": "2026-09-29T11:00:00Z", "total_power_w": 3000.0},
@@ -186,7 +177,7 @@ def test_flush_offline_queue_partial_failure(httpserver, monkeypatch, tmp_path):
     )
 
     headers = {"apikey": "fake-key", "Authorization": "Bearer fake-key"}
-    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+    inverters.flush_offline_queue(httpserver.url_for(""), headers, queue_file)
 
     assert os.path.exists(queue_file)
     with open(queue_file, "r", encoding="utf-8") as f:
@@ -197,12 +188,11 @@ def test_flush_offline_queue_partial_failure(httpserver, monkeypatch, tmp_path):
 
 def test_flush_offline_queue_corrupted(monkeypatch, tmp_path):
     queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
 
     with open(queue_file, "w", encoding="utf-8") as f:
         f.write("corrupted json")
 
-    inverters.flush_offline_queue("http://fake", {})
+    inverters.flush_offline_queue("http://fake", {}, queue_file)
 
 
 def test_push_utility_to_supabase_edge_cases(httpserver, monkeypatch):
@@ -266,19 +256,16 @@ class FakePostgrest:
         return Response(status=201)
 
 
-def _supabase_env(monkeypatch, httpserver, tmp_path):
-    queue_file = str(tmp_path / "offline_queue.json")
-    monkeypatch.setattr(inverters, "OFFLINE_QUEUE_FILE", queue_file)
-    monkeypatch.setattr(
-        inverters,
-        "ENV",
-        {"SUPABASE_URL": httpserver.url_for(""), "SUPABASE_SERVICE_ROLE_KEY": "fake-key"},
+def _supabase_settings(httpserver, tmp_path):
+    return make_settings(
+        tmp_path,
+        env={"SUPABASE_URL": httpserver.url_for(""), "SUPABASE_SERVICE_ROLE_KEY": "fake-key"},
     )
-    return queue_file
 
 
-def test_push_to_supabase_sends_conflict_params(httpserver, monkeypatch, tmp_path):
-    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+def test_push_to_supabase_sends_conflict_params(httpserver, tmp_path):
+    settings = _supabase_settings(httpserver, tmp_path)
+    queue_file = settings.offline_queue_file
     fake = FakePostgrest()
     httpserver.expect_request(
         "/rest/v1/solar_telemetry",
@@ -288,26 +275,27 @@ def test_push_to_supabase_sends_conflict_params(httpserver, monkeypatch, tmp_pat
     ).respond_with_handler(fake)
 
     snapshot = {"timestamp": "2026-09-29T12:00:00-03:00", "total_power_w": 1.0}
-    inverters.push_to_supabase(snapshot)
-    inverters.push_to_supabase(snapshot)
+    inverters.push_to_supabase(snapshot, settings)
+    inverters.push_to_supabase(snapshot, settings)
 
     assert len(fake.requests) == 2
     assert [row["recorded_at"] for row in fake.rows] == ["2026-09-29T12:00:00-03:00"]
     assert not os.path.exists(queue_file)
 
 
-def test_push_to_supabase_never_sends_null_recorded_at(httpserver, monkeypatch, tmp_path):
-    _supabase_env(monkeypatch, httpserver, tmp_path)
+def test_push_to_supabase_never_sends_null_recorded_at(httpserver, tmp_path):
+    settings = _supabase_settings(httpserver, tmp_path)
     fake = FakePostgrest()
     httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(fake)
 
-    inverters.push_to_supabase({"total_power_w": 1.0})
+    inverters.push_to_supabase({"total_power_w": 1.0}, settings)
 
     assert fake.rows[0]["recorded_at"]
 
 
-def test_interrupted_queue_replay_is_retried_without_duplicates(httpserver, tmp_path, monkeypatch):
-    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+def test_interrupted_queue_replay_is_retried_without_duplicates(httpserver, tmp_path):
+    settings = _supabase_settings(httpserver, tmp_path)
+    queue_file = settings.offline_queue_file
     pending = [
         {"recorded_at": f"2026-09-29T11:{minute:02d}:00-03:00", "total_power_w": float(minute)}
         for minute in (0, 10, 20, 30)
@@ -324,14 +312,14 @@ def test_interrupted_queue_replay_is_retried_without_duplicates(httpserver, tmp_
         "Prefer": "resolution=ignore-duplicates",
     }
 
-    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+    inverters.flush_offline_queue(httpserver.url_for(""), headers, queue_file)
 
     with open(queue_file, "r", encoding="utf-8") as f:
         assert json.load(f) == pending[1:]
     assert len(fake.rows) == 2
 
     # Next cycle: the replay resends the snapshot that was already stored, and it is skipped
-    inverters.flush_offline_queue(httpserver.url_for(""), headers)
+    inverters.flush_offline_queue(httpserver.url_for(""), headers, queue_file)
 
     assert not os.path.exists(queue_file)
     assert [row["recorded_at"] for row in fake.rows] == [item["recorded_at"] for item in pending]
@@ -340,9 +328,10 @@ def test_interrupted_queue_replay_is_retried_without_duplicates(httpserver, tmp_
     assert all(prefer == "resolution=ignore-duplicates" for _, prefer, _ in fake.requests)
 
 
-def test_cycles_after_outage_drain_queue_without_duplicates(httpserver, monkeypatch, tmp_path):
+def test_cycles_after_outage_drain_queue_without_duplicates(httpserver, tmp_path):
     """A live push whose replay is cut mid-way, then a clean push: one row per snapshot."""
-    queue_file = _supabase_env(monkeypatch, httpserver, tmp_path)
+    settings = _supabase_settings(httpserver, tmp_path)
+    queue_file = settings.offline_queue_file
     queued = [
         {"recorded_at": f"2026-09-29T10:{minute:02d}:00-03:00", "total_power_w": 0.0}
         for minute in (0, 10)
@@ -352,11 +341,15 @@ def test_cycles_after_outage_drain_queue_without_duplicates(httpserver, monkeypa
     fake = FakePostgrest(commit_then_fail={queued[0]["recorded_at"]})
     httpserver.expect_request("/rest/v1/solar_telemetry", method="POST").respond_with_handler(fake)
 
-    inverters.push_to_supabase({"timestamp": "2026-09-29T10:20:00-03:00", "total_power_w": 5.0})
+    inverters.push_to_supabase(
+        {"timestamp": "2026-09-29T10:20:00-03:00", "total_power_w": 5.0}, settings
+    )
     with open(queue_file, "r", encoding="utf-8") as f:
         assert json.load(f) == queued
 
-    inverters.push_to_supabase({"timestamp": "2026-09-29T10:30:00-03:00", "total_power_w": 6.0})
+    inverters.push_to_supabase(
+        {"timestamp": "2026-09-29T10:30:00-03:00", "total_power_w": 6.0}, settings
+    )
 
     assert not os.path.exists(queue_file)
     recorded = [row["recorded_at"] for row in fake.rows]
