@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/DiegoHahn/Solar-hub/compare/v1.6.1...v1.6.2) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** bump next to 16.4.3 to patch critical RCE advisories ([#61](https://github.com/DiegoHahn/Solar-hub/issues/61)) ([96b85fe](https://github.com/DiegoHahn/Solar-hub/commit/96b85fe7e73b68f6bdeffe0c9b419aaca26afc24))
+
 ## [1.6.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.6.0...v1.6.1) (2026-10-14)
 
 
