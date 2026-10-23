@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/DiegoHahn/Solar-hub/compare/v1.6.0...v1.6.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **dashboard:** keep the mobile header below the status bar when installed ([#55](https://github.com/DiegoHahn/Solar-hub/issues/55)) ([6c9a657](https://github.com/DiegoHahn/Solar-hub/commit/6c9a6576fa08f2a3bea4c2cca2ee381cd7ad0f41))
+
 ## [1.6.0](https://github.com/DiegoHahn/Solar-hub/compare/v1.5.2...v1.6.0) (2026-10-14)
 
 
